@@ -53,7 +53,7 @@ export function Navbar() {
     <header className="sticky top-0 z-50 w-full glass-panel border-b-0">
       <div className="container mx-auto px-4 h-20 flex items-center justify-between gap-4">
         <Link href="/" className="flex items-center shrink-0">
-          <img src="/logo.png" alt="Coastaq" className="h-12 w-auto object-contain" />
+          <img src="/logo.png" alt="Coastaq" className="h-14 w-auto object-contain drop-shadow-sm" />
         </Link>
 
         <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-md relative group">

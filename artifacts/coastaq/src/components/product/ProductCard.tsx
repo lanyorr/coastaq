@@ -50,7 +50,7 @@ export function ProductCard({ product }: { product: Product }) {
               {product.title}
             </h3>
             <span className="font-bold text-lg text-primary whitespace-nowrap">
-              ${product.price.toFixed(2)}
+              ${product.price.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
           </div>
           

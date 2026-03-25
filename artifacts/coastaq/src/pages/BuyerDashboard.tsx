@@ -305,7 +305,7 @@ export default function BuyerDashboard() {
                             {item.title}
                           </a>
                           <div className="flex items-center justify-between mt-2">
-                            <span className="font-bold text-primary text-sm">₦{Number(item.price).toLocaleString()}</span>
+                            <span className="font-bold text-primary text-sm">${Number(item.price).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                             <span className="text-xs text-muted-foreground">{item.location}</span>
                           </div>
                         </div>

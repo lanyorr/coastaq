@@ -4,7 +4,7 @@ import { useLogin } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Waves, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Login() {
@@ -44,11 +44,8 @@ export default function Login() {
       />
       
       <div className="relative z-10 w-full max-w-md p-4">
-        <Link href="/" className="inline-flex items-center justify-center w-full mb-8 hover:opacity-80 transition-opacity">
-          <div className="bg-white/50 backdrop-blur-md p-3 rounded-2xl shadow-sm mr-3">
-            <Waves className="h-8 w-8 text-primary" />
-          </div>
-          <span className="font-display font-bold text-4xl text-foreground">Coastaq</span>
+        <Link href="/" className="flex justify-center w-full mb-8 hover:opacity-90 transition-opacity">
+          <img src="/logo.png" alt="Coastaq" className="h-24 w-auto object-contain drop-shadow-md" />
         </Link>
         
         <div className="glass-panel rounded-[2rem] p-8 md:p-10">

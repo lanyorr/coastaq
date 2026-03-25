@@ -202,14 +202,14 @@ function SellerOrders() {
                       {item?.product?.title ?? "Unknown Product"}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      Qty: {item?.quantity ?? 1} · Total: ₦{Number(order.total).toLocaleString()}
+                      Qty: {item?.quantity ?? 1} · Total: ${Number(order.total).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </p>
                     {order.buyerNote && (
                       <p className="text-xs text-muted-foreground mt-1 italic">"{order.buyerNote}"</p>
                     )}
                   </div>
                   <div className="text-right shrink-0">
-                    <p className="text-sm font-bold text-primary">₦{Number(order.total).toLocaleString()}</p>
+                    <p className="text-sm font-bold text-primary">${Number(order.total).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                     <p className="text-[11px] text-muted-foreground mt-0.5">
                       {new Date(order.createdAt).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}
                     </p>
@@ -447,7 +447,7 @@ export default function SellerDashboard() {
             {
               label: "Avg Price",
               value: products.length
-                ? `$${(products.reduce((a, p) => a + p.price, 0) / products.length).toFixed(2)}`
+                ? `$${(products.reduce((a, p) => a + p.price, 0) / products.length).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                 : "—",
             },
           ].map(({ label, value }) => (
@@ -689,7 +689,7 @@ export default function SellerDashboard() {
                           <td className="px-4 py-3 text-xs text-muted-foreground">
                             {(p as any).category?.name ?? <span className="italic">Uncategorized</span>}
                           </td>
-                          <td className="px-4 py-3 text-primary font-bold">${p.price.toFixed(2)}</td>
+                          <td className="px-4 py-3 text-primary font-bold">${p.price.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                           <td className="px-4 py-3">{p.stock}</td>
                           <td className="px-4 py-3">
                             <span className={`px-2 py-1 rounded text-xs font-medium ${

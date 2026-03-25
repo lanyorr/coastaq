@@ -13,8 +13,8 @@ export function Footer() {
     <footer className="bg-white border-t border-border/50 py-10 mt-20">
       <div className="container mx-auto px-4 max-w-5xl">
         <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="opacity-60 hover:opacity-100 transition-opacity">
-            <img src="/logo.png" alt="Coastaq" className="h-10 w-auto object-contain" />
+          <div className="opacity-70 hover:opacity-100 transition-opacity">
+            <img src="/logo.png" alt="Coastaq" className="h-12 w-auto object-contain" />
           </div>
           <p className="text-sm text-muted-foreground text-center md:text-left order-last md:order-none">
             © {new Date().getFullYear()} Coastaq Marketplace. All rights reserved.

@@ -240,7 +240,7 @@ export default function ProductDetails() {
             {/* Price Card */}
             <div className="bg-card border border-border/50 rounded-2xl p-6">
               <div className="text-3xl font-bold text-foreground mb-2">
-                ₦{Number(product.price).toLocaleString()}
+                ${Number(product.price).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </div>
               <span className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground bg-secondary px-3 py-1 rounded-full">
                 <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
@@ -391,7 +391,7 @@ export default function ProductDetails() {
                 <div className="bg-secondary/60 rounded-2xl p-4">
                   <div className="flex items-center justify-between text-sm mb-1">
                     <span className="text-muted-foreground">Unit price</span>
-                    <span className="font-semibold text-foreground">₦{Number(product.price).toLocaleString()}</span>
+                    <span className="font-semibold text-foreground">${Number(product.price).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                   </div>
                   <div className="flex items-center justify-between text-sm mb-3">
                     <span className="text-muted-foreground">Quantity</span>
@@ -414,7 +414,7 @@ export default function ProductDetails() {
                   <div className="border-t border-border/60 pt-3 flex items-center justify-between">
                     <span className="font-semibold text-foreground">Total</span>
                     <span className="text-lg font-bold text-primary">
-                      ₦{(Number(product.price) * orderQty).toLocaleString()}
+                      ${(Number(product.price) * orderQty).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </span>
                   </div>
                 </div>
@@ -438,7 +438,7 @@ export default function ProductDetails() {
                   className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-primary text-white font-semibold text-sm hover:bg-primary/90 transition-colors disabled:opacity-60"
                 >
                   {orderPlacing ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShoppingBag className="w-4 h-4" />}
-                  {orderPlacing ? "Placing order…" : `Place Order · ₦${(Number(product.price) * orderQty).toLocaleString()}`}
+                  {orderPlacing ? "Placing order…" : `Place Order · $${(Number(product.price) * orderQty).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                 </button>
               </div>
             )}
