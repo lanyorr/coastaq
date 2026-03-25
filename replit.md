@@ -47,6 +47,8 @@ artifacts-monorepo/
 - **products**: id, title, description, price, stock, condition, location, images[], categoryId, shopId
 - **orders**: id, userId, status, total, shipping fields, paymentMethod, paymentId
 - **order_items**: id, orderId, productId, quantity, price
+- **conversations**: id, productId, buyerId, sellerId, lastMessageAt, createdAt — one conversation per buyer+seller+product
+- **messages**: id, conversationId, senderId, content, readAt, createdAt
 
 ## API Routes
 

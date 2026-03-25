@@ -1,13 +1,12 @@
 import { useRoute, useLocation } from "wouter";
-import { useGetProduct } from "@workspace/api-client-react";
+import { useGetProduct, useGetMe } from "@workspace/api-client-react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import {
-  MapPin, Store, ShieldCheck, Phone, MessageCircle,
+  MapPin, Store, ShieldCheck, MessageCircle,
   ChevronRight, Flag, AlertCircle, CheckCircle2, Clock,
-  PhoneCall, X, Heart,
+  Heart, Loader2,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
@@ -24,13 +23,10 @@ export default function ProductDetails() {
   const id = params?.id || "";
 
   const { data: product, isLoading, isError } = useGetProduct(id);
+  const { data: user } = useGetMe({ query: { retry: false } });
   const { toast } = useToast();
   const [activeImage, setActiveImage] = useState(0);
-  const [phoneRevealed, setPhoneRevealed] = useState(false);
-  const [showCallbackForm, setShowCallbackForm] = useState(false);
-  const [callbackName, setCallbackName] = useState("");
-  const [callbackPhone, setCallbackPhone] = useState("");
-  const [callbackSent, setCallbackSent] = useState(false);
+  const [messageSending, setMessageSending] = useState(false);
   const [saved, setSaved] = useState(() => {
     try {
       const list = JSON.parse(localStorage.getItem("coastaq_saved") || "[]");
@@ -38,33 +34,13 @@ export default function ProductDetails() {
     } catch { return false; }
   });
 
-  const trackEnquiry = (type: "contact" | "chat" | "callback") => {
-    if (!product) return;
-    const shop = product.shop as any;
-    const entry = {
-      productId: product.id,
-      title: product.title,
-      price: product.price,
-      shopName: shop?.name || "Unknown Shop",
-      image: product.images?.[0] || "https://images.unsplash.com/photo-1616046229478-9901c5536a45?w=200&h=200&fit=crop",
-      location: product.location || "",
-      type,
-      date: new Date().toISOString(),
-    };
-    try {
-      const existing = JSON.parse(localStorage.getItem("coastaq_enquiries") || "[]");
-      localStorage.setItem("coastaq_enquiries", JSON.stringify([...existing, entry]));
-    } catch { /* silent */ }
-  };
-
   const toggleSave = () => {
     if (!product) return;
     const shop = product.shop as any;
     try {
       const existing: any[] = JSON.parse(localStorage.getItem("coastaq_saved") || "[]");
       if (saved) {
-        const next = existing.filter((s: any) => s.productId !== product.id);
-        localStorage.setItem("coastaq_saved", JSON.stringify(next));
+        localStorage.setItem("coastaq_saved", JSON.stringify(existing.filter((s: any) => s.productId !== product.id)));
         setSaved(false);
       } else {
         const entry = {
@@ -72,14 +48,51 @@ export default function ProductDetails() {
           title: product.title,
           price: product.price,
           shopName: shop?.name || "Unknown Shop",
-          image: product.images?.[0] || "https://images.unsplash.com/photo-1616046229478-9901c5536a45?w=200&h=200&fit=crop",
+          image: product.images?.[0] || "",
           location: product.location || "",
           savedAt: new Date().toISOString(),
         };
         localStorage.setItem("coastaq_saved", JSON.stringify([...existing, entry]));
         setSaved(true);
+        toast({ title: "Saved!", description: "Listing added to your saved items." });
       }
     } catch { /* silent */ }
+  };
+
+  const handleMessageSeller = async () => {
+    if (!product) return;
+    const shop = product.shop as any;
+    const sellerId = shop?.userId;
+
+    if (!user) {
+      setLocation("/auth/login");
+      return;
+    }
+
+    if (user.role === "SELLER" || user.role === "ADMIN") {
+      toast({ title: "Buyers only", description: "Only buyers can message sellers." });
+      return;
+    }
+
+    if (!sellerId) {
+      toast({ title: "Unable to message", description: "This seller's profile is unavailable.", variant: "destructive" });
+      return;
+    }
+
+    setMessageSending(true);
+    try {
+      const r = await fetch("/api/messages/conversations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId: product.id, sellerId }),
+      });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || "Failed");
+      setLocation(`/messages/${data.id}`);
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message || "Could not start conversation.", variant: "destructive" });
+    }
+    setMessageSending(false);
   };
 
   if (isLoading) {
@@ -113,32 +126,8 @@ export default function ProductDetails() {
   const defaultImage = "https://images.unsplash.com/photo-1616046229478-9901c5536a45?w=1000&h=1000&fit=crop";
   const images = product.images?.length ? product.images : [defaultImage];
   const shop = product.shop as any;
-  const shopPhone = shop?.phone || null;
-  const shopWhatsapp = shop?.whatsapp || null;
   const shopMonths = shop?.createdAt ? monthsAgo(shop.createdAt) : "1 month";
   const isVerified = shop?.isApproved;
-
-  const handleRequestCallback = (e: React.FormEvent) => {
-    e.preventDefault();
-    trackEnquiry("callback");
-    setCallbackSent(true);
-    setTimeout(() => {
-      setShowCallbackForm(false);
-      setCallbackSent(false);
-      setCallbackName("");
-      setCallbackPhone("");
-    }, 2500);
-  };
-
-  const handleStartChat = () => {
-    trackEnquiry("chat");
-    if (shopWhatsapp) {
-      const msg = encodeURIComponent(`Hi, I'm interested in your listing: ${product.title}`);
-      window.open(`https://wa.me/${shopWhatsapp.replace(/\D/g, "")}?text=${msg}`, "_blank");
-    } else {
-      toast({ title: "Contact seller", description: "Seller hasn't added a WhatsApp number yet." });
-    }
-  };
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -221,62 +210,14 @@ export default function ProductDetails() {
           <div className="w-full lg:w-80 xl:w-88 shrink-0 space-y-4">
 
             {/* Price Card */}
-            <div className="bg-card border border-border/50 rounded-2xl p-6 space-y-4">
-              <div>
-                <div className="text-3xl font-bold text-foreground mb-2">
-                  ₦{Number(product.price).toLocaleString()}
-                </div>
-                <span className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground bg-secondary px-3 py-1 rounded-full">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
-                  Fixed price
-                </span>
+            <div className="bg-card border border-border/50 rounded-2xl p-6">
+              <div className="text-3xl font-bold text-foreground mb-2">
+                ₦{Number(product.price).toLocaleString()}
               </div>
-
-              {/* Request Callback */}
-              {!showCallbackForm ? (
-                <button
-                  onClick={() => setShowCallbackForm(true)}
-                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-primary/30 text-primary text-sm font-semibold hover:bg-primary/5 transition-colors"
-                >
-                  <PhoneCall className="w-4 h-4" />
-                  Request call back
-                </button>
-              ) : (
-                <div className="border border-primary/20 rounded-xl p-4 space-y-3">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm font-semibold text-foreground">Request a call back</span>
-                    <button onClick={() => setShowCallbackForm(false)} className="text-muted-foreground hover:text-foreground">
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                  {callbackSent ? (
-                    <div className="flex items-center gap-2 text-green-600 text-sm py-2">
-                      <CheckCircle2 className="w-4 h-4" />
-                      Request sent! The seller will call you back soon.
-                    </div>
-                  ) : (
-                    <form onSubmit={handleRequestCallback} className="space-y-2">
-                      <input
-                        required
-                        placeholder="Your name"
-                        value={callbackName}
-                        onChange={e => setCallbackName(e.target.value)}
-                        className="w-full text-sm px-3 py-2 rounded-lg border border-border bg-background outline-none focus:ring-2 focus:ring-primary/20"
-                      />
-                      <input
-                        required
-                        placeholder="Your phone number"
-                        value={callbackPhone}
-                        onChange={e => setCallbackPhone(e.target.value)}
-                        className="w-full text-sm px-3 py-2 rounded-lg border border-border bg-background outline-none focus:ring-2 focus:ring-primary/20"
-                      />
-                      <Button type="submit" size="sm" className="w-full rounded-lg bg-primary text-white font-semibold">
-                        Send request
-                      </Button>
-                    </form>
-                  )}
-                </div>
-              )}
+              <span className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground bg-secondary px-3 py-1 rounded-full">
+                <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
+                Fixed price
+              </span>
             </div>
 
             {/* Seller Card */}
@@ -293,12 +234,9 @@ export default function ProductDetails() {
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <a
-                    href={`/shops/${product.shopId}`}
-                    className="font-semibold text-foreground hover:text-primary transition-colors text-sm leading-tight block truncate"
-                  >
+                  <span className="font-semibold text-foreground text-sm leading-tight block truncate">
                     {shop?.name || "Unknown Shop"}
-                  </a>
+                  </span>
                   <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
                     <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">
                       <Clock className="w-3 h-3" />
@@ -318,40 +256,19 @@ export default function ProductDetails() {
                 </div>
               </div>
 
-              <div className="space-y-2.5">
-                {/* Show Contact */}
-                {shopPhone && !phoneRevealed ? (
-                  <button
-                    onClick={() => { setPhoneRevealed(true); trackEnquiry("contact"); }}
-                    className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-primary text-white font-semibold text-sm hover:bg-primary/90 transition-colors shadow-sm shadow-primary/20"
-                  >
-                    <Phone className="w-4 h-4" />
-                    Show contact
-                  </button>
-                ) : phoneRevealed && shopPhone ? (
-                  <a
-                    href={`tel:${shopPhone}`}
-                    className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-primary text-white font-semibold text-sm hover:bg-primary/90 transition-colors shadow-sm shadow-primary/20"
-                  >
-                    <Phone className="w-4 h-4" />
-                    {shopPhone}
-                  </a>
+              {/* Message seller */}
+              <button
+                onClick={handleMessageSeller}
+                disabled={messageSending}
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-primary text-white font-semibold text-sm hover:bg-primary/90 transition-colors shadow-sm shadow-primary/20 disabled:opacity-60"
+              >
+                {messageSending ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
-                  <div className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-secondary text-muted-foreground text-sm">
-                    <Phone className="w-4 h-4" />
-                    No contact added
-                  </div>
-                )}
-
-                {/* Start Chat */}
-                <button
-                  onClick={handleStartChat}
-                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-primary/30 text-primary font-semibold text-sm hover:bg-primary/5 transition-colors"
-                >
                   <MessageCircle className="w-4 h-4" />
-                  Start chat
-                </button>
-              </div>
+                )}
+                {messageSending ? "Opening chat…" : "Message seller"}
+              </button>
             </div>
 
             {/* Safety tip */}

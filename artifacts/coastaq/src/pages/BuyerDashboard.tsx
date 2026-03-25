@@ -3,25 +3,14 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { useLocation } from "wouter";
 import {
-  User, Phone, MessageCircle, Heart, Store, ChevronRight,
-  Search, Clock, Trash2, LayoutDashboard,
+  User, MessageCircle, Heart, Store, ChevronRight,
+  Search, LayoutDashboard, Inbox,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { useState, useEffect } from "react";
 
-export type Enquiry = {
-  productId: string;
-  title: string;
-  price: number;
-  shopName: string;
-  image: string;
-  location: string;
-  type: "contact" | "chat" | "callback";
-  date: string;
-};
-
-export type SavedListing = {
+type SavedListing = {
   productId: string;
   title: string;
   price: number;
@@ -31,22 +20,14 @@ export type SavedListing = {
   savedAt: string;
 };
 
-function useEnquiries() {
-  const [enquiries, setEnquiries] = useState<Enquiry[]>([]);
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem("coastaq_enquiries");
-      setEnquiries(raw ? JSON.parse(raw) : []);
-    } catch { setEnquiries([]); }
-  }, []);
-
-  const remove = (productId: string, date: string) => {
-    const next = enquiries.filter(e => !(e.productId === productId && e.date === date));
-    setEnquiries(next);
-    localStorage.setItem("coastaq_enquiries", JSON.stringify(next));
-  };
-  return { enquiries, remove };
-}
+type Conversation = {
+  id: string;
+  lastMessageAt: string;
+  otherUser: { id: string; name: string } | null;
+  lastMessage: { content: string; createdAt: string } | null;
+  product: { id: string; title: string; images: string[] } | null;
+  unreadCount: number;
+};
 
 function useSaved() {
   const [saved, setSaved] = useState<SavedListing[]>([]);
@@ -65,18 +46,31 @@ function useSaved() {
   return { saved, remove };
 }
 
-const typeLabel: Record<Enquiry["type"], { label: string; icon: React.ReactNode; color: string }> = {
-  contact: { label: "Showed contact", icon: <Phone className="w-3 h-3" />, color: "text-primary bg-primary/10" },
-  chat: { label: "Started chat", icon: <MessageCircle className="w-3 h-3" />, color: "text-green-700 bg-green-50" },
-  callback: { label: "Requested callback", icon: <Clock className="w-3 h-3" />, color: "text-amber-700 bg-amber-50" },
-};
+function timeAgo(date: string | Date): string {
+  const diff = Date.now() - new Date(date).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return "just now";
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  return `${Math.floor(h / 24)}d ago`;
+}
 
 export default function BuyerDashboard() {
   const [, setLocation] = useLocation();
   const { data: user, isLoading } = useGetMe({ query: { retry: false } });
-  const { enquiries, remove: removeEnquiry } = useEnquiries();
   const { saved, remove: removeSaved } = useSaved();
-  const [tab, setTab] = useState<"enquiries" | "saved">("enquiries");
+  const [tab, setTab] = useState<"messages" | "saved">("messages");
+  const [convs, setConvs] = useState<Conversation[]>([]);
+  const [convsLoading, setConvsLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) return;
+    fetch("/api/messages/conversations")
+      .then(r => r.json())
+      .then(d => { setConvs(Array.isArray(d) ? d : []); setConvsLoading(false); })
+      .catch(() => setConvsLoading(false));
+  }, [user]);
 
   if (isLoading) {
     return (
@@ -104,6 +98,8 @@ export default function BuyerDashboard() {
   const memberSince = user.createdAt
     ? format(new Date(user.createdAt as string), "MMM yyyy")
     : "Recently";
+
+  const totalUnread = convs.reduce((a, c) => a + c.unreadCount, 0);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -145,10 +141,10 @@ export default function BuyerDashboard() {
               <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Activity</p>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-sm text-foreground">
-                  <Phone className="w-4 h-4 text-primary" />
-                  Sellers contacted
+                  <MessageCircle className="w-4 h-4 text-primary" />
+                  Conversations
                 </div>
-                <span className="font-bold text-foreground">{enquiries.length}</span>
+                <span className="font-bold text-foreground">{convs.length}</span>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-sm text-foreground">
@@ -174,14 +170,14 @@ export default function BuyerDashboard() {
             {/* Tab bar */}
             <div className="flex gap-1 bg-secondary/50 p-1 rounded-xl mb-5">
               <button
-                onClick={() => setTab("enquiries")}
-                className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${tab === "enquiries" ? "bg-white shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"}`}
+                onClick={() => setTab("messages")}
+                className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${tab === "messages" ? "bg-white shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"}`}
               >
                 <span className="flex items-center justify-center gap-2">
-                  <Phone className="w-4 h-4" />
-                  Enquiry History
-                  {enquiries.length > 0 && (
-                    <span className="ml-1 bg-primary/10 text-primary text-xs font-bold px-2 py-0.5 rounded-full">{enquiries.length}</span>
+                  <MessageCircle className="w-4 h-4" />
+                  Messages
+                  {totalUnread > 0 && (
+                    <span className="ml-1 bg-primary text-white text-xs font-bold px-2 py-0.5 rounded-full">{totalUnread}</span>
                   )}
                 </span>
               </button>
@@ -199,55 +195,77 @@ export default function BuyerDashboard() {
               </button>
             </div>
 
-            {/* Enquiry History */}
-            {tab === "enquiries" && (
+            {/* Messages Tab */}
+            {tab === "messages" && (
               <div>
-                {enquiries.length === 0 ? (
+                {convsLoading ? (
+                  <div className="space-y-3">
+                    {[1, 2, 3].map(i => (
+                      <div key={i} className="bg-card border border-border/50 rounded-2xl p-4 animate-pulse flex gap-3">
+                        <div className="w-12 h-12 rounded-full bg-secondary shrink-0" />
+                        <div className="flex-1 space-y-2 py-1">
+                          <div className="h-4 bg-secondary rounded w-1/3" />
+                          <div className="h-3 bg-secondary rounded w-2/3" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : convs.length === 0 ? (
                   <div className="bg-card border border-border/50 rounded-2xl p-12 text-center">
-                    <Phone className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
-                    <h3 className="font-semibold text-foreground mb-1">No enquiries yet</h3>
+                    <Inbox className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
+                    <h3 className="font-semibold text-foreground mb-1">No messages yet</h3>
                     <p className="text-sm text-muted-foreground mb-5">
-                      When you contact a seller, it'll appear here.
+                      When you message a seller about a listing, it'll appear here.
                     </p>
                     <Button size="sm" variant="outline" className="rounded-xl" onClick={() => setLocation("/")}>
                       Browse listings
                     </Button>
                   </div>
                 ) : (
-                  <div className="space-y-3">
-                    {enquiries.slice().reverse().map((enq, i) => {
-                      const meta = typeLabel[enq.type];
+                  <div className="space-y-2">
+                    {convs.map(conv => {
+                      const img = conv.product?.images?.[0];
+                      const isUnread = conv.unreadCount > 0;
                       return (
-                        <div key={`${enq.productId}-${enq.date}-${i}`} className="bg-card border border-border/50 rounded-2xl p-4 flex items-center gap-4 group">
-                          <div className="w-14 h-14 rounded-xl overflow-hidden bg-secondary shrink-0">
-                            <img src={enq.image} alt={enq.title} className="w-full h-full object-cover" />
+                        <button
+                          key={conv.id}
+                          onClick={() => setLocation(`/messages/${conv.id}`)}
+                          className="w-full bg-card border border-border/50 rounded-2xl p-4 flex items-start gap-3 hover:border-primary/30 hover:shadow-sm transition-all text-left"
+                        >
+                          <div className="w-12 h-12 rounded-full overflow-hidden bg-secondary border border-border shrink-0">
+                            {img ? (
+                              <img src={img} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center bg-primary/10">
+                                <Store className="w-5 h-5 text-primary" />
+                              </div>
+                            )}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <a href={`/products/${enq.productId}`} className="font-semibold text-sm text-foreground hover:text-primary transition-colors line-clamp-1">
-                              {enq.title}
-                            </a>
-                            <div className="flex items-center gap-2 mt-1 flex-wrap">
-                              <span className={`inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full ${meta.color}`}>
-                                {meta.icon} {meta.label}
+                            <div className="flex items-center justify-between gap-2">
+                              <span className={`text-sm truncate ${isUnread ? "font-bold text-foreground" : "font-semibold text-foreground"}`}>
+                                {conv.otherUser?.name ?? "Seller"}
                               </span>
-                              <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
-                                <Store className="w-3 h-3" /> {enq.shopName}
-                              </span>
+                              <div className="flex items-center gap-1.5 shrink-0">
+                                {isUnread && (
+                                  <span className="bg-primary text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                                    {conv.unreadCount > 9 ? "9+" : conv.unreadCount}
+                                  </span>
+                                )}
+                                <span className="text-[11px] text-muted-foreground">
+                                  {conv.lastMessage ? timeAgo(conv.lastMessage.createdAt) : timeAgo(conv.lastMessageAt)}
+                                </span>
+                              </div>
                             </div>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {format(new Date(enq.date), "MMM d, yyyy · h:mm a")}
+                            {conv.product && (
+                              <p className="text-[11px] text-primary/70 truncate mt-0.5">{conv.product.title}</p>
+                            )}
+                            <p className={`text-xs mt-0.5 truncate ${isUnread ? "text-foreground font-medium" : "text-muted-foreground"}`}>
+                              {conv.lastMessage?.content ?? "Start a conversation"}
                             </p>
                           </div>
-                          <div className="flex items-center gap-3 shrink-0">
-                            <span className="font-bold text-sm text-primary">₦{Number(enq.price).toLocaleString()}</span>
-                            <button
-                              onClick={() => removeEnquiry(enq.productId, enq.date)}
-                              className="opacity-0 group-hover:opacity-100 p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-all"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </div>
+                          <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0 mt-1" />
+                        </button>
                       );
                     })}
                   </div>

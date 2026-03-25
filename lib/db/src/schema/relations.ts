@@ -4,6 +4,7 @@ import { shopsTable } from "./shops";
 import { productsTable } from "./products";
 import { categoriesTable } from "./categories";
 import { ordersTable, orderItemsTable } from "./orders";
+import { conversationsTable, messagesTable } from "./messages";
 
 export const usersRelations = relations(usersTable, ({ one }) => ({
   shop: one(shopsTable, {
@@ -59,4 +60,16 @@ export const orderItemsRelations = relations(orderItemsTable, ({ one }) => ({
     fields: [orderItemsTable.productId],
     references: [productsTable.id],
   }),
+}));
+
+export const conversationsRelations = relations(conversationsTable, ({ one, many }) => ({
+  buyer: one(usersTable, { fields: [conversationsTable.buyerId], references: [usersTable.id], relationName: "buyerConversations" }),
+  seller: one(usersTable, { fields: [conversationsTable.sellerId], references: [usersTable.id], relationName: "sellerConversations" }),
+  product: one(productsTable, { fields: [conversationsTable.productId], references: [productsTable.id] }),
+  messages: many(messagesTable),
+}));
+
+export const messagesRelations = relations(messagesTable, ({ one }) => ({
+  conversation: one(conversationsTable, { fields: [messagesTable.conversationId], references: [conversationsTable.id] }),
+  sender: one(usersTable, { fields: [messagesTable.senderId], references: [usersTable.id] }),
 }));

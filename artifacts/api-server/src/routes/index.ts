@@ -9,6 +9,7 @@ import checkoutRouter from "./checkout.js";
 import adminRouter from "./admin.js";
 import uploadRouter from "./upload.js";
 import subscriptionRouter from "./subscription.js";
+import messagesRouter from "./messages.js";
 
 const router: IRouter = Router();
 
@@ -22,5 +23,6 @@ router.use("/checkout", checkoutRouter);
 router.use("/admin", adminRouter);
 router.use("/upload", uploadRouter);
 router.use("/subscription", subscriptionRouter);
+router.use("/messages", messagesRouter);
 
 export default router;

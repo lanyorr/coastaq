@@ -15,6 +15,8 @@ import Orders from "@/pages/Orders";
 import SellerDashboard from "@/pages/SellerDashboard";
 import AdminDashboard from "@/pages/AdminDashboard";
 import BuyerDashboard from "@/pages/BuyerDashboard";
+import Messages from "@/pages/Messages";
+import ChatRoom from "@/pages/ChatRoom";
 
 // Setup global fetch interceptor to inject Authorization header
 const originalFetch = window.fetch;
@@ -59,6 +61,8 @@ function Router() {
       <Route path="/buyer/dashboard" component={BuyerDashboard} />
       <Route path="/seller/dashboard" component={SellerDashboard} />
       <Route path="/admin" component={AdminDashboard} />
+      <Route path="/messages" component={Messages} />
+      <Route path="/messages/:id" component={ChatRoom} />
       <Route component={NotFound} />
     </Switch>
   );

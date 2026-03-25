@@ -11,17 +11,108 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Store, Package, Settings, Plus, Trash2, Loader2, Home,
-  ImageIcon, AlertCircle, CreditCard,
+  ImageIcon, AlertCircle, CreditCard, MessageCircle, ChevronRight, Inbox,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useQueryClient } from "@tanstack/react-query";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import {
   SubscriptionPanel,
   SubscriptionExpiredBanner,
 } from "@/components/subscription/SubscriptionPanel";
 import { useSubscriptionStatus } from "@/hooks/use-subscription";
+
+function timeAgo(date: string | Date): string {
+  const diff = Date.now() - new Date(date).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return "just now";
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  return `${Math.floor(h / 24)}d ago`;
+}
+
+function SellerInbox() {
+  const [, setLocation] = useLocation();
+  const [convs, setConvs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/messages/conversations")
+      .then(r => r.json())
+      .then(d => { setConvs(Array.isArray(d) ? d : []); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, []);
+
+  return (
+    <div className="bg-card border border-border/50 rounded-3xl p-6 shadow-sm">
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="font-display font-semibold text-lg">Buyer Messages</h3>
+        <Button variant="outline" size="sm" className="rounded-xl" onClick={() => setLocation("/messages")}>
+          Open inbox
+        </Button>
+      </div>
+
+      {loading ? (
+        <div className="space-y-3">
+          {[1, 2].map(i => (
+            <div key={i} className="flex gap-3 p-3 rounded-xl animate-pulse">
+              <div className="w-10 h-10 rounded-full bg-secondary shrink-0" />
+              <div className="flex-1 space-y-1.5">
+                <div className="h-3.5 bg-secondary rounded w-1/4" />
+                <div className="h-3 bg-secondary rounded w-1/2" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : convs.length === 0 ? (
+        <div className="text-center py-12">
+          <Inbox className="w-12 h-12 mx-auto mb-3 text-muted-foreground/30" />
+          <p className="font-semibold text-foreground">No messages yet</p>
+          <p className="text-sm text-muted-foreground mt-1">When buyers enquire about your listings, they'll appear here.</p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {convs.slice(0, 8).map((conv: any) => (
+            <button
+              key={conv.id}
+              onClick={() => setLocation(`/messages/${conv.id}`)}
+              className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-secondary/50 transition-colors text-left"
+            >
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                <Store className="w-5 h-5 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-2">
+                  <span className={`text-sm font-semibold truncate ${conv.unreadCount > 0 ? "text-foreground" : "text-foreground/80"}`}>
+                    {conv.otherUser?.name ?? "Buyer"}
+                  </span>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {conv.unreadCount > 0 && (
+                      <span className="bg-primary text-white text-[10px] font-bold rounded-full w-4.5 h-4.5 w-5 h-5 flex items-center justify-center">{conv.unreadCount}</span>
+                    )}
+                    <span className="text-[11px] text-muted-foreground">{conv.lastMessage ? timeAgo(conv.lastMessage.createdAt) : ""}</span>
+                  </div>
+                </div>
+                {conv.product && (
+                  <p className="text-[11px] text-primary/60 truncate">{conv.product.title}</p>
+                )}
+                <p className="text-xs text-muted-foreground truncate">{conv.lastMessage?.content ?? "No messages yet"}</p>
+              </div>
+              <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
+            </button>
+          ))}
+          {convs.length > 8 && (
+            <button onClick={() => setLocation("/messages")} className="w-full text-sm text-primary font-semibold py-2 hover:underline">
+              View all {convs.length} conversations →
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
 const EMPTY_PRODUCT = {
   title: "", price: "", stock: "1",
@@ -214,6 +305,9 @@ export default function SellerDashboard() {
           <TabsList className="bg-secondary/50 p-1 rounded-xl mb-8">
             <TabsTrigger value="products" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm px-6">
               <Package className="w-4 h-4 mr-2" /> Products
+            </TabsTrigger>
+            <TabsTrigger value="messages" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm px-6">
+              <MessageCircle className="w-4 h-4 mr-2" /> Messages
             </TabsTrigger>
             <TabsTrigger value="subscription" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm px-6">
               <CreditCard className="w-4 h-4 mr-2" /> Subscription
@@ -462,6 +556,11 @@ export default function SellerDashboard() {
                 </div>
               )}
             </div>
+          </TabsContent>
+
+          {/* Messages Tab */}
+          <TabsContent value="messages">
+            <SellerInbox />
           </TabsContent>
 
           {/* Subscription Tab */}

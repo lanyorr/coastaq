@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Search, User, Waves, Store, LayoutDashboard } from "lucide-react";
+import { Search, User, Waves, Store, LayoutDashboard, MessageCircle } from "lucide-react";
 import { useGetMe, useLogout } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
 export function Navbar() {
@@ -20,6 +20,20 @@ export function Navbar() {
   const { data: user } = useGetMe({ query: { retry: false } });
   const { mutate: logout } = useLogout();
   const queryClient = useQueryClient();
+  const [unread, setUnread] = useState(0);
+
+  // Poll unread count for logged-in users
+  useEffect(() => {
+    if (!user) { setUnread(0); return; }
+    const fetch_ = () =>
+      fetch("/api/messages/unread")
+        .then(r => r.json())
+        .then(d => setUnread(d.unread ?? 0))
+        .catch(() => {});
+    fetch_();
+    const t = setInterval(fetch_, 15000);
+    return () => clearInterval(t);
+  }, [user]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,6 +83,21 @@ export function Navbar() {
             </Button>
           )}
 
+          {user && (
+            <button
+              onClick={() => setLocation("/messages")}
+              className="relative p-2 rounded-full hover:bg-secondary transition-colors"
+              title="Messages"
+            >
+              <MessageCircle className="h-5 w-5 text-muted-foreground hover:text-primary transition-colors" />
+              {unread > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 bg-primary text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center leading-none">
+                  {unread > 9 ? "9+" : unread}
+                </span>
+              )}
+            </button>
+          )}
+
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -91,6 +120,19 @@ export function Navbar() {
                     <LayoutDashboard className="mr-2 h-4 w-4 text-primary" /> My Dashboard
                   </DropdownMenuItem>
                 )}
+
+                <DropdownMenuItem
+                  className="cursor-pointer rounded-xl"
+                  onClick={() => setLocation("/messages")}
+                >
+                  <MessageCircle className="mr-2 h-4 w-4 text-primary" />
+                  Messages
+                  {unread > 0 && (
+                    <span className="ml-auto bg-primary text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                      {unread > 9 ? "9+" : unread}
+                    </span>
+                  )}
+                </DropdownMenuItem>
 
                 {user.role === "SELLER" && (
                   <DropdownMenuItem className="cursor-pointer rounded-xl text-primary" onClick={() => setLocation("/seller/dashboard")}>
