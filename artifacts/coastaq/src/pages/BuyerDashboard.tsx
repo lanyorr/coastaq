@@ -1,10 +1,11 @@
-import { useGetMe } from "@workspace/api-client-react";
+import { useGetMe, useListOrders } from "@workspace/api-client-react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { useLocation } from "wouter";
 import {
   User, MessageCircle, Heart, Store, ChevronRight,
-  Search, LayoutDashboard, Inbox,
+  Search, LayoutDashboard, Inbox, ShoppingBag, Package,
+  CheckCircle2, XCircle, Truck, Clock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
@@ -56,13 +57,26 @@ function timeAgo(date: string | Date): string {
   return `${Math.floor(h / 24)}d ago`;
 }
 
+const STATUS_CONFIG: Record<string, { label: string; color: string; Icon: any }> = {
+  PENDING:   { label: "Pending",   color: "bg-yellow-100 text-yellow-700",  Icon: Clock },
+  CONFIRMED: { label: "Confirmed", color: "bg-blue-100 text-blue-700",      Icon: CheckCircle2 },
+  SHIPPED:   { label: "Shipped",   color: "bg-purple-100 text-purple-700",  Icon: Truck },
+  DELIVERED: { label: "Delivered", color: "bg-green-100 text-green-700",    Icon: CheckCircle2 },
+  CANCELLED: { label: "Cancelled", color: "bg-red-100 text-red-600",        Icon: XCircle },
+};
+
 export default function BuyerDashboard() {
   const [, setLocation] = useLocation();
   const { data: user, isLoading } = useGetMe({ query: { retry: false } });
   const { saved, remove: removeSaved } = useSaved();
-  const [tab, setTab] = useState<"messages" | "saved">("messages");
+  const [tab, setTab] = useState<"messages" | "orders" | "saved">("messages");
   const [convs, setConvs] = useState<Conversation[]>([]);
   const [convsLoading, setConvsLoading] = useState(true);
+
+  const { data: ordersData, isLoading: ordersLoading } = useListOrders({
+    query: { enabled: !!user, retry: false },
+  });
+  const orders = (ordersData as any[]) ?? [];
 
   useEffect(() => {
     if (!user) return;
@@ -100,6 +114,7 @@ export default function BuyerDashboard() {
     : "Recently";
 
   const totalUnread = convs.reduce((a, c) => a + c.unreadCount, 0);
+  const activeOrders = orders.filter((o: any) => !["DELIVERED", "CANCELLED"].includes(o.status)).length;
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -148,6 +163,22 @@ export default function BuyerDashboard() {
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-sm text-foreground">
+                  <ShoppingBag className="w-4 h-4 text-primary" />
+                  Orders placed
+                </div>
+                <span className="font-bold text-foreground">{orders.length}</span>
+              </div>
+              {activeOrders > 0 && (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-sm text-foreground">
+                    <Package className="w-4 h-4 text-orange-500" />
+                    Active orders
+                  </div>
+                  <span className="font-bold text-orange-500">{activeOrders}</span>
+                </div>
+              )}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm text-foreground">
                   <Heart className="w-4 h-4 text-rose-500" />
                   Saved listings
                 </div>
@@ -173,11 +204,23 @@ export default function BuyerDashboard() {
                 onClick={() => setTab("messages")}
                 className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${tab === "messages" ? "bg-white shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"}`}
               >
-                <span className="flex items-center justify-center gap-2">
+                <span className="flex items-center justify-center gap-1.5">
                   <MessageCircle className="w-4 h-4" />
                   Messages
                   {totalUnread > 0 && (
-                    <span className="ml-1 bg-primary text-white text-xs font-bold px-2 py-0.5 rounded-full">{totalUnread}</span>
+                    <span className="bg-primary text-white text-xs font-bold px-1.5 py-0.5 rounded-full">{totalUnread}</span>
+                  )}
+                </span>
+              </button>
+              <button
+                onClick={() => setTab("orders")}
+                className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${tab === "orders" ? "bg-white shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"}`}
+              >
+                <span className="flex items-center justify-center gap-1.5">
+                  <ShoppingBag className="w-4 h-4" />
+                  Orders
+                  {activeOrders > 0 && (
+                    <span className="bg-orange-100 text-orange-600 text-xs font-bold px-1.5 py-0.5 rounded-full">{activeOrders}</span>
                   )}
                 </span>
               </button>
@@ -185,11 +228,11 @@ export default function BuyerDashboard() {
                 onClick={() => setTab("saved")}
                 className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${tab === "saved" ? "bg-white shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"}`}
               >
-                <span className="flex items-center justify-center gap-2">
+                <span className="flex items-center justify-center gap-1.5">
                   <Heart className="w-4 h-4" />
-                  Saved Listings
+                  Saved
                   {saved.length > 0 && (
-                    <span className="ml-1 bg-rose-100 text-rose-600 text-xs font-bold px-2 py-0.5 rounded-full">{saved.length}</span>
+                    <span className="bg-rose-100 text-rose-600 text-xs font-bold px-1.5 py-0.5 rounded-full">{saved.length}</span>
                   )}
                 </span>
               </button>
@@ -273,7 +316,99 @@ export default function BuyerDashboard() {
               </div>
             )}
 
-            {/* Saved Listings */}
+            {/* Orders Tab */}
+            {tab === "orders" && (
+              <div>
+                {ordersLoading ? (
+                  <div className="space-y-3">
+                    {[1, 2, 3].map(i => (
+                      <div key={i} className="bg-card border border-border/50 rounded-2xl p-4 animate-pulse flex gap-3">
+                        <div className="w-14 h-14 rounded-xl bg-secondary shrink-0" />
+                        <div className="flex-1 space-y-2 py-1">
+                          <div className="h-4 bg-secondary rounded w-1/2" />
+                          <div className="h-3 bg-secondary rounded w-1/3" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : orders.length === 0 ? (
+                  <div className="bg-card border border-border/50 rounded-2xl p-12 text-center">
+                    <ShoppingBag className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
+                    <h3 className="font-semibold text-foreground mb-1">No orders yet</h3>
+                    <p className="text-sm text-muted-foreground mb-5">
+                      When you place an order on a listing, it'll appear here.
+                    </p>
+                    <Button size="sm" variant="outline" className="rounded-xl" onClick={() => setLocation("/")}>
+                      Browse listings
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {orders.map((order: any) => {
+                      const item = order.items?.[0];
+                      const product = item?.product;
+                      const image = product?.images?.[0];
+                      const status = order.status as string;
+                      const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.PENDING;
+                      const StatusIcon = cfg.Icon;
+                      return (
+                        <div key={order.id} className="bg-card border border-border/50 rounded-2xl p-4 flex items-start gap-4">
+                          {/* Product thumbnail */}
+                          <div className="w-14 h-14 rounded-xl overflow-hidden bg-secondary shrink-0">
+                            {image ? (
+                              <img src={image} alt={product?.title} className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center bg-primary/10">
+                                <Package className="w-6 h-6 text-primary" />
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Info */}
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-sm text-foreground truncate">
+                              {product?.title ?? "Product"}
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                              Qty: {item?.quantity ?? 1} · Ordered {timeAgo(order.createdAt)}
+                            </p>
+                            {order.buyerNote && (
+                              <p className="text-xs text-muted-foreground mt-1 italic line-clamp-1">"{order.buyerNote}"</p>
+                            )}
+                            <div className="flex items-center gap-2 mt-2">
+                              <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full ${cfg.color}`}>
+                                <StatusIcon className="w-3 h-3" />
+                                {cfg.label}
+                              </span>
+                              {product && (
+                                <button
+                                  onClick={() => setLocation(`/products/${product.id}`)}
+                                  className="text-xs text-primary hover:underline font-medium"
+                                >
+                                  View listing
+                                </button>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Total */}
+                          <div className="text-right shrink-0">
+                            <p className="font-bold text-primary text-sm">
+                              ${Number(order.total).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </p>
+                            <p className="text-[11px] text-muted-foreground mt-0.5">
+                              {new Date(order.createdAt).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" })}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Saved Listings Tab */}
             {tab === "saved" && (
               <div>
                 {saved.length === 0 ? (

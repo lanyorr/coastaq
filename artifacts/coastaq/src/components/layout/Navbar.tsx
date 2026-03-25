@@ -68,13 +68,22 @@ export function Navbar() {
         </form>
 
         <div className="flex items-center gap-2 sm:gap-4">
-          {(!user || user.role === "BUYER") && (
+          {!user && (
             <Button
               variant="ghost"
               className="hidden sm:flex text-primary hover:text-primary hover:bg-primary/10 rounded-full"
               onClick={() => setLocation("/auth/register?role=SELLER")}
             >
               Sell on Coastaq
+            </Button>
+          )}
+          {user?.role === "BUYER" && (
+            <Button
+              variant="ghost"
+              className="hidden sm:flex text-primary hover:text-primary hover:bg-primary/10 rounded-full font-semibold"
+              onClick={() => setLocation("/")}
+            >
+              Buy on Coastaq
             </Button>
           )}
 
