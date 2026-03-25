@@ -174,7 +174,15 @@ async function seed() {
   // ── Sample products ────────────────────────────────────────────
   const findCat = (name: string) => allCats.find(c => c.name === name)?.id ?? null;
   const products = getSeedProducts(findCat, shop.id);
-  await db.insert(productsTable).values(products);
+  // Shuffle so home page shows a variety of categories on page 1
+  for (let i = products.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [products[i], products[j]] = [products[j], products[i]];
+  }
+  // Insert in batches of 50 to avoid large inserts
+  for (let i = 0; i < products.length; i += 50) {
+    await db.insert(productsTable).values(products.slice(i, i + 50));
+  }
 
   console.log(`✅ ${products.length} products created (one per subcategory)`);
   console.log("\n🎉 Seed complete!");

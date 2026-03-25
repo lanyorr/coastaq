@@ -5,8 +5,10 @@ import { Footer } from "@/components/layout/Footer";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Filter, Store, ChevronDown, ChevronRight } from "lucide-react";
+import { Filter, Store, ChevronDown, ChevronRight, ChevronLeft } from "lucide-react";
 import { useState } from "react";
+
+const PAGE_SIZE = 24;
 
 export default function Home() {
   const [location] = useLocation();
@@ -14,11 +16,20 @@ export default function Home() {
   const searchQuery = searchParams.get("search") || undefined;
   const categoryId = searchParams.get("category") || undefined;
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [page, setPage] = useState(1);
+
+  const filterKey = `${searchQuery ?? ""}|${categoryId ?? ""}`;
+  const [prevFilterKey, setPrevFilterKey] = useState(filterKey);
+  if (filterKey !== prevFilterKey) {
+    setPrevFilterKey(filterKey);
+    setPage(1);
+  }
 
   const { data: productsData, isLoading: loadingProducts } = useListProducts({ 
     search: searchQuery,
     categoryId: categoryId,
-    limit: 20 
+    limit: PAGE_SIZE,
+    page,
   });
   
   const { data: categories, isLoading: loadingCats } = useListCategories();
@@ -143,16 +154,26 @@ export default function Home() {
         </aside>
 
         {/* Product Grid */}
-        <div className="flex-1">
-          {searchQuery && (
-            <h2 className="text-2xl font-display font-bold mb-6">
-              Search results for "{searchQuery}"
+        <div className="flex-1 min-w-0">
+          {/* Header: title + count */}
+          <div className="flex items-center justify-between mb-5 gap-4 flex-wrap">
+            <h2 className="text-xl font-display font-bold text-foreground">
+              {searchQuery
+                ? `Results for "${searchQuery}"`
+                : categoryId
+                ? "Browse Products"
+                : "All Products"}
             </h2>
-          )}
-          
+            {!loadingProducts && productsData && productsData.total > 0 && (
+              <span className="text-sm text-muted-foreground bg-secondary/60 px-3 py-1 rounded-full">
+                {productsData.total.toLocaleString()} listing{productsData.total !== 1 ? "s" : ""}
+              </span>
+            )}
+          </div>
+
           {loadingProducts ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {[1,2,3,4,5,6,7,8].map(i => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-5">
+              {Array.from({ length: PAGE_SIZE }).map((_, i) => (
                 <div key={i} className="space-y-4">
                   <Skeleton className="aspect-square rounded-2xl" />
                   <Skeleton className="h-4 w-2/3" />
@@ -169,11 +190,65 @@ export default function Home() {
               <p className="text-muted-foreground">Try adjusting your filters or search query.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {productsData?.products.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-5">
+                {productsData?.products.map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </div>
+
+              {/* Pagination */}
+              {productsData && productsData.totalPages > 1 && (
+                <div className="flex items-center justify-center gap-2 mt-10">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="rounded-xl gap-1"
+                    disabled={page <= 1}
+                    onClick={() => { setPage(p => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    Prev
+                  </Button>
+
+                  {Array.from({ length: Math.min(productsData.totalPages, 7) }, (_, i) => {
+                    const totalPages = productsData.totalPages;
+                    let pageNum: number;
+                    if (totalPages <= 7) {
+                      pageNum = i + 1;
+                    } else if (page <= 4) {
+                      pageNum = i + 1;
+                    } else if (page >= totalPages - 3) {
+                      pageNum = totalPages - 6 + i;
+                    } else {
+                      pageNum = page - 3 + i;
+                    }
+                    return (
+                      <Button
+                        key={pageNum}
+                        variant={pageNum === page ? "default" : "outline"}
+                        size="sm"
+                        className="rounded-xl w-9 h-9 p-0"
+                        onClick={() => { setPage(pageNum); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                      >
+                        {pageNum}
+                      </Button>
+                    );
+                  })}
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="rounded-xl gap-1"
+                    disabled={page >= productsData.totalPages}
+                    onClick={() => { setPage(p => p + 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                  >
+                    Next
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </div>
+              )}
+            </>
           )}
         </div>
       </main>
