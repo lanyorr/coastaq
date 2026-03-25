@@ -200,6 +200,8 @@ export async function bootstrap(): Promise<void> {
     description: "Your one-stop shop for the latest tech gadgets and accessories.",
     logo: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=200&h=200&fit=crop",
     banner: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=1200&h=400&fit=crop",
+    phone: "+234 801 234 5678",
+    whatsapp: "+234 801 234 5678",
     userId: seller.id,
     isApproved: true,
     subscriptionStatus: "TRIAL",

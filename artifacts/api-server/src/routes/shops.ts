@@ -37,12 +37,14 @@ router.get("/my", requireAuth, requireRole("SELLER", "ADMIN"), async (req, res) 
 
 router.put("/my", requireAuth, requireRole("SELLER", "ADMIN"), async (req, res) => {
   try {
-    const { name, description, logo, banner } = req.body;
+    const { name, description, logo, banner, phone, whatsapp } = req.body;
     const updates: Record<string, unknown> = { updatedAt: new Date() };
     if (name !== undefined) updates.name = name;
     if (description !== undefined) updates.description = description;
     if (logo !== undefined) updates.logo = logo;
     if (banner !== undefined) updates.banner = banner;
+    if (phone !== undefined) updates.phone = phone;
+    if (whatsapp !== undefined) updates.whatsapp = whatsapp;
 
     const [shop] = await db.update(shopsTable).set(updates)
       .where(eq(shopsTable.userId, req.userId!)).returning();

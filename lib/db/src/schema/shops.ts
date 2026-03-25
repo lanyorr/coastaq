@@ -16,6 +16,8 @@ export const shopsTable = pgTable("shops", {
   description: text("description"),
   logo: text("logo"),
   banner: text("banner"),
+  phone: text("phone"),
+  whatsapp: text("whatsapp"),
   isApproved: boolean("is_approved").notNull().default(false),
   userId: text("user_id").notNull().references(() => usersTable.id, { onDelete: "cascade" }),
 
