@@ -29,24 +29,59 @@ export async function bootstrap(): Promise<void> {
     // Categories already exist — check if products are seeded too
     const existingProducts = await db.select().from(productsTable).limit(50);
     if (existingProducts.length < 50) {
-      // Products are missing or very sparse — seed full catalog using existing demo shop
-      logger.info("Categories found but no products — seeding product catalog...");
-      const shops = await db.select().from(shopsTable).limit(1);
-      if (shops.length > 0) {
-        const shop = shops[0];
-        const allCats = await db.select().from(categoriesTable);
-        const findCat = (name: string) => allCats.find(c => c.name === name)?.id ?? null;
-        const products = getSeedProducts(findCat, shop.id);
-        // Shuffle for variety on the home page
-        for (let i = products.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [products[i], products[j]] = [products[j], products[i]];
-        }
-        for (let i = 0; i < products.length; i += 50) {
-          await db.insert(productsTable).values(products.slice(i, i + 50));
-        }
-        logger.info({ count: products.length }, "Product catalog seeded");
+      // Products are missing or very sparse — seed full catalog
+      logger.info("Categories found but products are sparse — seeding product catalog...");
+
+      // Always use a dedicated demo seller + shop so real sellers aren't polluted
+      const demoEmail = "demo-seller@coastaq.internal";
+      const existingDemo = await db.select().from(usersTable).where(eq(usersTable.email, demoEmail)).limit(1);
+      let sellerId: string;
+      if (existingDemo.length > 0) {
+        sellerId = existingDemo[0].id;
+      } else {
+        const passwordHash = await bcrypt.hash(crypto.randomUUID(), 10);
+        const [seller] = await db.insert(usersTable).values({
+          email: demoEmail,
+          passwordHash,
+          name: "Coastaq Demo Store",
+          role: "SELLER",
+        }).returning();
+        sellerId = seller.id;
+        logger.info("Created demo internal seller for product seeding");
       }
+
+      // Get or create the demo shop
+      const existingShops = await db.select().from(shopsTable).where(eq(shopsTable.userId, sellerId)).limit(1);
+      let shop: { id: string };
+      if (existingShops.length > 0) {
+        shop = existingShops[0];
+      } else {
+        const trialEndsAt = new Date();
+        trialEndsAt.setFullYear(trialEndsAt.getFullYear() + 10);
+        const [newShop] = await db.insert(shopsTable).values({
+          name: "Coastaq Demo Store",
+          description: "Sample listings to get you started.",
+          userId: sellerId,
+          isApproved: true,
+          subscriptionStatus: "ACTIVE",
+          trialEndsAt,
+        }).returning();
+        shop = newShop;
+        logger.info("Created demo shop for product seeding");
+      }
+
+      const allCats = await db.select().from(categoriesTable);
+      const findCat = (name: string) => allCats.find(c => c.name === name)?.id ?? null;
+      const products = getSeedProducts(findCat, shop.id);
+      // Shuffle for variety on the home page
+      for (let i = products.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [products[i], products[j]] = [products[j], products[i]];
+      }
+      for (let i = 0; i < products.length; i += 50) {
+        await db.insert(productsTable).values(products.slice(i, i + 50));
+      }
+      logger.info({ count: products.length }, "Product catalog seeded");
     }
 
     logger.info("Database already seeded, skipping bootstrap");
