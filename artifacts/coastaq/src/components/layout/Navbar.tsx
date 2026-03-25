@@ -31,13 +31,10 @@ export function Navbar() {
   };
 
   const handleLogout = () => {
-    logout(undefined, {
-      onSuccess: () => {
-        localStorage.removeItem("coastaq_token");
-        queryClient.invalidateQueries();
-        setLocation("/");
-      }
-    });
+    localStorage.removeItem("coastaq_token");
+    queryClient.clear();
+    logout(undefined as any);
+    setLocation("/");
   };
 
   return (
