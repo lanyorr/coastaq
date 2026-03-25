@@ -1,22 +1,39 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Coastaq multi-vendor marketplace API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication
+  - name: products
+    description: Product management
+  - name: categories
+    description: Category management
+  - name: shops
+    description: Shop management
+  - name: cart
+    description: Cart operations
+  - name: orders
+    description: Order management
+  - name: checkout
+    description: Payment and checkout
+  - name: admin
+    description: Admin operations
+  - name: upload
+    description: File uploads
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +41,555 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /auth/register:
+    post:
+      operationId: register
+      tags: [auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        "200":
+          description: Registration successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login with email/password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Logout current user
+      responses:
+        "200":
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /products:
+    get:
+      operationId: listProducts
+      tags: [products]
+      summary: List products
+      parameters:
+        - name: categoryId
+          in: query
+          schema:
+            type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: shopId
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: Products list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductsResponse"
+
+    post:
+      operationId: createProduct
+      tags: [products]
+      summary: Create a product (seller only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProductRequest"
+      responses:
+        "200":
+          description: Product created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+
+  /products/{id}:
+    get:
+      operationId: getProduct
+      tags: [products]
+      summary: Get a product by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Product details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "404":
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    put:
+      operationId: updateProduct
+      tags: [products]
+      summary: Update a product
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProductRequest"
+      responses:
+        "200":
+          description: Product updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+
+    delete:
+      operationId: deleteProduct
+      tags: [products]
+      summary: Delete a product
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Product deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /categories:
+    get:
+      operationId: listCategories
+      tags: [categories]
+      summary: List all categories in hierarchical format
+      responses:
+        "200":
+          description: Categories list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Category"
+
+    post:
+      operationId: createCategory
+      tags: [categories]
+      summary: Create a category (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCategoryRequest"
+      responses:
+        "200":
+          description: Category created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Category"
+
+  /categories/{id}:
+    put:
+      operationId: updateCategory
+      tags: [categories]
+      summary: Update a category (admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCategoryRequest"
+      responses:
+        "200":
+          description: Category updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Category"
+
+    delete:
+      operationId: deleteCategory
+      tags: [categories]
+      summary: Delete a category (admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Category deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /shops:
+    get:
+      operationId: listShops
+      tags: [shops]
+      summary: List shops
+      responses:
+        "200":
+          description: Shops list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Shop"
+
+  /shops/my:
+    get:
+      operationId: getMyShop
+      tags: [shops]
+      summary: Get current seller's shop
+      responses:
+        "200":
+          description: Shop details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Shop"
+
+    put:
+      operationId: updateMyShop
+      tags: [shops]
+      summary: Update current seller's shop
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateShopRequest"
+      responses:
+        "200":
+          description: Shop updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Shop"
+
+  /shops/{id}:
+    get:
+      operationId: getShop
+      tags: [shops]
+      summary: Get a shop by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Shop details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Shop"
+
+  /orders:
+    get:
+      operationId: listOrders
+      tags: [orders]
+      summary: List orders for current user
+      responses:
+        "200":
+          description: Orders list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Order"
+
+  /orders/seller:
+    get:
+      operationId: listSellerOrders
+      tags: [orders]
+      summary: List orders for current seller's shop
+      responses:
+        "200":
+          description: Seller orders list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Order"
+
+  /orders/{id}:
+    get:
+      operationId: getOrder
+      tags: [orders]
+      summary: Get an order by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Order details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+
+  /checkout/stripe:
+    post:
+      operationId: createStripeSession
+      tags: [checkout]
+      summary: Create a Stripe checkout session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CheckoutRequest"
+      responses:
+        "200":
+          description: Stripe session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StripeSessionResponse"
+
+  /checkout/paypal:
+    post:
+      operationId: createPaypalOrder
+      tags: [checkout]
+      summary: Create a PayPal order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CheckoutRequest"
+      responses:
+        "200":
+          description: PayPal order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaypalOrderResponse"
+
+  /checkout/paypal/capture:
+    post:
+      operationId: capturePaypalOrder
+      tags: [checkout]
+      summary: Capture a PayPal order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CapturePaypalRequest"
+      responses:
+        "200":
+          description: Order confirmed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+
+  /webhooks/stripe:
+    post:
+      operationId: stripeWebhook
+      tags: [checkout]
+      summary: Stripe webhook handler
+      responses:
+        "200":
+          description: Webhook processed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /admin/sellers:
+    get:
+      operationId: adminListSellers
+      tags: [admin]
+      summary: List all sellers (admin only)
+      responses:
+        "200":
+          description: Sellers list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+
+  /admin/sellers/{id}/approve:
+    post:
+      operationId: adminApproveSeller
+      tags: [admin]
+      summary: Approve a seller shop (admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Shop approved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Shop"
+
+  /admin/sellers/{id}/reject:
+    post:
+      operationId: adminRejectSeller
+      tags: [admin]
+      summary: Reject a seller shop (admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Shop rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Shop"
+
+  /admin/analytics:
+    get:
+      operationId: adminGetAnalytics
+      tags: [admin]
+      summary: Get platform analytics (admin only)
+      responses:
+        "200":
+          description: Analytics data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Analytics"
+
+  /upload/image:
+    post:
+      operationId: uploadImage
+      tags: [upload]
+      summary: Upload an image
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UploadImageRequest"
+      responses:
+        "200":
+          description: Uploaded image URL
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UploadImageResponse"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +600,478 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+      required:
+        - error
+
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+        - message
+
+    RegisterRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 6
+        name:
+          type: string
+        role:
+          type: string
+          enum: [BUYER, SELLER]
+        shopName:
+          type: string
+        shopDescription:
+          type: string
+      required:
+        - email
+        - password
+        - name
+        - role
+
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+      required:
+        - email
+        - password
+
+    AuthResponse:
+      type: object
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+        token:
+          type: string
+      required:
+        - user
+        - token
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+        name:
+          type: string
+        role:
+          type: string
+          enum: [BUYER, SELLER, ADMIN]
+        shop:
+          $ref: "#/components/schemas/Shop"
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - email
+        - name
+        - role
+        - createdAt
+
+    Shop:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        logo:
+          type: string
+        banner:
+          type: string
+        isApproved:
+          type: boolean
+        userId:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        _count:
+          type: object
+          properties:
+            products:
+              type: integer
+      required:
+        - id
+        - name
+        - isApproved
+        - userId
+        - createdAt
+
+    UpdateShopRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        logo:
+          type: string
+        banner:
+          type: string
+
+    Product:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+        stock:
+          type: integer
+        condition:
+          type: string
+          enum: [NEW, USED, REFURBISHED]
+        location:
+          type: string
+        images:
+          type: array
+          items:
+            type: string
+        categoryId:
+          type: string
+        shopId:
+          type: string
+        shop:
+          $ref: "#/components/schemas/Shop"
+        category:
+          $ref: "#/components/schemas/Category"
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - title
+        - price
+        - stock
+        - condition
+        - images
+        - shopId
+        - createdAt
+
+    ProductsResponse:
+      type: object
+      properties:
+        products:
+          type: array
+          items:
+            $ref: "#/components/schemas/Product"
+        total:
+          type: integer
+        page:
+          type: integer
+        totalPages:
+          type: integer
+      required:
+        - products
+        - total
+        - page
+        - totalPages
+
+    CreateProductRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+        stock:
+          type: integer
+        condition:
+          type: string
+          enum: [NEW, USED, REFURBISHED]
+        location:
+          type: string
+        images:
+          type: array
+          items:
+            type: string
+        categoryId:
+          type: string
+      required:
+        - title
+        - price
+        - stock
+        - condition
+
+    UpdateProductRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+        stock:
+          type: integer
+        condition:
+          type: string
+          enum: [NEW, USED, REFURBISHED]
+        location:
+          type: string
+        images:
+          type: array
+          items:
+            type: string
+        categoryId:
+          type: string
+
+    Category:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        parentId:
+          type: string
+        children:
+          type: array
+          items:
+            $ref: "#/components/schemas/Category"
+        _count:
+          type: object
+          properties:
+            products:
+              type: integer
+      required:
+        - id
+        - name
+
+    CreateCategoryRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        parentId:
+          type: string
+      required:
+        - name
+
+    Order:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        status:
+          type: string
+          enum: [PENDING, PAID, SHIPPED, DELIVERED, CANCELLED]
+        total:
+          type: number
+        shippingName:
+          type: string
+        shippingAddress:
+          type: string
+        shippingCity:
+          type: string
+        shippingState:
+          type: string
+        shippingZip:
+          type: string
+        shippingCountry:
+          type: string
+        paymentMethod:
+          type: string
+        paymentId:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderItem"
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - userId
+        - status
+        - total
+        - createdAt
+
+    OrderItem:
+      type: object
+      properties:
+        id:
+          type: string
+        orderId:
+          type: string
+        productId:
+          type: string
+        product:
+          $ref: "#/components/schemas/Product"
+        quantity:
+          type: integer
+        price:
+          type: number
+      required:
+        - id
+        - orderId
+        - productId
+        - quantity
+        - price
+
+    CheckoutRequest:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/CartItem"
+        shipping:
+          $ref: "#/components/schemas/ShippingAddress"
+      required:
+        - items
+        - shipping
+
+    CartItem:
+      type: object
+      properties:
+        productId:
+          type: string
+        quantity:
+          type: integer
+        price:
+          type: number
+        title:
+          type: string
+        shopId:
+          type: string
+      required:
+        - productId
+        - quantity
+        - price
+        - title
+        - shopId
+
+    ShippingAddress:
+      type: object
+      properties:
+        name:
+          type: string
+        address:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        zip:
+          type: string
+        country:
+          type: string
+      required:
+        - name
+        - address
+        - city
+        - state
+        - zip
+        - country
+
+    StripeSessionResponse:
+      type: object
+      properties:
+        sessionId:
+          type: string
+        url:
+          type: string
+      required:
+        - sessionId
+        - url
+
+    PaypalOrderResponse:
+      type: object
+      properties:
+        orderId:
+          type: string
+        approvalUrl:
+          type: string
+      required:
+        - orderId
+        - approvalUrl
+
+    CapturePaypalRequest:
+      type: object
+      properties:
+        paypalOrderId:
+          type: string
+        orderId:
+          type: string
+      required:
+        - paypalOrderId
+        - orderId
+
+    Analytics:
+      type: object
+      properties:
+        totalUsers:
+          type: integer
+        totalSellers:
+          type: integer
+        totalProducts:
+          type: integer
+        totalOrders:
+          type: integer
+        totalRevenue:
+          type: number
+        pendingApprovals:
+          type: integer
+      required:
+        - totalUsers
+        - totalSellers
+        - totalProducts
+        - totalOrders
+        - totalRevenue
+        - pendingApprovals
+
+    UploadImageRequest:
+      type: object
+      properties:
+        data:
+          type: string
+          description: Base64-encoded image data
+        folder:
+          type: string
+      required:
+        - data
+
+    UploadImageResponse:
+      type: object
+      properties:
+        url:
+          type: string
+        publicId:
+          type: string
+      required:
+        - url
+        - publicId

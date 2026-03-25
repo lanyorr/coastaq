@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Coastaq Marketplace"
+version = "1.0.0"
+id = "artifacts/coastaq"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 20777
+
+[services.development]
+run = "pnpm --filter @workspace/coastaq run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/coastaq", "run", "build" ]
+publicDir = "artifacts/coastaq/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "20777"
+BASE_PATH = "/"

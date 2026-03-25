@@ -1,0 +1,74 @@
+Create a full-stack multi-vendor marketplace called Coastaq with the following requirements:
+
+TECH STACK:
+- Next.js 14 with TypeScript and App Router
+- Tailwind CSS with Shadcn/ui components
+- PostgreSQL with Prisma ORM
+- NextAuth.js with email/password and Google OAuth
+- Stripe Connect for marketplace payments with 10% platform fee
+- PayPal SDK integration
+- Cloudinary for image uploads
+
+DATABASE SCHEMA (Prisma):
+Create these models: User (with role: BUYER/SELLER/ADMIN), Shop (with isApproved status), Category (with parent-child hierarchy), Product (with images array), Order, OrderItem. Include all necessary relations and timestamps.
+
+FEATURES TO IMPLEMENT:
+
+1. AUTHENTICATION:
+- Signup page with role selection (Buyer/Seller)
+- Sellers must provide shop name and description
+- Signin page with email/password and Google option
+- JWT session management
+
+2. LAYOUT:
+- Left sidebar with hierarchical categories (collapsible subcategories)
+- Header with logo, search bar, "Sell" button, cart icon, user menu
+- Main content area with product grid (4 columns)
+
+3. HOME PAGE:
+- Display latest 20 products
+- Category filtering from sidebar
+- Search functionality
+
+4. PRODUCT MANAGEMENT (SELLER):
+- Form to create products with multiple image upload
+- Fields: title, description, price, stock, condition, location, category
+- Product listing page with edit/delete options
+- Orders management for seller
+
+5. SHOP MANAGEMENT:
+- Sellers can edit shop profile (banner, logo, description)
+- Shop approval system (admin must approve)
+
+6. SHOPPING CART:
+- Zustand store with persistence
+- Add/remove items, update quantities
+- Cart total calculation
+
+7. CHECKOUT & PAYMENTS:
+- Shipping address form
+- Stripe Checkout integration with application fee (10% platform, 90% seller)
+- PayPal integration
+- Order confirmation and history
+
+8. ADMIN PANEL:
+- Approve/reject seller applications
+- Manage categories (CRUD)
+- View platform analytics
+
+9. API ROUTES:
+- /api/auth/* for NextAuth
+- /api/products (CRUD operations)
+- /api/categories (hierarchical)
+- /api/shop (seller management)
+- /api/orders (order processing)
+- /api/checkout (payment sessions)
+- /api/webhooks/stripe (payment confirmation)
+
+SEED DATA:
+Create sample categories: Electronics (with Smartphones, Laptops subcategories), Fashion, Home & Garden, Vehicles, Sports. Create one approved seller with 2 sample products. Create one admin user.
+
+ENVIRONMENT VARIABLES NEEDED:
+DATABASE_URL, NEXTAUTH_SECRET, NEXTAUTH_URL, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET, CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET
+
+Please generate a complete working application with all these features. Make it production-ready with proper error handling, loading states, and responsive design.
