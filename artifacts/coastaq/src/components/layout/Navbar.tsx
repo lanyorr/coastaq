@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Search, User, Waves, Store, LayoutDashboard, MessageCircle } from "lucide-react";
+import { Search, User, Store, LayoutDashboard, MessageCircle } from "lucide-react";
 import { useGetMe, useLogout } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,13 +52,8 @@ export function Navbar() {
   return (
     <header className="sticky top-0 z-50 w-full glass-panel border-b-0">
       <div className="container mx-auto px-4 h-20 flex items-center justify-between gap-4">
-        <Link href="/" className="flex items-center gap-2 group">
-          <div className="bg-primary/10 p-2 rounded-xl group-hover:bg-primary/20 transition-colors">
-            <Waves className="h-6 w-6 text-primary" />
-          </div>
-          <span className="font-display font-bold text-2xl tracking-tight text-foreground">
-            Coastaq
-          </span>
+        <Link href="/" className="flex items-center shrink-0">
+          <img src="/logo.png" alt="Coastaq" className="h-12 w-auto object-contain" />
         </Link>
 
         <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-md relative group">

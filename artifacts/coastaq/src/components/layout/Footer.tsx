@@ -1,5 +1,4 @@
 import { Link } from "wouter";
-import { Waves } from "lucide-react";
 
 const LINKS = [
   { label: "Terms & Conditions", to: "/terms" },
@@ -14,11 +13,8 @@ export function Footer() {
     <footer className="bg-white border-t border-border/50 py-10 mt-20">
       <div className="container mx-auto px-4 max-w-5xl">
         <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="flex items-center gap-2 opacity-50 hover:opacity-100 transition-opacity">
-            <Waves className="h-6 w-6 text-primary" />
-            <span className="font-display font-bold text-xl tracking-tight text-foreground">
-              Coastaq
-            </span>
+          <div className="opacity-60 hover:opacity-100 transition-opacity">
+            <img src="/logo.png" alt="Coastaq" className="h-10 w-auto object-contain" />
           </div>
           <p className="text-sm text-muted-foreground text-center md:text-left order-last md:order-none">
             © {new Date().getFullYear()} Coastaq Marketplace. All rights reserved.
