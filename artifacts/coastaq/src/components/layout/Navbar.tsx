@@ -38,7 +38,11 @@ export function Navbar() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      setLocation(`/?search=${encodeURIComponent(searchQuery)}`);
+      const current = new URLSearchParams(window.location.search);
+      const next = new URLSearchParams();
+      if (current.get("category")) next.set("category", current.get("category")!);
+      next.set("search", searchQuery.trim());
+      setLocation(`/?${next.toString()}`);
     }
   };
 

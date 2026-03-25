@@ -2,7 +2,7 @@ import { useListProducts, useListCategories } from "@workspace/api-client-react"
 import { ProductCard } from "@/components/product/ProductCard";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import { useLocation } from "wouter";
+import { useLocation, useSearch } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Filter, Search, ChevronDown, ChevronRight, ChevronLeft, Store } from "lucide-react";
@@ -11,8 +11,9 @@ import { useState } from "react";
 const PAGE_SIZE = 24;
 
 export default function Home() {
-  const [location, setLocation] = useLocation();
-  const searchParams = new URLSearchParams(window.location.search);
+  const [, setLocation] = useLocation();
+  const searchString = useSearch();
+  const searchParams = new URLSearchParams(searchString);
   const searchQuery = searchParams.get("search") || undefined;
   const categoryId = searchParams.get("category") || undefined;
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
@@ -22,7 +23,12 @@ export default function Home() {
   const handleHeroSearch = (e: React.FormEvent) => {
     e.preventDefault();
     const q = heroSearch.trim();
-    if (q) setLocation(`/?search=${encodeURIComponent(q)}`);
+    if (q) {
+      const next = new URLSearchParams();
+      if (categoryId) next.set("category", categoryId);
+      next.set("search", q);
+      setLocation(`/?${next.toString()}`);
+    }
   };
 
   const filterKey = `${searchQuery ?? ""}|${categoryId ?? ""}`;
@@ -106,30 +112,40 @@ export default function Home() {
             ) : (
               <ul className="space-y-0.5">
                 <li>
-                  <a 
-                    href="/" 
-                    className={`block px-3 py-2 rounded-xl text-sm font-medium transition-colors ${!categoryId ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'}`}
+                  <button
+                    onClick={() => {
+                      const next = new URLSearchParams();
+                      if (searchQuery) next.set("search", searchQuery);
+                      setLocation(`/${next.toString() ? `?${next}` : ""}`);
+                    }}
+                    className={`w-full text-left block px-3 py-2 rounded-xl text-sm font-medium transition-colors ${!categoryId ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'}`}
                   >
                     All Products
-                  </a>
+                  </button>
                 </li>
                 {categories?.map((cat) => {
                   const children = (cat as any).children ?? [];
                   const isParentActive = categoryId === cat.id;
                   const isChildActive = children.some((c: any) => c.id === categoryId);
-                  // Auto-expand when this category or a child of it is active
                   const isOpen = expanded.has(cat.id) || isParentActive || isChildActive;
+
+                  const navToCategory = (id: string) => {
+                    const next = new URLSearchParams();
+                    next.set("category", id);
+                    if (searchQuery) next.set("search", searchQuery);
+                    setLocation(`/?${next.toString()}`);
+                  };
 
                   return (
                     <li key={cat.id}>
                       {/* Parent row */}
                       <div className="flex items-center gap-1">
-                        <a
-                          href={`/?category=${cat.id}`}
-                          className={`flex-1 block px-3 py-2 rounded-xl text-sm font-medium transition-colors ${isParentActive || isChildActive ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'}`}
+                        <button
+                          onClick={() => navToCategory(cat.id)}
+                          className={`flex-1 text-left block px-3 py-2 rounded-xl text-sm font-medium transition-colors ${isParentActive || isChildActive ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'}`}
                         >
                           {cat.name}
-                        </a>
+                        </button>
                         {children.length > 0 && (
                           <button
                             onClick={() => toggleExpand(cat.id)}
@@ -149,12 +165,12 @@ export default function Home() {
                         <ul className="ml-3 mt-0.5 mb-1 pl-3 border-l border-border space-y-0.5">
                           {children.map((child: any) => (
                             <li key={child.id}>
-                              <a
-                                href={`/?category=${child.id}`}
-                                className={`block px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${categoryId === child.id ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'}`}
+                              <button
+                                onClick={() => navToCategory(child.id)}
+                                className={`w-full text-left block px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${categoryId === child.id ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'}`}
                               >
                                 {child.name}
-                              </a>
+                              </button>
                             </li>
                           ))}
                         </ul>
