@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { usersTable, shopsTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { usersTable, shopsTable, productsTable, ordersTable, orderItemsTable } from "@workspace/db";
+import { eq, inArray } from "drizzle-orm";
 import { signToken, hashPassword, comparePassword, requireAuth } from "../lib/auth.js";
 
 const router = Router();
@@ -152,7 +152,23 @@ router.delete("/me", requireAuth, async (req, res) => {
       return;
     }
 
-    // Delete user — shop/products/orders cascade via FK constraints
+    // Manual cascade — FK constraints don't all have onDelete:cascade
+    // Step 1: if seller, delete order_items referencing their products before deleting products
+    const [shop] = await db.select().from(shopsTable).where(eq(shopsTable.userId, user.id)).limit(1);
+    if (shop) {
+      const shopProducts = await db.select({ id: productsTable.id }).from(productsTable).where(eq(productsTable.shopId, shop.id));
+      const productIds = shopProducts.map(p => p.id);
+      if (productIds.length > 0) {
+        await db.delete(orderItemsTable).where(inArray(orderItemsTable.productId, productIds));
+      }
+      await db.delete(productsTable).where(eq(productsTable.shopId, shop.id));
+      await db.delete(shopsTable).where(eq(shopsTable.id, shop.id));
+    }
+
+    // Step 2: delete this user's orders (order_items cascade from orderId)
+    await db.delete(ordersTable).where(eq(ordersTable.userId, user.id));
+
+    // Step 3: delete the user (conversations/messages/reports cascade via their FKs)
     await db.delete(usersTable).where(eq(usersTable.id, user.id));
 
     res.json({ success: true, message: "Account deleted successfully" });
