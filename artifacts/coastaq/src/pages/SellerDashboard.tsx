@@ -12,8 +12,9 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Store, Package, Settings, Plus, Trash2, Loader2, Home,
   ImageIcon, AlertCircle, CreditCard, MessageCircle, ChevronRight, Inbox,
-  ShoppingBag, CheckCircle2, XCircle, Truck, Clock as ClockIcon,
+  ShoppingBag, CheckCircle2, XCircle, Truck, Clock as ClockIcon, AlertTriangle,
 } from "lucide-react";
+import { DeleteAccountDialog } from "@/components/account/DeleteAccountDialog";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useQueryClient } from "@tanstack/react-query";
@@ -294,6 +295,7 @@ export default function SellerDashboard() {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [newProduct, setNewProduct] = useState(EMPTY_PRODUCT);
   const [activeTab, setActiveTab] = useState("products");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [imageUploading, setImageUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -800,39 +802,68 @@ export default function SellerDashboard() {
 
           {/* Settings Tab */}
           <TabsContent value="settings">
-            <div className="bg-card border border-border/50 rounded-3xl p-8 shadow-sm max-w-2xl">
-              <h2 className="text-xl font-bold mb-6">Shop Settings</h2>
-              {shop && (
-                <form onSubmit={handleShopUpdate} className="space-y-6">
-                  <div className="space-y-2">
-                    <Label>Shop Name</Label>
-                    <Input name="name" defaultValue={shop.name} className="h-12 rounded-xl" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Description</Label>
-                    <Textarea
-                      name="description"
-                      defaultValue={shop.description ?? ""}
-                      className="rounded-xl"
-                      rows={4}
-                    />
-                  </div>
-                  <div className="flex gap-3">
-                    <Button type="submit" disabled={updatingShop} className="h-12 rounded-xl px-8">
-                      {updatingShop ? <Loader2 className="animate-spin" /> : "Save Changes"}
-                    </Button>
-                    <Link href="/">
-                      <Button type="button" variant="outline" className="h-12 rounded-xl px-8 gap-2">
-                        <Home className="w-4 h-4" /> Back to Marketplace
+            <div className="space-y-6 max-w-2xl">
+              {/* Shop Settings */}
+              <div className="bg-card border border-border/50 rounded-3xl p-8 shadow-sm">
+                <h2 className="text-xl font-bold mb-6">Shop Settings</h2>
+                {shop && (
+                  <form onSubmit={handleShopUpdate} className="space-y-6">
+                    <div className="space-y-2">
+                      <Label>Shop Name</Label>
+                      <Input name="name" defaultValue={shop.name} className="h-12 rounded-xl" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Description</Label>
+                      <Textarea
+                        name="description"
+                        defaultValue={shop.description ?? ""}
+                        className="rounded-xl"
+                        rows={4}
+                      />
+                    </div>
+                    <div className="flex gap-3">
+                      <Button type="submit" disabled={updatingShop} className="h-12 rounded-xl px-8">
+                        {updatingShop ? <Loader2 className="animate-spin" /> : "Save Changes"}
                       </Button>
-                    </Link>
-                  </div>
-                </form>
-              )}
+                      <Link href="/">
+                        <Button type="button" variant="outline" className="h-12 rounded-xl px-8 gap-2">
+                          <Home className="w-4 h-4" /> Back to Marketplace
+                        </Button>
+                      </Link>
+                    </div>
+                  </form>
+                )}
+              </div>
+
+              {/* Danger Zone */}
+              <div className="bg-card border border-red-200 rounded-3xl p-8 shadow-sm">
+                <div className="flex items-center gap-2 mb-2">
+                  <AlertTriangle className="w-5 h-5 text-red-500" />
+                  <h2 className="text-xl font-bold text-red-600">Danger Zone</h2>
+                </div>
+                <p className="text-sm text-muted-foreground mb-5">
+                  Permanently delete your account, shop, all listings, orders, and messages. This action cannot be undone.
+                </p>
+                <Button
+                  variant="destructive"
+                  className="gap-2 rounded-xl"
+                  onClick={() => setDeleteDialogOpen(true)}
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Delete My Account
+                </Button>
+              </div>
             </div>
           </TabsContent>
         </Tabs>
       </div>
+
+      <DeleteAccountDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onDeleted={() => { window.location.href = "/"; }}
+        userName={user?.name}
+      />
     </div>
   );
 }

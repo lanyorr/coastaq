@@ -5,7 +5,7 @@ import { Footer } from "@/components/layout/Footer";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Filter, Search, ChevronDown, ChevronRight, ChevronLeft } from "lucide-react";
+import { Filter, Search, ChevronDown, ChevronRight, ChevronLeft, Store } from "lucide-react";
 import { useState } from "react";
 
 const PAGE_SIZE = 24;

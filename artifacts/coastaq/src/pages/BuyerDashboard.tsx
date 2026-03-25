@@ -5,8 +5,9 @@ import { useLocation } from "wouter";
 import {
   User, MessageCircle, Heart, Store, ChevronRight,
   Search, LayoutDashboard, Inbox, ShoppingBag, Package,
-  CheckCircle2, XCircle, Truck, Clock,
+  CheckCircle2, XCircle, Truck, Clock, Settings, AlertTriangle, Trash2,
 } from "lucide-react";
+import { DeleteAccountDialog } from "@/components/account/DeleteAccountDialog";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { useState, useEffect } from "react";
@@ -69,7 +70,8 @@ export default function BuyerDashboard() {
   const [, setLocation] = useLocation();
   const { data: user, isLoading } = useGetMe({ query: { retry: false } });
   const { saved, remove: removeSaved } = useSaved();
-  const [tab, setTab] = useState<"messages" | "orders" | "saved">("messages");
+  const [tab, setTab] = useState<"messages" | "orders" | "saved" | "account">("messages");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [convs, setConvs] = useState<Conversation[]>([]);
   const [convsLoading, setConvsLoading] = useState(true);
 
@@ -234,6 +236,15 @@ export default function BuyerDashboard() {
                   {saved.length > 0 && (
                     <span className="bg-rose-100 text-rose-600 text-xs font-bold px-1.5 py-0.5 rounded-full">{saved.length}</span>
                   )}
+                </span>
+              </button>
+              <button
+                onClick={() => setTab("account")}
+                className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${tab === "account" ? "bg-white shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"}`}
+              >
+                <span className="flex items-center justify-center gap-1.5">
+                  <Settings className="w-4 h-4" />
+                  Account
                 </span>
               </button>
             </div>
@@ -408,6 +419,47 @@ export default function BuyerDashboard() {
               </div>
             )}
 
+            {/* Account Tab */}
+            {tab === "account" && (
+              <div className="space-y-5">
+                <div className="bg-card border border-border/50 rounded-2xl p-6 shadow-sm">
+                  <h2 className="font-semibold mb-1">Account Details</h2>
+                  <p className="text-sm text-muted-foreground mb-4">Your registered account information.</p>
+                  <div className="space-y-3 text-sm">
+                    <div className="flex justify-between py-2 border-b border-border/40">
+                      <span className="text-muted-foreground">Name</span>
+                      <span className="font-medium">{user?.name}</span>
+                    </div>
+                    <div className="flex justify-between py-2 border-b border-border/40">
+                      <span className="text-muted-foreground">Email</span>
+                      <span className="font-medium">{user?.email}</span>
+                    </div>
+                    <div className="flex justify-between py-2">
+                      <span className="text-muted-foreground">Account type</span>
+                      <span className="font-medium">Buyer</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-card border border-red-200 rounded-2xl p-6 shadow-sm">
+                  <div className="flex items-center gap-2 mb-2">
+                    <AlertTriangle className="w-5 h-5 text-red-500" />
+                    <h2 className="font-semibold text-red-600">Danger Zone</h2>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Permanently delete your account and all associated data — orders, messages, and saved listings. This cannot be undone.
+                  </p>
+                  <button
+                    onClick={() => setDeleteDialogOpen(true)}
+                    className="flex items-center gap-2 text-sm font-semibold text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 px-4 py-2.5 rounded-xl transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Delete My Account
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Saved Listings Tab */}
             {tab === "saved" && (
               <div>
@@ -455,6 +507,13 @@ export default function BuyerDashboard() {
       </main>
 
       <Footer />
+
+      <DeleteAccountDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onDeleted={() => { window.location.href = "/"; }}
+        userName={user?.name}
+      />
     </div>
   );
 }

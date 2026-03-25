@@ -126,4 +126,40 @@ router.get("/me", requireAuth, async (req, res) => {
   }
 });
 
+router.delete("/me", requireAuth, async (req, res) => {
+  try {
+    const { password } = req.body as { password: string };
+    if (!password) {
+      res.status(400).json({ error: "Password is required to delete your account" });
+      return;
+    }
+
+    const [user] = await db.select().from(usersTable).where(eq(usersTable.id, req.userId!)).limit(1);
+    if (!user) {
+      res.status(404).json({ error: "User not found" });
+      return;
+    }
+
+    // Prevent admins from self-deleting via this endpoint
+    if (user.role === "ADMIN") {
+      res.status(403).json({ error: "Admin accounts cannot be deleted via this endpoint" });
+      return;
+    }
+
+    const valid = await comparePassword(password, user.passwordHash);
+    if (!valid) {
+      res.status(401).json({ error: "Incorrect password" });
+      return;
+    }
+
+    // Delete user — shop/products/orders cascade via FK constraints
+    await db.delete(usersTable).where(eq(usersTable.id, user.id));
+
+    res.json({ success: true, message: "Account deleted successfully" });
+  } catch (err) {
+    req.log.error({ err }, "Delete account error");
+    res.status(500).json({ error: "Failed to delete account" });
+  }
+});
+
 export default router;
