@@ -113,6 +113,11 @@ router.post("/create-order", requireAuth, requireRole("SELLER", "ADMIN"), async 
   try {
     const accessToken = await getPaypalAccessToken();
 
+    const host = process.env["REPLIT_DOMAINS"]?.split(",")[0]
+      ?? `${req.protocol}://${req.get("host")}`;
+    const baseUrl = host.startsWith("http") ? host : `https://${host}`;
+    const dashboardUrl = `${baseUrl}/seller/dashboard`;
+
     const payload = {
       intent: "CAPTURE",
       purchase_units: [
@@ -125,8 +130,8 @@ router.post("/create-order", requireAuth, requireRole("SELLER", "ADMIN"), async 
       application_context: {
         brand_name: "Coastaq Marketplace",
         user_action: "PAY_NOW",
-        return_url: "https://coastaq.replit.app/seller/dashboard",
-        cancel_url: "https://coastaq.replit.app/seller/dashboard",
+        return_url: dashboardUrl,
+        cancel_url: dashboardUrl,
       },
     };
 

@@ -69,14 +69,10 @@ function StatusBadge({ status, daysLeft }: { status: string; daysLeft: number })
   );
 }
 
-function PayPalCheckout({
-  clientId,
-  mode,
+function PayPalCheckoutButtons({
   onSuccess,
   onCancel,
 }: {
-  clientId: string;
-  mode: string;
   onSuccess: () => void;
   onCancel: () => void;
 }) {
@@ -84,74 +80,69 @@ function PayPalCheckout({
   const qc = useQueryClient();
 
   return (
-    <PayPalScriptProvider
-      options={{
-        clientId,
-        currency: "USD",
-        intent: "capture",
-        ...(mode === "sandbox" ? { "buyer-country": "US" } : {}),
+    <PayPalButtons
+      style={{ layout: "vertical", color: "gold", shape: "rect", label: "pay" }}
+      createOrder={async () => {
+        const token = localStorage.getItem("coastaq_token");
+        const res = await fetch("/api/subscription/create-order", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error((err as any).error || "Failed to create order");
+        }
+        const data = await res.json() as { orderID: string };
+        return data.orderID;
       }}
-    >
-      <PayPalButtons
-        style={{ layout: "vertical", color: "gold", shape: "rect", label: "pay" }}
-        forceReRender={[clientId]}
-        createOrder={async () => {
-          const token = localStorage.getItem("coastaq_token");
-          const res = await fetch("/api/subscription/create-order", {
-            method: "POST",
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          if (!res.ok) {
-            const err = await res.json().catch(() => ({}));
-            throw new Error((err as any).error || "Failed to create order");
-          }
-          const data = await res.json() as { orderID: string };
-          return data.orderID;
-        }}
-        onApprove={async (data) => {
-          const token = localStorage.getItem("coastaq_token");
-          const res = await fetch("/api/subscription/capture-order", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({ orderID: data.orderID }),
-          });
-          if (!res.ok) {
-            const err = await res.json().catch(() => ({}));
-            toast({
-              variant: "destructive",
-              title: "Payment failed",
-              description: (err as any).error || "Could not complete payment",
-            });
-            return;
-          }
-          const result = await res.json();
-          qc.invalidateQueries({ queryKey: ["/api/subscription/status"] });
-          toast({
-            title: "Subscription activated!",
-            description: result.message ?? "Your seller subscription is now active.",
-          });
-          onSuccess();
-        }}
-        onCancel={onCancel}
-        onError={(err) => {
-          console.error("PayPal error:", err);
+      onApprove={async (data) => {
+        const token = localStorage.getItem("coastaq_token");
+        const res = await fetch("/api/subscription/capture-order", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ orderID: data.orderID }),
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
           toast({
             variant: "destructive",
-            title: "Payment error",
-            description: "Something went wrong with PayPal. Please try again.",
+            title: "Payment failed",
+            description: (err as any).error || "Could not complete payment",
           });
-        }}
-      />
-    </PayPalScriptProvider>
+          return;
+        }
+        const result = await res.json();
+        qc.invalidateQueries({ queryKey: ["/api/subscription/status"] });
+        toast({
+          title: "Subscription activated!",
+          description: result.message ?? "Your seller subscription is now active.",
+        });
+        onSuccess();
+      }}
+      onCancel={onCancel}
+      onError={(err) => {
+        console.error("PayPal error:", err);
+        toast({
+          variant: "destructive",
+          title: "Payment error",
+          description: "Something went wrong with PayPal. Please try again.",
+        });
+      }}
+    />
   );
 }
 
-export function SubscriptionPanel() {
+function SubscriptionPanelInner({
+  paypalReady,
+  configLoading,
+}: {
+  paypalReady: boolean;
+  configLoading: boolean;
+}) {
   const { data: sub, isLoading } = useSubscriptionStatus();
-  const { data: paypalConfig, isLoading: configLoading } = usePaypalConfig();
   const { mutate: cancel, isPending: cancelling } = useCancelSubscription();
   const { toast } = useToast();
   const [showPayDialog, setShowPayDialog] = useState(false);
@@ -191,8 +182,6 @@ export function SubscriptionPanel() {
         year: "numeric", month: "long", day: "numeric",
       })
     : null;
-
-  const paypalReady = !configLoading && paypalConfig?.paypalConfigured && paypalConfig.paypalClientId;
 
   return (
     <>
@@ -237,7 +226,6 @@ export function SubscriptionPanel() {
           </div>
         </div>
 
-        {/* Trial progress bar */}
         {sub.status === "TRIAL" && (
           <div className="mt-3">
             <div className="flex justify-between text-xs text-muted-foreground mb-1.5">
@@ -253,7 +241,6 @@ export function SubscriptionPanel() {
           </div>
         )}
 
-        {/* Plan features list */}
         <div className="mt-4 pt-4 border-t border-border/50">
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
             Included in your plan
@@ -280,13 +267,11 @@ export function SubscriptionPanel() {
           </DialogHeader>
 
           <div className="mt-2 space-y-5">
-            {/* Price */}
             <div className="bg-primary/5 border border-primary/20 rounded-2xl p-4 text-center">
               <p className="text-4xl font-bold text-primary">$20</p>
               <p className="text-sm text-muted-foreground mt-1">per month · billed monthly · cancel anytime</p>
             </div>
 
-            {/* Features */}
             <div className="space-y-2">
               {PLAN_FEATURES.map((f) => (
                 <div key={f} className="flex items-center gap-2 text-sm">
@@ -296,7 +281,6 @@ export function SubscriptionPanel() {
               ))}
             </div>
 
-            {/* PayPal Buttons or loading/unconfigured state */}
             <div className="space-y-3">
               {configLoading ? (
                 <div className="flex items-center justify-center py-6">
@@ -304,9 +288,7 @@ export function SubscriptionPanel() {
                 </div>
               ) : paypalReady ? (
                 <div className="rounded-2xl overflow-hidden">
-                  <PayPalCheckout
-                    clientId={paypalConfig!.paypalClientId!}
-                    mode={paypalConfig!.mode}
+                  <PayPalCheckoutButtons
                     onSuccess={() => setShowPayDialog(false)}
                     onCancel={() => setShowPayDialog(false)}
                   />
@@ -360,6 +342,36 @@ export function SubscriptionPanel() {
         </DialogContent>
       </Dialog>
     </>
+  );
+}
+
+export function SubscriptionPanel() {
+  const { data: paypalConfig, isLoading: configLoading } = usePaypalConfig();
+
+  const paypalReady = !configLoading && !!paypalConfig?.paypalConfigured && !!paypalConfig.paypalClientId;
+
+  if (!paypalReady) {
+    return (
+      <SubscriptionPanelInner
+        paypalReady={false}
+        configLoading={configLoading}
+      />
+    );
+  }
+
+  return (
+    <PayPalScriptProvider
+      options={{
+        clientId: paypalConfig!.paypalClientId!,
+        currency: "USD",
+        intent: "capture",
+      }}
+    >
+      <SubscriptionPanelInner
+        paypalReady={true}
+        configLoading={false}
+      />
+    </PayPalScriptProvider>
   );
 }
 
