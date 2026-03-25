@@ -46,11 +46,15 @@ router.post("/register", async (req, res) => {
 
     let shop = null;
     if (role === "SELLER" && shopName) {
+      const trialEndsAt = new Date();
+      trialEndsAt.setDate(trialEndsAt.getDate() + 7);
       const [newShop] = await db.insert(shopsTable).values({
         name: shopName,
         description: shopDescription || "",
         userId: user.id,
         isApproved: true,
+        subscriptionStatus: "TRIAL",
+        trialEndsAt,
       }).returning();
       shop = newShop;
     }

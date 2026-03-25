@@ -3,6 +3,7 @@ import { db } from "@workspace/db";
 import { productsTable, shopsTable, categoriesTable } from "@workspace/db";
 import { eq, desc, ilike, and, sql } from "drizzle-orm";
 import { requireAuth, requireRole } from "../lib/auth.js";
+import { getSubscriptionInfo } from "./subscription.js";
 
 const router = Router();
 
@@ -80,6 +81,18 @@ router.post("/", requireAuth, requireRole("SELLER", "ADMIN"), async (req, res) =
     }
     if (!shop.isApproved) {
       res.status(403).json({ error: "Your shop is pending approval." });
+      return;
+    }
+
+    const subInfo = getSubscriptionInfo(shop);
+    if (!subInfo.isActive) {
+      res.status(402).json({
+        error: "Subscription required",
+        subscriptionStatus: subInfo.status,
+        message: subInfo.status === "TRIAL"
+          ? "Your free trial has ended. Subscribe for $20/month to continue listing products."
+          : "Your subscription has expired. Renew for $20/month to continue listing products.",
+      });
       return;
     }
 

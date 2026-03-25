@@ -8,6 +8,7 @@ import ordersRouter from "./orders.js";
 import checkoutRouter from "./checkout.js";
 import adminRouter from "./admin.js";
 import uploadRouter from "./upload.js";
+import subscriptionRouter from "./subscription.js";
 
 const router: IRouter = Router();
 
@@ -20,5 +21,6 @@ router.use("/orders", ordersRouter);
 router.use("/checkout", checkoutRouter);
 router.use("/admin", adminRouter);
 router.use("/upload", uploadRouter);
+router.use("/subscription", subscriptionRouter);
 
 export default router;

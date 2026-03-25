@@ -1,7 +1,14 @@
-import { pgTable, text, timestamp, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, boolean, pgEnum } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { usersTable } from "./users";
+
+export const subscriptionStatusEnum = pgEnum("subscription_status", [
+  "TRIAL",
+  "ACTIVE",
+  "EXPIRED",
+  "CANCELLED",
+]);
 
 export const shopsTable = pgTable("shops", {
   id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
@@ -11,6 +18,12 @@ export const shopsTable = pgTable("shops", {
   banner: text("banner"),
   isApproved: boolean("is_approved").notNull().default(false),
   userId: text("user_id").notNull().references(() => usersTable.id, { onDelete: "cascade" }),
+
+  // Subscription fields
+  subscriptionStatus: subscriptionStatusEnum("subscription_status").notNull().default("TRIAL"),
+  trialEndsAt: timestamp("trial_ends_at"),
+  subscriptionCurrentPeriodEnd: timestamp("subscription_current_period_end"),
+
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

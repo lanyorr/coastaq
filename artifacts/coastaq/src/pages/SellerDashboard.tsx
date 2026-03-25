@@ -11,12 +11,17 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Store, Package, Settings, Plus, Trash2, Loader2, Home,
-  ImageIcon, AlertCircle,
+  ImageIcon, AlertCircle, CreditCard,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "wouter";
+import {
+  SubscriptionPanel,
+  SubscriptionExpiredBanner,
+} from "@/components/subscription/SubscriptionPanel";
+import { useSubscriptionStatus } from "@/hooks/use-subscription";
 
 const EMPTY_PRODUCT = {
   title: "", price: "", stock: "1",
@@ -30,6 +35,7 @@ export default function SellerDashboard() {
   const { data: shop } = useGetMyShop();
   const { data: productsData } = useListProducts({ shopId: shop?.id, limit: 100 });
   const { data: categories } = useListCategories();
+  const { data: sub } = useSubscriptionStatus();
   const { mutate: updateShop, isPending: updatingShop } = useUpdateMyShop();
   const { mutate: createProduct, isPending: creatingProduct } = useCreateProduct();
   const { mutate: deleteProduct } = useDeleteProduct();
@@ -38,6 +44,7 @@ export default function SellerDashboard() {
   const queryClient = useQueryClient();
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [newProduct, setNewProduct] = useState(EMPTY_PRODUCT);
+  const [activeTab, setActiveTab] = useState("products");
 
   // Derived: subcategories for selected parent
   const parentCategories = categories ?? [];
@@ -91,7 +98,17 @@ export default function SellerDashboard() {
           queryClient.invalidateQueries({ queryKey: ["/api/products"] });
         },
         onError: (err: any) => {
-          toast({ variant: "destructive", title: "Failed to add product", description: err.message });
+          if (err?.status === 402) {
+            toast({
+              variant: "destructive",
+              title: "Subscription required",
+              description: "Your trial or subscription has expired. Go to the Subscription tab to renew.",
+            });
+            setIsAddOpen(false);
+            setActiveTab("subscription");
+          } else {
+            toast({ variant: "destructive", title: "Failed to add product", description: err.message });
+          }
         },
       },
     );
@@ -126,6 +143,7 @@ export default function SellerDashboard() {
   }
 
   const products = productsData?.products ?? [];
+  const subExpired = sub && !sub.isActive;
 
   return (
     <div className="min-h-screen bg-background">
@@ -161,10 +179,15 @@ export default function SellerDashboard() {
             <div>
               <p className="font-semibold text-amber-800">Shop pending approval</p>
               <p className="text-sm text-amber-700 mt-0.5">
-                Your shop is under review. You won't be able to add products until an admin approves it.
+                Your shop is under review. Products won't be visible until an admin approves it.
               </p>
             </div>
           </div>
+        )}
+
+        {/* Subscription expired banner */}
+        {subExpired && (
+          <SubscriptionExpiredBanner onSubscribe={() => setActiveTab("subscription")} />
         )}
 
         {/* Stats strip */}
@@ -172,7 +195,12 @@ export default function SellerDashboard() {
           {[
             { label: "Total Products", value: products.length },
             { label: "Total Stock", value: products.reduce((a, p) => a + p.stock, 0) },
-            { label: "Avg Price", value: products.length ? `$${(products.reduce((a, p) => a + p.price, 0) / products.length).toFixed(2)}` : "—" },
+            {
+              label: "Avg Price",
+              value: products.length
+                ? `$${(products.reduce((a, p) => a + p.price, 0) / products.length).toFixed(2)}`
+                : "—",
+            },
           ].map(({ label, value }) => (
             <div key={label} className="bg-card border border-border/50 rounded-2xl p-4 text-center shadow-sm">
               <p className="text-2xl font-bold text-primary">{value}</p>
@@ -182,10 +210,13 @@ export default function SellerDashboard() {
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue="products" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="bg-secondary/50 p-1 rounded-xl mb-8">
             <TabsTrigger value="products" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm px-6">
               <Package className="w-4 h-4 mr-2" /> Products
+            </TabsTrigger>
+            <TabsTrigger value="subscription" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm px-6">
+              <CreditCard className="w-4 h-4 mr-2" /> Subscription
             </TabsTrigger>
             <TabsTrigger value="settings" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm px-6">
               <Settings className="w-4 h-4 mr-2" /> Settings
@@ -212,6 +243,14 @@ export default function SellerDashboard() {
                     <DialogHeader>
                       <DialogTitle className="text-xl font-display">Add New Product</DialogTitle>
                     </DialogHeader>
+
+                    {/* Subscription warning inside dialog */}
+                    {subExpired && (
+                      <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-xl p-3 mt-2 text-sm text-red-700">
+                        <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                        Your subscription has expired. The product won't be saved until you renew.
+                      </div>
+                    )}
 
                     <form onSubmit={handleAddProduct} className="space-y-5 mt-4">
                       {/* Title */}
@@ -319,13 +358,8 @@ export default function SellerDashboard() {
                               className="h-full w-full object-cover"
                               onError={e => {
                                 (e.target as HTMLImageElement).style.display = "none";
-                                (e.target as HTMLImageElement).nextSibling &&
-                                  ((e.target as HTMLImageElement).nextSibling as HTMLElement).classList.remove("hidden");
                               }}
                             />
-                            <div className="hidden absolute inset-0 flex items-center justify-center text-muted-foreground text-sm">
-                              <ImageIcon className="w-6 h-6 mr-2" /> Invalid image URL
-                            </div>
                           </div>
                         )}
                       </div>
@@ -428,6 +462,11 @@ export default function SellerDashboard() {
                 </div>
               )}
             </div>
+          </TabsContent>
+
+          {/* Subscription Tab */}
+          <TabsContent value="subscription">
+            <SubscriptionPanel />
           </TabsContent>
 
           {/* Settings Tab */}

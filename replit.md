@@ -42,7 +42,7 @@ artifacts-monorepo/
 ## Database Schema
 
 - **users**: id, email, passwordHash, name, role (BUYER/SELLER/ADMIN)
-- **shops**: id, name, description, logo, banner, isApproved, userId
+- **shops**: id, name, description, logo, banner, isApproved, userId, subscriptionStatus (TRIAL/ACTIVE/EXPIRED/CANCELLED), trialEndsAt, subscriptionCurrentPeriodEnd
 - **categories**: id, name, parentId (self-referential for hierarchy)
 - **products**: id, title, description, price, stock, condition, location, images[], categoryId, shopId
 - **orders**: id, userId, status, total, shipping fields, paymentMethod, paymentId
@@ -77,6 +77,9 @@ All routes under `/api`:
 - `POST /api/admin/sellers/:id/reject` - Reject seller (ADMIN)
 - `GET /api/admin/analytics` - Platform analytics (ADMIN)
 - `POST /api/upload/image` - Upload image (needs CLOUDINARY_* keys)
+- `GET /api/subscription/status` - Get seller subscription status (SELLER)
+- `POST /api/subscription/activate` - Activate/renew subscription for 30 days (SELLER) — demo stub, no real payment
+- `POST /api/subscription/cancel` - Cancel subscription (SELLER)
 
 ## Demo Accounts
 

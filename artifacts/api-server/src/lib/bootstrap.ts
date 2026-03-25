@@ -7,6 +7,7 @@ import {
 } from "@workspace/db";
 import { getSeedProducts } from "@workspace/db";
 import bcrypt from "bcryptjs";
+import { isNull, eq } from "drizzle-orm";
 import { logger } from "./logger";
 
 type Cat = { id: string; name: string };
@@ -25,6 +26,18 @@ export async function bootstrap(): Promise<void> {
   const existing = await db.select().from(categoriesTable).limit(1);
   if (existing.length > 0) {
     logger.info("Database already seeded, skipping bootstrap");
+    // Backfill any shops that don't have a trial period yet (migration safety)
+    const shopsNeedingTrial = await db.select().from(shopsTable).where(isNull(shopsTable.trialEndsAt));
+    if (shopsNeedingTrial.length > 0) {
+      const trialEndsAt = new Date();
+      trialEndsAt.setDate(trialEndsAt.getDate() + 7);
+      for (const shop of shopsNeedingTrial) {
+        await db.update(shopsTable)
+          .set({ subscriptionStatus: "TRIAL", trialEndsAt, updatedAt: new Date() })
+          .where(eq(shopsTable.id, shop.id));
+      }
+      logger.info({ count: shopsNeedingTrial.length }, "Backfilled subscription trial for existing shops");
+    }
     return;
   }
 
@@ -156,6 +169,8 @@ export async function bootstrap(): Promise<void> {
     role: "SELLER",
   }).returning();
 
+  const trialEndsAt = new Date();
+  trialEndsAt.setDate(trialEndsAt.getDate() + 7);
   const [shop] = await db.insert(shopsTable).values({
     name: "TechHaven Store",
     description: "Your one-stop shop for the latest tech gadgets and accessories.",
@@ -163,6 +178,8 @@ export async function bootstrap(): Promise<void> {
     banner: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=1200&h=400&fit=crop",
     userId: seller.id,
     isApproved: true,
+    subscriptionStatus: "TRIAL",
+    trialEndsAt,
   }).returning();
 
   const buyerHash = await bcrypt.hash("buyer123", 10);
