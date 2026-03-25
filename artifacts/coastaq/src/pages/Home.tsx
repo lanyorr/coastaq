@@ -102,9 +102,10 @@ export default function Home() {
                 </li>
                 {categories?.map((cat) => {
                   const children = (cat as any).children ?? [];
-                  const isOpen = expanded.has(cat.id);
                   const isParentActive = categoryId === cat.id;
                   const isChildActive = children.some((c: any) => c.id === categoryId);
+                  // Auto-expand when this category or a child of it is active
+                  const isOpen = expanded.has(cat.id) || isParentActive || isChildActive;
 
                   return (
                     <li key={cat.id}>
@@ -161,7 +162,12 @@ export default function Home() {
               {searchQuery
                 ? `Results for "${searchQuery}"`
                 : categoryId
-                ? "Browse Products"
+                ? (() => {
+                    const all = categories ?? [];
+                    const flat = all.flatMap(c => [c, ...((c as any).children ?? [])]);
+                    const found = flat.find((c: any) => c.id === categoryId);
+                    return found ? found.name : "Browse Products";
+                  })()
                 : "All Products"}
             </h2>
             {!loadingProducts && productsData && productsData.total > 0 && (

@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
 import { productsTable, shopsTable, categoriesTable } from "@workspace/db";
-import { eq, desc, ilike, and, sql } from "drizzle-orm";
+import { eq, desc, ilike, and, sql, inArray, isNull } from "drizzle-orm";
 import { requireAuth, requireRole } from "../lib/auth.js";
 import { getSubscriptionInfo } from "./subscription.js";
 
@@ -15,7 +15,24 @@ router.get("/", async (req, res) => {
     const offset = (pageNum - 1) * limitNum;
 
     const conditions = [];
-    if (categoryId) conditions.push(eq(productsTable.categoryId, categoryId));
+
+    if (categoryId) {
+      // Check whether this is a parent category (has children) or a leaf subcategory
+      const children = await db
+        .select({ id: categoriesTable.id })
+        .from(categoriesTable)
+        .where(eq(categoriesTable.parentId, categoryId));
+
+      if (children.length > 0) {
+        // Parent category clicked → show products from ALL its subcategories
+        const childIds = children.map(c => c.id);
+        conditions.push(inArray(productsTable.categoryId, childIds));
+      } else {
+        // Leaf subcategory → exact match
+        conditions.push(eq(productsTable.categoryId, categoryId));
+      }
+    }
+
     if (shopId) conditions.push(eq(productsTable.shopId, shopId));
     if (search) conditions.push(ilike(productsTable.title, `%${search}%`));
 
