@@ -5,18 +5,25 @@ import { Footer } from "@/components/layout/Footer";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Filter, Store, ChevronDown, ChevronRight, ChevronLeft } from "lucide-react";
+import { Filter, Search, ChevronDown, ChevronRight, ChevronLeft } from "lucide-react";
 import { useState } from "react";
 
 const PAGE_SIZE = 24;
 
 export default function Home() {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const searchParams = new URLSearchParams(window.location.search);
   const searchQuery = searchParams.get("search") || undefined;
   const categoryId = searchParams.get("category") || undefined;
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [page, setPage] = useState(1);
+  const [heroSearch, setHeroSearch] = useState("");
+
+  const handleHeroSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    const q = heroSearch.trim();
+    if (q) setLocation(`/?search=${encodeURIComponent(q)}`);
+  };
 
   const filterKey = `${searchQuery ?? ""}|${categoryId ?? ""}`;
   const [prevFilterKey, setPrevFilterKey] = useState(filterKey);
@@ -47,31 +54,61 @@ export default function Home() {
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
       
-      {/* Hero Section */}
+      {/* Hero Banner */}
       {!searchQuery && !categoryId && (
-        <section className="relative px-4 pt-6 pb-12 sm:pt-12 sm:pb-20">
-          <div className="container mx-auto">
-            <div className="relative rounded-[2rem] overflow-hidden bg-primary/5 border border-primary/10">
-              <img 
-                src={`${import.meta.env.BASE_URL}images/hero-coastal.png`} 
-                alt="Coastal waves" 
-                className="absolute inset-0 w-full h-full object-cover opacity-80 mix-blend-overlay"
-              />
-              <div className="relative z-10 p-8 md:p-16 max-w-2xl">
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/80 backdrop-blur-md text-primary text-sm font-semibold mb-6 shadow-sm">
-                  <Store className="w-4 h-4" />
-                  <span>Discover Independent Creators</span>
-                </div>
-                <h1 className="text-4xl md:text-6xl font-display font-bold text-foreground mb-6 leading-[1.1]">
-                  Bring the <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-cyan-400">breeze</span> to your life.
-                </h1>
-                <p className="text-lg text-foreground/80 mb-8 max-w-lg font-medium">
-                  Shop unique, handcrafted, and curated items from seaside sellers around the world.
-                </p>
-                <Button size="lg" className="rounded-full font-bold px-8 shadow-lg shadow-primary/20 text-base" onClick={() => window.scrollTo({ top: 500, behavior: 'smooth'})}>
-                  Start Exploring
+        <section className="bg-gradient-to-br from-[#0ea5e9]/8 via-[#06b6d4]/5 to-[#3b82f6]/8 border-b border-primary/10">
+          <div className="container mx-auto px-4 py-10 md:py-14 flex flex-col items-center text-center gap-7">
+            {/* Tagline */}
+            <div className="flex flex-col items-center gap-2">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="h-px w-8 bg-primary/30 rounded-full" />
+                <span className="text-xs font-semibold tracking-[0.18em] uppercase text-primary/60">Coastaq</span>
+                <span className="h-px w-8 bg-primary/30 rounded-full" />
+              </div>
+              <h1 className="text-2xl md:text-3xl font-display font-bold text-foreground/90 tracking-tight">
+                Your everyday marketplace,{" "}
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-sky-500 to-cyan-500">
+                  powered by everyone
+                </span>
+              </h1>
+            </div>
+
+            {/* Hero Search */}
+            <form onSubmit={handleHeroSearch} className="w-full max-w-2xl">
+              <div className="flex gap-2 items-center bg-white rounded-2xl shadow-lg shadow-primary/10 border border-primary/15 px-4 py-2 focus-within:ring-2 focus-within:ring-primary/25 transition-all">
+                <Search className="h-5 w-5 text-primary/40 shrink-0" />
+                <input
+                  type="search"
+                  placeholder="Search for phones, cars, furniture, fashion and more…"
+                  className="flex-1 bg-transparent outline-none text-base text-foreground placeholder:text-muted-foreground/60 py-1.5"
+                  value={heroSearch}
+                  onChange={(e) => setHeroSearch(e.target.value)}
+                />
+                <Button
+                  type="submit"
+                  size="sm"
+                  className="rounded-xl bg-primary hover:bg-primary/90 text-white font-semibold px-5 shadow-sm shadow-primary/20 shrink-0"
+                >
+                  Search
                 </Button>
               </div>
+            </form>
+
+            {/* Quick category chips */}
+            <div className="flex flex-wrap justify-center gap-2 text-sm">
+              {["Electronics", "Vehicles", "Fashion", "Property", "Home, Furniture & Appliances"].map(label => (
+                <button
+                  key={label}
+                  type="button"
+                  onClick={() => {
+                    const match = categories?.find((c: any) => c.name === label);
+                    if (match) setLocation(`/?category=${match.id}`);
+                  }}
+                  className="px-4 py-1.5 rounded-full border border-primary/20 bg-white/70 text-primary/80 hover:bg-primary/10 hover:border-primary/40 hover:text-primary transition-colors font-medium"
+                >
+                  {label}
+                </button>
+              ))}
             </div>
           </div>
         </section>
