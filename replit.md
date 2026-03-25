@@ -31,9 +31,11 @@ artifacts-monorepo/
 │   ├── api-spec/           # OpenAPI spec + Orval codegen config
 │   ├── api-client-react/   # Generated React Query hooks
 │   ├── api-zod/            # Generated Zod schemas from OpenAPI
-│   └── db/                 # Drizzle ORM schema + DB connection
+│   └── db/                 # Drizzle ORM schema, DB connection, shared seed data
+│       └── src/
+│           └── seed-data.ts # 125 sample products (one per subcategory), shared by seed & bootstrap
 ├── scripts/
-│   └── src/seed.ts         # Database seeder
+│   └── src/seed.ts         # Dev database seeder (uses @workspace/db seed-data)
 └── pnpm-workspace.yaml
 ```
 
