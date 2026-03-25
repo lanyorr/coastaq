@@ -17,6 +17,11 @@ import AdminDashboard from "@/pages/AdminDashboard";
 import BuyerDashboard from "@/pages/BuyerDashboard";
 import Messages from "@/pages/Messages";
 import ChatRoom from "@/pages/ChatRoom";
+import TermsPage from "@/pages/legal/TermsPage";
+import PrivacyPage from "@/pages/legal/PrivacyPage";
+import ContactPage from "@/pages/legal/ContactPage";
+import RefundPage from "@/pages/legal/RefundPage";
+import SellerAgreementPage from "@/pages/legal/SellerAgreementPage";
 
 // Setup global fetch interceptor to inject Authorization header
 const originalFetch = window.fetch;
@@ -63,6 +68,11 @@ function Router() {
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/messages" component={Messages} />
       <Route path="/messages/:id" component={ChatRoom} />
+      <Route path="/terms" component={TermsPage} />
+      <Route path="/privacy" component={PrivacyPage} />
+      <Route path="/contact" component={ContactPage} />
+      <Route path="/refunds" component={RefundPage} />
+      <Route path="/seller-agreement" component={SellerAgreementPage} />
       <Route component={NotFound} />
     </Switch>
   );

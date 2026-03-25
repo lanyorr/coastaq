@@ -1,0 +1,1093 @@
+Perfect! Let me provide you with the actual text content for all 5 pages. You can then copy this text directly into your pages.
+
+---
+
+## 1. TERMS & CONDITIONS
+
+### Effective Date: March 26, 2026
+
+---
+
+**Welcome to Coastaq!**
+
+These Terms & Conditions govern your use of Coastaq, a global marketplace connecting buyers and sellers. By using our platform, you agree to these terms. Please read them carefully.
+
+---
+
+### 1. About Coastaq
+
+Coastaq is an online marketplace that allows sellers to create shops, list products, and connect with buyers worldwide. We provide the platform and payment infrastructure but are not a party to the actual transaction between buyers and sellers. Our role is to facilitate safe and secure transactions through Stripe and PayPal payment processing.
+
+---
+
+### 2. Account Registration
+
+**2.1 Eligibility**
+To use Coastaq, you must:
+- Be at least 18 years old
+- Have the legal capacity to enter into binding contracts
+- Provide accurate and complete information during registration
+- Not have previously been suspended or removed from our platform
+
+**2.2 Account Types**
+- **Buyer Accounts**: For individuals purchasing products. Buyers can browse, search, add items to cart, and complete purchases.
+- **Seller Accounts**: For individuals or businesses selling products. Sellers can create shops, list products, manage inventory, and fulfill orders.
+
+**2.3 Account Responsibility**
+You are solely responsible for maintaining the confidentiality of your account credentials. You agree to:
+- Not share your password with anyone
+- Notify us immediately of any unauthorized account access
+- Accept responsibility for all activities under your account
+
+---
+
+### 3. Seller Terms and Obligations
+
+**3.1 Becoming a Seller**
+To become a seller on Coastaq:
+- Complete seller registration with your shop name and description
+- Wait for shop approval (typically 24-48 hours)
+- Provide accurate contact and payment information
+- Agree to our fee structure and payout terms
+
+**3.2 Product Listings**
+As a seller, you represent and warrant that:
+- All products listed are legal and comply with all applicable laws
+- Product descriptions, images, and prices are accurate and not misleading
+- You own or have the right to use all content you upload
+- Products are authentic and not counterfeit
+- You clearly state product condition (new, used, refurbished)
+- You have the legal right to sell the products
+
+**3.3 Prohibited Items**
+The following items may not be sold on Coastaq:
+- Illegal drugs or paraphernalia
+- Weapons, firearms, or explosives
+- Counterfeit or unauthorized goods
+- Stolen goods
+- Hazardous materials
+- Adult content or services
+- Live animals
+- Human body parts or fluids
+- Items promoting hate, violence, or discrimination
+
+**3.4 Order Fulfillment**
+Sellers must:
+- Ship orders within the stated processing time (default: 3 business days)
+- Provide tracking information when available
+- Respond to buyer inquiries within 24 hours
+- Handle returns and refunds according to our refund policy
+- Maintain sufficient stock of listed items
+
+**3.5 Seller Fees**
+- Coastaq charges a 10% transaction fee on each completed sale
+- Fees are automatically deducted from your payout
+- You receive 90% of the transaction amount
+- Fees are non-refundable except in cases of platform error
+- We reserve the right to modify fees with 30 days advance notice
+
+**3.6 Payouts**
+- Payouts are processed through Stripe Connect or PayPal
+- Funds are released after order confirmation (typically 3-7 days after delivery)
+- Minimum payout amount: $10 USD
+- Payout frequency: Daily or weekly, depending on your settings
+
+---
+
+### 4. Buyer Terms and Obligations
+
+**4.1 Making Purchases**
+When you purchase on Coastaq:
+- You enter into a direct contract with the seller
+- Coastaq facilitates payment but is not responsible for product quality
+- You agree to pay the listed price plus applicable taxes and shipping
+- You are responsible for providing accurate shipping information
+
+**4.2 Buyer Responsibilities**
+As a buyer, you agree to:
+- Provide accurate and complete information for transactions
+- Not attempt to circumvent our payment system
+- Not make false claims or fraudulent chargebacks
+- Communicate professionally with sellers
+- Report issues through proper channels (not chargebacks)
+
+**4.3 Buyer Protection**
+Coastaq offers buyer protection in these cases:
+- **Item Not Received**: Product not delivered within promised timeframe
+- **Significantly Not as Described**: Product differs substantially from listing
+- **Counterfeit Items**: Product is found to be counterfeit or unauthorized
+- **Prohibited Items**: Seller listed prohibited items
+
+To qualify for protection:
+- Report issues within 7 days of delivery (or expected delivery date)
+- Provide clear evidence (photos, messages)
+- Attempt to resolve with seller first
+- File dispute through proper platform channels
+
+---
+
+### 5. Payments and Transaction Processing
+
+**5.1 Accepted Payment Methods**
+- Credit and debit cards (Visa, Mastercard, American Express, Discover)
+- PayPal
+- Other methods as made available
+
+**5.2 Payment Processing**
+- All payments are processed through Stripe and PayPal
+- Coastaq does not store your full payment information
+- You agree to the terms of service of our payment partners
+
+**5.3 Transaction Fees**
+- **Buyers**: No additional fees beyond product price, shipping, and taxes
+- **Sellers**: 10% transaction fee on each completed sale
+
+**5.4 Currency and Conversion**
+- All transactions are in USD by default
+- Currency conversion fees may apply for international transactions
+- Your bank or card issuer may charge additional fees
+
+---
+
+### 6. Shipping and Delivery
+
+**6.1 Shipping Responsibilities**
+- Sellers are responsible for shipping products to buyers
+- Shipping costs are displayed before purchase
+- Estimated delivery times are provided by sellers but are not guaranteed
+- International shipping may incur customs duties or taxes (buyer's responsibility)
+
+**6.2 Tracking**
+- Sellers are encouraged to provide tracking information
+- Coastaq is not liable for lost or delayed packages
+- For disputes, tracking information will be used as evidence of delivery
+
+---
+
+### 7. Returns, Refunds, and Cancellations
+
+**7.1 Return Policy**
+- Returns are handled directly between buyer and seller
+- Sellers must clearly state their return policy in their shop
+- Default return window: 14 days from delivery
+- Buyers may be responsible for return shipping costs unless item is defective
+
+**7.2 Refund Process**
+- Refunds are processed through the original payment method
+- Platform fees are non-refundable after 30 days
+- Refunds typically process within 5-10 business days
+
+**7.3 Cancellations**
+- Buyers may cancel within 1 hour of purchase if not yet shipped
+- Sellers may cancel orders if unable to fulfill (must notify buyer)
+- Unauthorized cancellations may affect seller status
+
+---
+
+### 8. Content and Intellectual Property
+
+**8.1 Your Content**
+You retain ownership of content you post on Coastaq. By posting, you grant Coastaq a non-exclusive, worldwide license to display, distribute, and promote your content on our platform.
+
+**8.2 Coastaq Intellectual Property**
+All platform content, including logos, designs, code, and branding, is owned by Coastaq and protected by copyright and trademark laws. You may not copy, modify, or use our intellectual property without permission.
+
+**8.3 Copyright Infringement**
+If you believe content infringes your copyright, contact us at copyright@coastaq.com with:
+- Description of copyrighted work
+- Location of infringing content
+- Your contact information
+- Statement of good faith belief
+
+---
+
+### 9. Prohibited Conduct
+
+You may not:
+- Use Coastaq for illegal purposes
+- Harass, abuse, or threaten other users
+- Manipulate prices or reviews
+- Engage in fraudulent transactions
+- Use automated systems to scrape data
+- Interfere with platform operations
+- Impersonate another person or entity
+- Post false or misleading information
+
+---
+
+### 10. Termination
+
+**10.1 Termination by You**
+You may close your account at any time by contacting support. Outstanding obligations (pending orders, unresolved disputes) must be resolved first.
+
+**10.2 Termination by Coastaq**
+We may suspend or terminate accounts for:
+- Violation of these Terms
+- Fraudulent or illegal activity
+- Excessive chargebacks or disputes
+- Harm to the platform or community
+
+**10.3 Effect of Termination**
+Upon termination:
+- Active listings will be removed
+- Pending payouts will be processed
+- Disputes will be resolved per these Terms
+- You remain liable for all outstanding obligations
+
+---
+
+### 11. Limitation of Liability
+
+To the maximum extent permitted by law:
+- Coastaq is not liable for indirect, incidental, or consequential damages
+- Our total liability is limited to the amount you paid in fees in the past 12 months
+- We are not responsible for seller product quality or buyer payment issues
+- We do not guarantee uninterrupted or error-free service
+
+---
+
+### 12. Dispute Resolution
+
+**12.1 Informal Resolution**
+Contact us at disputes@coastaq.com to resolve issues informally. Most disputes can be resolved through communication.
+
+**12.2 Binding Arbitration**
+If informal resolution fails, disputes will be resolved through binding arbitration in accordance with the rules of the American Arbitration Association. You agree to waive the right to participate in class actions.
+
+**12.3 Governing Law**
+These Terms are governed by the laws of the State of Delaware, without regard to conflict of law principles.
+
+---
+
+### 13. Modifications
+
+We may modify these Terms at any time. Changes become effective when:
+- For minor changes: Immediately upon posting
+- For material changes: 30 days after notice
+
+Continued use of Coastaq constitutes acceptance of modified Terms.
+
+---
+
+### 14. Contact Information
+
+For questions about these Terms:
+- Email: legal@coastaq.com
+- Address: Coastaq Legal, [Your Business Address]
+- Response time: 2-3 business days
+
+---
+
+## 2. PRIVACY POLICY
+
+### Effective Date: March 26, 2026
+
+---
+
+**Your Privacy Matters to Coastaq**
+
+Coastaq ("we," "our," "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our marketplace platform.
+
+---
+
+### 1. Information We Collect
+
+**1.1 Personal Information You Provide**
+When you register, buy, or sell, we collect:
+- **Account Information**: Name, email address, password
+- **Profile Information**: Profile photo, bio, shop details
+- **Contact Information**: Shipping address, phone number (optional)
+- **Payment Information**: Processed through Stripe and PayPal (we do not store full card details)
+- **Identity Verification**: For sellers, we may collect business information, tax ID, or government ID
+
+**1.2 Information Collected Automatically**
+When you use Coastaq, we automatically collect:
+- **Device Information**: IP address, browser type, operating system
+- **Usage Data**: Pages visited, time spent, search queries
+- **Location Data**: Approximate location based on IP address
+- **Transaction Data**: Purchase history, listing activity
+
+**1.3 Information from Third Parties**
+We may receive information from:
+- **Google**: If you sign up with Google
+- **Stripe/PayPal**: Payment confirmation and transaction status
+- **Cloudinary**: Image processing information
+
+---
+
+### 2. How We Use Your Information
+
+We use your information to:
+- **Provide Services**: Create accounts, process transactions, facilitate communication
+- **Improve Platform**: Analyze usage, fix bugs, enhance user experience
+- **Communicate**: Send order updates, promotional offers (opt-out available), policy changes
+- **Ensure Safety**: Detect fraud, prevent abuse, enforce our terms
+- **Legal Compliance**: Fulfill legal obligations, respond to lawful requests
+
+---
+
+### 3. Information Sharing
+
+**3.1 Between Buyers and Sellers**
+When you buy or sell:
+- **Buyers see**: Seller's shop name, response time, shop policies
+- **Sellers see**: Buyer's shipping address, order details (not payment information)
+- **Messages**: Direct communication through our platform
+
+**3.3 Service Providers**
+We share information with:
+- **Stripe and PayPal**: To process payments
+- **Cloudinary**: To host product images
+- **Analytics Providers**: To understand platform usage
+- **Hosting Services**: To maintain our infrastructure
+
+**3.4 Legal Requirements**
+We may disclose information to:
+- Comply with legal processes
+- Protect rights and safety of Coastaq and users
+- Respond to government requests
+
+**3.5 Business Transfers**
+If Coastaq is acquired or merged, your information may be transferred with notice.
+
+---
+
+### 4. Your Rights and Choices
+
+**4.1 Account Settings**
+You can:
+- Update profile information anytime
+- Close your account by contacting support
+- Set communication preferences
+
+**4.2 Privacy Rights (GDPR, CCPA)**
+Depending on your location, you may have the right to:
+- **Access**: Request a copy of your data
+- **Correction**: Correct inaccurate information
+- **Deletion**: Request deletion of your data
+- **Portability**: Receive data in machine-readable format
+- **Opt-Out**: Decline marketing communications
+
+To exercise these rights, contact privacy@coastaq.com
+
+**4.3 Cookies**
+We use cookies to:
+- Keep you logged in
+- Remember your preferences
+- Analyze site traffic
+- Personalize content
+
+You can disable cookies in browser settings, but some features may not function properly.
+
+---
+
+### 5. Data Security
+
+We implement security measures including:
+- Encryption of data in transit (SSL/TLS)
+- Secure storage of sensitive information
+- Regular security assessments
+- Access controls and monitoring
+
+However, no method of transmission is 100% secure. We cannot guarantee absolute security.
+
+---
+
+### 6. Data Retention
+
+We retain your information:
+- As long as your account is active
+- To comply with legal obligations (typically 7 years for transaction records)
+- For legitimate business purposes
+- You may request deletion of inactive accounts
+
+---
+
+### 7. International Data Transfers
+
+Coastaq operates globally. Your information may be transferred to and processed in countries outside your residence. We ensure appropriate safeguards through:
+- Standard contractual clauses
+- Data processing agreements
+- Compliance with applicable laws
+
+---
+
+### 8. Children's Privacy
+
+Coastaq is not intended for users under 18. We do not knowingly collect information from minors. If you believe a minor has provided information, contact us to remove it.
+
+---
+
+### 9. Third-Party Links
+
+Our platform may contain links to external sites. We are not responsible for their privacy practices. Review their policies before providing information.
+
+---
+
+### 10. Changes to This Policy
+
+We may update this Privacy Policy periodically. Changes become effective:
+- When posted on this page
+- With notice via email for material changes
+
+We encourage you to review this policy regularly.
+
+---
+
+### 11. Contact Us
+
+For privacy questions or to exercise your rights:
+- **Email**: privacy@coastaq.com
+- **Subject Line**: "Privacy Inquiry"
+- **Response Time**: Within 30 days
+
+---
+
+## 3. CONTACT US PAGE
+
+---
+
+**Get in Touch with Coastaq**
+
+We're here to help! Whether you have questions, feedback, or need support, reach out to us through the appropriate channel below.
+
+---
+
+### Customer Support
+
+**For buyers and sellers needing assistance with:**
+- Account issues
+- Transaction problems
+- Technical support
+- Dispute resolution
+
+**Contact Support:**
+- **Email**: support@coastaq.com
+- **Response Time**: 24-48 hours (business days)
+- **Hours**: Monday-Friday, 9 AM - 6 PM EST
+
+---
+
+### Seller Support
+
+**For sellers needing help with:**
+- Shop setup and management
+- Product listings
+- Payout questions
+- Seller verification
+
+**Contact Seller Support:**
+- **Email**: sellers@coastaq.com
+- **Response Time**: 24 hours
+- **Priority**: Verified sellers receive priority support
+
+---
+
+### Legal & Privacy
+
+**For legal matters, privacy concerns, or to exercise your data rights:**
+- **Terms & Conditions**: legal@coastaq.com
+- **Privacy Policy**: privacy@coastaq.com
+- **Copyright/DMCA**: copyright@coastaq.com
+
+---
+
+### Partnerships & Business Inquiries
+
+**For partnership opportunities, media inquiries, or business development:**
+- **Email**: partnerships@coastaq.com
+- **Affiliate Program**: affiliates@coastaq.com
+- **Press & Media**: press@coastaq.com
+
+---
+
+### Report a Problem
+
+**To report:**
+- Suspicious activity or fraud
+- Prohibited items
+- Policy violations
+- Security concerns
+
+**Secure Reporting**: abuse@coastaq.com
+All reports are confidential and investigated promptly.
+
+---
+
+### Frequently Asked Questions
+
+Before contacting us, check our FAQ for quick answers:
+
+**Account & Registration**
+- How do I create a seller account?
+- Can I change my account type?
+- How do I reset my password?
+
+**Payments & Payouts**
+- When do I receive seller payouts?
+- Why was my payment declined?
+- How do I request a refund?
+
+**Orders & Shipping**
+- How do I track my order?
+- What if my item doesn't arrive?
+- How do I cancel an order?
+
+**Visit our FAQ page for answers to these and more questions.**
+
+---
+
+### Social Media
+
+Connect with us on social media for updates, tips, and community:
+- **Twitter**: @coastaq
+- **Instagram**: @coastaq
+- **Facebook**: /coastaq
+- **LinkedIn**: /company/coastaq
+
+---
+
+### Business Address
+
+**Coastaq Headquarters**
+[Your Business Address]
+[City, State, ZIP]
+[Country]
+
+*For physical mail only. No in-person visits without appointment.*
+
+---
+
+### Office Hours
+
+- **Customer Support**: Monday-Friday, 9 AM - 6 PM EST
+- **Emergency Support**: Saturday-Sunday, 10 AM - 4 PM EST
+- **Holidays**: Closed on major holidays (response delayed by 24-48 hours)
+
+---
+
+### Response Times
+
+| Inquiry Type | Response Time |
+|--------------|---------------|
+| General Support | 24-48 hours |
+| Seller Support | 24 hours |
+| Legal/Privacy | 3-5 business days |
+| Partnership | 5-7 business days |
+| Urgent Issues | 12 hours |
+
+---
+
+### Before You Contact Us
+
+To help us assist you faster, please have ready:
+- Your account email address
+- Order number (if applicable)
+- Screenshots or photos (if relevant)
+- Detailed description of the issue
+
+---
+
+## 4. REFUND POLICY
+
+### Effective Date: March 26, 2026
+
+---
+
+**Coastaq Refund and Return Policy**
+
+At Coastaq, we want you to shop with confidence. This policy outlines how refunds and returns work on our marketplace.
+
+---
+
+### 1. Understanding Your Transaction
+
+When you buy on Coastaq, you enter into a direct agreement with the seller. Coastaq facilitates payment but sellers are responsible for:
+- Product quality and description accuracy
+- Shipping and delivery
+- Returns and refunds
+
+---
+
+### 2. Buyer Rights
+
+**2.1 14-Day Satisfaction Guarantee**
+Buyers have 14 days from delivery to request a return if:
+- Product doesn't match description
+- Product is defective or damaged
+- Wrong item was shipped
+
+**2.2 When You Can't Return**
+Returns are not accepted for:
+- Digital products after download
+- Perishable goods
+- Custom or personalized items
+- Intimate items for hygiene reasons
+- Items clearly marked "final sale"
+
+---
+
+### 3. Return Process
+
+**Step 1: Contact the Seller**
+- Message seller through Coastaq within 14 days of delivery
+- Provide order number and reason for return
+- Include photos showing issue (if applicable)
+
+**Step 2: Seller Response**
+Sellers must respond within 3 business days. Options include:
+- Full refund with return
+- Partial refund without return
+- Replacement item
+- Decline request (must provide reason)
+
+**Step 3: Escalate if Needed**
+If seller doesn't respond or declines unreasonably:
+- Escalate to Coastaq support within 7 days
+- We'll review and make a final decision
+
+---
+
+### 4. Refund Amounts
+
+**4.1 Full Refund**
+You receive:
+- Full product price
+- Original shipping cost (if item was defective)
+- Return shipping (if item was defective)
+
+**4.2 Partial Refund**
+May be issued for:
+- Item not as described but you choose to keep it
+- Slight damage or wear not mentioned
+- Delayed shipping
+
+**4.3 No Refund**
+Refunds are not issued if:
+- You changed your mind on non-returnable items
+- Item was damaged after delivery
+- You provided wrong shipping address
+- Item was lost due to courier error (buyer responsible for filing claim)
+
+---
+
+### 5. Return Shipping
+
+**5.1 Who Pays**
+- **Seller's fault**: Wrong item, damaged, not as described → Seller pays return shipping
+- **Buyer's fault**: Changed mind, ordered wrong size → Buyer pays return shipping
+- **Free returns**: Sellers may offer free returns as a shop policy
+
+**5.2 Return Instructions**
+- Use tracked shipping for returns
+- Keep tracking number until refund is processed
+- Pack items securely to prevent damage
+
+---
+
+### 6. Refund Processing Time
+
+**After seller approves return:**
+1. Buyer ships item back (5-10 days)
+2. Seller receives and inspects (3-5 days)
+3. Seller issues refund (1-3 days)
+4. Payment processor returns funds (3-10 days)
+
+**Total**: Typically 2-4 weeks from return request to refund
+
+---
+
+### 7. Seller Refund Obligations
+
+As a seller on Coastaq:
+- Process refund requests within 3 business days
+- Accept returns for items not as described
+- Refund within 5 business days of receiving returned item
+- Maintain clear return policy in your shop
+- Failure to comply may result in account suspension
+
+---
+
+### 8. Dispute Resolution
+
+**If you and seller cannot agree:**
+1. Escalate to Coastaq support with evidence
+2. We'll review messages, photos, and tracking
+3. Decision made within 5-7 business days
+4. Decision is final and binding
+
+**Evidence we need:**
+- Order number
+- Photos showing issue
+- Messages with seller
+- Tracking information
+- Any other relevant documentation
+
+---
+
+### 9. Chargebacks
+
+**What is a chargeback?**
+When a buyer disputes a charge with their bank or credit card company.
+
+**Before filing a chargeback:**
+- Contact the seller first
+- Give us a chance to help
+- Filing a chargeback without contacting us may result in account suspension
+
+**If you file a chargeback:**
+- Your Coastaq account may be temporarily suspended
+- Case will be handled by our dispute team
+- If chargeback is unfounded, you may be responsible for fees
+
+---
+
+### 10. Coastaq Buyer Protection
+
+We automatically cover eligible purchases up to $2,000 USD when:
+- Item never arrives
+- Item is significantly not as described
+- Seller doesn't respond to return request
+
+**To qualify:**
+- Purchase made through Coastaq checkout
+- Payment processed via Stripe or PayPal
+- Issue reported within timeframe
+- All communication through Coastaq platform
+
+---
+
+### 11. Exceptions
+
+**11.1 Pre-orders**
+- Cancellations accepted before shipping
+- Returns accepted after delivery per standard policy
+
+**11.2 International Orders**
+- Customs delays don't qualify for non-delivery claims
+- Return shipping costs may be higher
+- Duties and taxes are generally non-refundable
+
+**11.3 Bulk Orders**
+- Special return terms may apply
+- Contact seller before purchasing
+
+---
+
+### 12. Contact for Refund Issues
+
+If you need help with a refund:
+- **Email**: refunds@coastaq.com
+- **Subject**: Include "Refund Issue - Order #[Order Number]"
+- **Attach**: Screenshots of issue and seller messages
+
+---
+
+## 5. SELLER AGREEMENT
+
+### Effective Date: March 26, 2026
+
+---
+
+**Coastaq Seller Agreement**
+
+This Seller Agreement ("Agreement") is between Coastaq ("we," "us," "platform") and you ("Seller") when you register to sell on Coastaq.
+
+---
+
+### 1. Becoming a Seller
+
+**1.1 Eligibility**
+To sell on Coastaq, you must:
+- Be at least 18 years old
+- Provide accurate personal and business information
+- Complete identity verification when required
+- Maintain a valid payment account (Stripe or PayPal)
+- Agree to this Agreement
+
+**1.2 Shop Approval**
+All shops require approval before listing products. Approval criteria:
+- Legitimate business or individual seller
+- Complete shop profile with accurate information
+- No history of fraud or policy violations
+- Compliance with prohibited items policy
+
+Approval typically takes 24-48 hours.
+
+---
+
+### 2. Fees and Payouts
+
+**2.1 Transaction Fees**
+- Coastaq charges 10% of each completed sale
+- Fee calculated on product price (excluding shipping and taxes)
+- Automatically deducted before payout
+
+**2.2 Payment Processing Fees**
+- Included in our 10% fee
+- No additional processing fees for sellers
+
+**2.3 Payout Schedule**
+- **Standard**: Weekly payouts (every Monday)
+- **Express**: Daily payouts (available after 10 successful sales)
+- **Hold Period**: First payout held 14 days (fraud prevention)
+
+**2.4 Payout Amount**
+- Minimum payout: $10 USD
+- Maximum payout: No limit
+- Currency: USD (conversion fees may apply for non-US accounts)
+
+**2.5 Payout Method**
+Choose from:
+- Stripe Connect (bank transfer)
+- PayPal
+
+---
+
+### 3. Listing Products
+
+**3.1 Product Standards**
+All listings must:
+- Accurately describe the product
+- Include clear, original photos
+- Specify condition (new, used, refurbished)
+- State processing time
+- Set reasonable price
+- Include accurate inventory count
+
+**3.2 Prohibited Items**
+You may not sell:
+- Illegal products or services
+- Counterfeit or unauthorized goods
+- Weapons or explosives
+- Hazardous materials
+- Adult content
+- Stolen property
+- Items promoting hate or violence
+
+**3.3 Image Guidelines**
+- Use your own photos (no stock photos)
+- Minimum resolution: 800x800 pixels
+- Show actual product (not just packaging)
+- No watermarks or promotional text
+- No offensive content
+
+**3.4 Pricing**
+- Set price in USD
+- Clearly state shipping costs
+- Sales tax responsibility explained
+- No hidden fees
+
+---
+
+### 4. Order Fulfillment
+
+**4.1 Processing Time**
+- Default: 3 business days
+- You may set custom processing time
+- Must honor stated processing time
+
+**4.2 Shipping**
+- Ship to address provided by buyer
+- Provide tracking number when available
+- Mark orders as shipped within 24 hours of shipping
+- International shipments: Buyer responsible for customs/duties
+
+**4.3 Communication**
+- Respond to buyer messages within 24 hours
+- Provide order updates proactively
+- Professional communication required
+
+**4.4 Cancellations**
+You may cancel orders if:
+- Item out of stock (must notify buyer)
+- Unable to ship within processing time
+- Suspicious activity detected
+
+Excessive cancellations may affect seller status.
+
+---
+
+### 5. Returns and Refunds
+
+**5.1 Return Policy**
+You must:
+- Accept returns for items not as described
+- Clearly state your return policy in shop
+- Process refunds within 5 business days of receiving return
+- Respond to return requests within 3 business days
+
+**5.2 Seller-Paid Returns**
+You pay return shipping when:
+- Item not as described
+- Wrong item shipped
+- Item damaged or defective
+
+**5.3 Refund Processing**
+- Refund through original payment method
+- Platform fees refunded if within 30 days
+- Keep documentation of all refunds
+
+---
+
+### 6. Seller Performance Standards
+
+**6.1 Minimum Requirements**
+- **Response Rate**: ≥ 95% within 24 hours
+- **Fulfillment Rate**: ≥ 98% on time
+- **Cancellation Rate**: ≤ 2% (seller-initiated)
+- **Return Rate**: ≤ 10% (defect-related)
+
+**6.2 Performance Tiers**
+
+**Bronze (New Sellers)**
+- Default tier for new sellers
+- Weekly payouts
+- Standard visibility
+
+**Silver (50+ sales, 4.5+ rating)**
+- Priority support
+- Featured placement opportunities
+- Lower transaction fees: 9%
+
+**Gold (200+ sales, 4.8+ rating)**
+- Dedicated account manager
+- Premium placement
+- Lower transaction fees: 8%
+
+**6.3 Performance Reviews**
+- Reviewed monthly
+- Tier adjustments based on last 90 days
+- Non-compliance may result in fees or suspension
+
+---
+
+### 7. Content and Intellectual Property
+
+**7.1 Your Content**
+You retain ownership of:
+- Product photos
+- Shop branding
+- Product descriptions
+
+By listing, you grant Coastaq license to display and promote your content.
+
+**7.2 Prohibited Content**
+You may not use:
+- Copyrighted material without permission
+- Trademarks you don't own
+- False or misleading claims
+- Contact information in listings
+
+---
+
+### 8. Prohibited Seller Conduct
+
+You may not:
+- Create multiple seller accounts
+- Manipulate reviews or ratings
+- Offer incentives for positive reviews
+- Complete transactions outside Coastaq
+- List items you don't have in stock
+- Engage in price gouging
+- Sell counterfeit products
+- Share customer information with third parties
+
+---
+
+### 9. Account Suspension and Termination
+
+**9.1 Coastaq May Suspend or Terminate For:**
+- Violation of this Agreement
+- Excessive negative feedback or disputes
+- Fraudulent activity
+- Selling prohibited items
+- Failure to fulfill orders
+- Abuse of support or other sellers
+- Legal or regulatory requirements
+
+**9.2 Process**
+- Written notice provided when possible
+- Opportunity to correct minor violations
+- Appeal within 14 days
+- Final decision by Coastaq
+
+**9.3 Effect of Termination**
+- Active listings removed
+- Outstanding payouts processed (less fees)
+- Disputes resolved per policies
+- May not create new seller account
+
+---
+
+### 10. Taxes
+
+**10.1 Seller Responsibility**
+You are responsible for:
+- Collecting and remitting sales tax (if applicable)
+- Reporting income to tax authorities
+- Providing tax information to Coastaq when required
+
+**10.2 Tax Documents**
+- Coastaq may issue 1099-K forms for qualifying sellers
+- Provide accurate tax information
+- Update information promptly
+
+---
+
+### 11. Liability and Insurance
+
+**11.1 Seller Liability**
+You are liable for:
+- Product quality and safety
+- Shipping issues
+- Returns and refunds
+- Compliance with laws
+- Customer disputes
+
+**11.2 Recommended Insurance**
+Sellers with high volume should consider:
+- Product liability insurance
+- General business liability
+- Errors and omissions coverage
+
+---
+
+### 12. Dispute Resolution
+
+**12.1 Internal Resolution**
+- Attempt to resolve with buyer first
+- Escalate to Coastaq if needed
+- Provide all documentation
+- Accept Coastaq's decision as final
+
+**12.2 Seller Protection**
+Coastaq may cover costs when:
+- Fraudulent buyer claims
+- Chargebacks without valid reason
+- Platform errors
+
+**12.3 Arbitration**
+Disputes with Coastaq resolved through binding arbitration. Class action waiver applies.
+
+---
+
+### 13. Modifications
+
+We may modify this Agreement with 30 days notice. Continued selling constitutes acceptance.
+
+---
+
+### 14. Contact Information
+
+**Seller Support**: sellers@coastaq.com
+**Account Issues**: seller-accounts@coastaq.com
+**Appeals**: seller-appeals@coastaq.com
+
+---
+
+**By selling on Coastaq, you acknowledge that you have read, understood, and agree to be bound by this Seller Agreement.**
+
+---
+
+These 5 pages provide comprehensive legal coverage for your Coastaq marketplace. I recommend having a lawyer review them for your specific jurisdiction before publishing, as laws vary by country. Would you like me to create the FAQ page or any additional pages?
