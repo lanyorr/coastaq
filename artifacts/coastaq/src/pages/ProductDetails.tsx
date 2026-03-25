@@ -7,7 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import {
   MapPin, Store, ShieldCheck, Phone, MessageCircle,
   ChevronRight, Flag, AlertCircle, CheckCircle2, Clock,
-  PhoneCall, X,
+  PhoneCall, X, Heart,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
@@ -31,6 +31,56 @@ export default function ProductDetails() {
   const [callbackName, setCallbackName] = useState("");
   const [callbackPhone, setCallbackPhone] = useState("");
   const [callbackSent, setCallbackSent] = useState(false);
+  const [saved, setSaved] = useState(() => {
+    try {
+      const list = JSON.parse(localStorage.getItem("coastaq_saved") || "[]");
+      return list.some((s: any) => s.productId === id);
+    } catch { return false; }
+  });
+
+  const trackEnquiry = (type: "contact" | "chat" | "callback") => {
+    if (!product) return;
+    const shop = product.shop as any;
+    const entry = {
+      productId: product.id,
+      title: product.title,
+      price: product.price,
+      shopName: shop?.name || "Unknown Shop",
+      image: product.images?.[0] || "https://images.unsplash.com/photo-1616046229478-9901c5536a45?w=200&h=200&fit=crop",
+      location: product.location || "",
+      type,
+      date: new Date().toISOString(),
+    };
+    try {
+      const existing = JSON.parse(localStorage.getItem("coastaq_enquiries") || "[]");
+      localStorage.setItem("coastaq_enquiries", JSON.stringify([...existing, entry]));
+    } catch { /* silent */ }
+  };
+
+  const toggleSave = () => {
+    if (!product) return;
+    const shop = product.shop as any;
+    try {
+      const existing: any[] = JSON.parse(localStorage.getItem("coastaq_saved") || "[]");
+      if (saved) {
+        const next = existing.filter((s: any) => s.productId !== product.id);
+        localStorage.setItem("coastaq_saved", JSON.stringify(next));
+        setSaved(false);
+      } else {
+        const entry = {
+          productId: product.id,
+          title: product.title,
+          price: product.price,
+          shopName: shop?.name || "Unknown Shop",
+          image: product.images?.[0] || "https://images.unsplash.com/photo-1616046229478-9901c5536a45?w=200&h=200&fit=crop",
+          location: product.location || "",
+          savedAt: new Date().toISOString(),
+        };
+        localStorage.setItem("coastaq_saved", JSON.stringify([...existing, entry]));
+        setSaved(true);
+      }
+    } catch { /* silent */ }
+  };
 
   if (isLoading) {
     return (
@@ -70,6 +120,7 @@ export default function ProductDetails() {
 
   const handleRequestCallback = (e: React.FormEvent) => {
     e.preventDefault();
+    trackEnquiry("callback");
     setCallbackSent(true);
     setTimeout(() => {
       setShowCallbackForm(false);
@@ -80,6 +131,7 @@ export default function ProductDetails() {
   };
 
   const handleStartChat = () => {
+    trackEnquiry("chat");
     if (shopWhatsapp) {
       const msg = encodeURIComponent(`Hi, I'm interested in your listing: ${product.title}`);
       window.open(`https://wa.me/${shopWhatsapp.replace(/\D/g, "")}?text=${msg}`, "_blank");
@@ -138,9 +190,18 @@ export default function ProductDetails() {
                   <span className="text-xs text-muted-foreground">{product.category.name}</span>
                 )}
               </div>
-              <h1 className="text-2xl md:text-3xl font-display font-bold text-foreground leading-snug mb-4">
-                {product.title}
-              </h1>
+              <div className="flex items-start justify-between gap-3 mb-4">
+                <h1 className="text-2xl md:text-3xl font-display font-bold text-foreground leading-snug">
+                  {product.title}
+                </h1>
+                <button
+                  onClick={toggleSave}
+                  title={saved ? "Remove from saved" : "Save listing"}
+                  className={`shrink-0 p-2 rounded-full border transition-colors mt-1 ${saved ? "border-rose-300 bg-rose-50 text-rose-500" : "border-border text-muted-foreground hover:border-rose-300 hover:text-rose-400"}`}
+                >
+                  <Heart className={`w-5 h-5 ${saved ? "fill-current" : ""}`} />
+                </button>
+              </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <MapPin className="w-4 h-4 shrink-0" />
                 <span>{product.location || "Location not specified"}</span>
@@ -261,7 +322,7 @@ export default function ProductDetails() {
                 {/* Show Contact */}
                 {shopPhone && !phoneRevealed ? (
                   <button
-                    onClick={() => setPhoneRevealed(true)}
+                    onClick={() => { setPhoneRevealed(true); trackEnquiry("contact"); }}
                     className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-primary text-white font-semibold text-sm hover:bg-primary/90 transition-colors shadow-sm shadow-primary/20"
                   >
                     <Phone className="w-4 h-4" />

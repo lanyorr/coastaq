@@ -27,11 +27,7 @@ export default function Register() {
     mutation: {
       onSuccess: (data) => {
         localStorage.setItem("coastaq_token", data.token);
-        if (data.user.role === "BUYER") {
-          window.location.href = "/";
-        } else {
-          setRegistered({ role: data.user.role, name: data.user.name, shopName: formData.shopName });
-        }
+        setRegistered({ role: data.user.role, name: data.user.name, shopName: formData.shopName });
       },
       onError: (err: any) => {
         toast({ variant: "destructive", title: "Registration failed", description: err.message });
@@ -44,8 +40,9 @@ export default function Register() {
     register({ data: { ...formData, role } });
   };
 
-  // ── Success screen for sellers ──────────────────────────────────────────────
+  // ── Success screen ──────────────────────────────────────────────────────────
   if (registered) {
+    const isBuyer = registered.role === "BUYER";
     return (
       <div className="min-h-screen flex items-center justify-center relative bg-background py-12">
         <img
@@ -69,36 +66,79 @@ export default function Register() {
             </div>
 
             <h1 className="text-2xl font-bold font-display mb-2">
-              Welcome aboard, {registered.name}!
+              Welcome to Coastaq, {registered.name}!
             </h1>
-            <p className="text-muted-foreground mb-2">
+            <p className="text-muted-foreground mb-6">
               Your account has been created successfully.
             </p>
-            {registered.shopName && (
-              <div className="inline-flex items-center gap-2 bg-primary/10 text-primary text-sm font-semibold px-4 py-2 rounded-full mt-2 mb-8">
-                <Store className="w-4 h-4" />
-                {registered.shopName} is ready!
-              </div>
-            )}
-            {!registered.shopName && <div className="mb-8" />}
 
-            <div className="space-y-3">
-              <Button
-                className="w-full h-12 rounded-xl text-base font-bold shadow-md shadow-primary/20"
-                onClick={() => window.location.href = "/seller/dashboard"}
-              >
-                <LayoutDashboard className="w-5 h-5 mr-2" />
-                Go to Seller Dashboard
-              </Button>
-              <Button
-                variant="outline"
-                className="w-full h-12 rounded-xl text-base font-semibold"
-                onClick={() => window.location.href = "/"}
-              >
-                <ArrowLeft className="w-5 h-5 mr-2" />
-                Back to Marketplace
-              </Button>
-            </div>
+            {isBuyer ? (
+              <>
+                <div className="bg-secondary/60 rounded-2xl p-5 text-left mb-8 space-y-3">
+                  <p className="text-sm font-semibold text-foreground mb-1">As a buyer, you can:</p>
+                  <div className="flex items-start gap-2 text-sm text-muted-foreground">
+                    <CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                    Browse thousands of listings across all categories
+                  </div>
+                  <div className="flex items-start gap-2 text-sm text-muted-foreground">
+                    <CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                    Contact sellers directly via phone or chat
+                  </div>
+                  <div className="flex items-start gap-2 text-sm text-muted-foreground">
+                    <CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                    Save listings and track your enquiry history
+                  </div>
+                  <div className="flex items-start gap-2 text-sm text-muted-foreground">
+                    <CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                    Request callbacks from sellers
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <Button
+                    className="w-full h-12 rounded-xl text-base font-bold shadow-md shadow-primary/20"
+                    onClick={() => window.location.href = "/buyer/dashboard"}
+                  >
+                    <LayoutDashboard className="w-5 h-5 mr-2" />
+                    Go to My Dashboard
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full h-12 rounded-xl text-base font-semibold"
+                    onClick={() => window.location.href = "/"}
+                  >
+                    <ArrowLeft className="w-5 h-5 mr-2" />
+                    Browse Listings
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <>
+                {registered.shopName && (
+                  <div className="inline-flex items-center gap-2 bg-primary/10 text-primary text-sm font-semibold px-4 py-2 rounded-full mb-8">
+                    <Store className="w-4 h-4" />
+                    {registered.shopName} is ready!
+                  </div>
+                )}
+                {!registered.shopName && <div className="mb-8" />}
+                <div className="space-y-3">
+                  <Button
+                    className="w-full h-12 rounded-xl text-base font-bold shadow-md shadow-primary/20"
+                    onClick={() => window.location.href = "/seller/dashboard"}
+                  >
+                    <LayoutDashboard className="w-5 h-5 mr-2" />
+                    Go to Seller Dashboard
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full h-12 rounded-xl text-base font-semibold"
+                    onClick={() => window.location.href = "/"}
+                  >
+                    <ArrowLeft className="w-5 h-5 mr-2" />
+                    Back to Marketplace
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
