@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Store, Package, Settings, Plus, Trash2, Loader2, Home,
   ImageIcon, AlertCircle, CreditCard, MessageCircle, ChevronRight, Inbox,
+  ShoppingBag, CheckCircle2, XCircle, Truck, Clock as ClockIcon,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -108,6 +109,163 @@ function SellerInbox() {
               View all {convs.length} conversations →
             </button>
           )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+const STATUS_CONFIG: Record<string, { label: string; icon: React.ReactNode; className: string }> = {
+  PENDING:   { label: "Pending",   icon: <ClockIcon className="w-3.5 h-3.5" />,      className: "bg-amber-50 text-amber-700 border-amber-200" },
+  CONFIRMED: { label: "Confirmed", icon: <CheckCircle2 className="w-3.5 h-3.5" />,   className: "bg-blue-50 text-blue-700 border-blue-200" },
+  SHIPPED:   { label: "Shipped",   icon: <Truck className="w-3.5 h-3.5" />,           className: "bg-purple-50 text-purple-700 border-purple-200" },
+  DELIVERED: { label: "Delivered", icon: <CheckCircle2 className="w-3.5 h-3.5" />,   className: "bg-green-50 text-green-700 border-green-200" },
+  CANCELLED: { label: "Cancelled", icon: <XCircle className="w-3.5 h-3.5" />,         className: "bg-red-50 text-red-700 border-red-200" },
+};
+
+function SellerOrders() {
+  const [orders, setOrders] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const { toast } = useToast();
+
+  const load = () => {
+    setLoading(true);
+    fetch("/api/orders/seller")
+      .then(r => r.json())
+      .then(d => { setOrders(Array.isArray(d) ? d : []); setLoading(false); })
+      .catch(() => setLoading(false));
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const updateStatus = async (orderId: string, status: string) => {
+    setUpdatingId(orderId);
+    try {
+      const r = await fetch(`/api/orders/${orderId}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      if (!r.ok) throw new Error("Failed");
+      toast({ title: "Order updated", description: `Status changed to ${status.toLowerCase()}.` });
+      load();
+    } catch {
+      toast({ title: "Error", description: "Could not update order.", variant: "destructive" });
+    }
+    setUpdatingId(null);
+  };
+
+  if (loading) {
+    return (
+      <div className="bg-card border border-border/50 rounded-3xl p-6 shadow-sm">
+        <h3 className="font-display font-semibold text-lg mb-6">Requested Orders</h3>
+        <div className="space-y-4">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="animate-pulse bg-secondary/50 rounded-2xl p-4 h-20" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-card border border-border/50 rounded-3xl p-6 shadow-sm">
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="font-display font-semibold text-lg">Requested Orders</h3>
+        <span className="text-sm text-muted-foreground">{orders.length} total</span>
+      </div>
+
+      {orders.length === 0 ? (
+        <div className="text-center py-16">
+          <ShoppingBag className="w-12 h-12 mx-auto mb-3 text-muted-foreground/30" />
+          <p className="font-semibold text-foreground">No orders yet</p>
+          <p className="text-sm text-muted-foreground mt-1">When buyers place orders on your listings, they'll appear here.</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {orders.map(order => {
+            const cfg = STATUS_CONFIG[order.status] ?? STATUS_CONFIG.PENDING;
+            const item = order.items?.[0];
+            return (
+              <div key={order.id} className="border border-border/50 rounded-2xl p-4 space-y-3">
+                {/* Top row */}
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs text-muted-foreground font-mono">#{order.id.slice(-8)}</span>
+                      <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full border ${cfg.className}`}>
+                        {cfg.icon}{cfg.label}
+                      </span>
+                    </div>
+                    <p className="font-semibold text-foreground text-sm mt-1 truncate">
+                      {item?.product?.title ?? "Unknown Product"}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Qty: {item?.quantity ?? 1} · Total: ₦{Number(order.total).toLocaleString()}
+                    </p>
+                    {order.buyerNote && (
+                      <p className="text-xs text-muted-foreground mt-1 italic">"{order.buyerNote}"</p>
+                    )}
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className="text-sm font-bold text-primary">₦{Number(order.total).toLocaleString()}</p>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">
+                      {new Date(order.createdAt).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Buyer info */}
+                {order.buyer && (
+                  <div className="text-xs text-muted-foreground bg-secondary/60 rounded-xl px-3 py-2">
+                    Buyer: <span className="font-medium text-foreground">{order.buyer.name}</span> · {order.buyer.email}
+                  </div>
+                )}
+
+                {/* Status actions */}
+                {order.status === "PENDING" && (
+                  <div className="flex gap-2 pt-1">
+                    <button
+                      onClick={() => updateStatus(order.id, "CONFIRMED")}
+                      disabled={updatingId === order.id}
+                      className="flex-1 py-2 rounded-xl bg-primary text-white text-xs font-semibold hover:bg-primary/90 transition-colors disabled:opacity-60 flex items-center justify-center gap-1.5"
+                    >
+                      {updatingId === order.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle2 className="w-3 h-3" />}
+                      Confirm Order
+                    </button>
+                    <button
+                      onClick={() => updateStatus(order.id, "CANCELLED")}
+                      disabled={updatingId === order.id}
+                      className="flex-1 py-2 rounded-xl border border-red-200 text-red-600 text-xs font-semibold hover:bg-red-50 transition-colors disabled:opacity-60 flex items-center justify-center gap-1.5"
+                    >
+                      <XCircle className="w-3 h-3" /> Decline
+                    </button>
+                  </div>
+                )}
+                {order.status === "CONFIRMED" && (
+                  <button
+                    onClick={() => updateStatus(order.id, "SHIPPED")}
+                    disabled={updatingId === order.id}
+                    className="w-full py-2 rounded-xl bg-purple-600 text-white text-xs font-semibold hover:bg-purple-700 transition-colors disabled:opacity-60 flex items-center justify-center gap-1.5"
+                  >
+                    {updatingId === order.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Truck className="w-3 h-3" />}
+                    Mark as Shipped
+                  </button>
+                )}
+                {order.status === "SHIPPED" && (
+                  <button
+                    onClick={() => updateStatus(order.id, "DELIVERED")}
+                    disabled={updatingId === order.id}
+                    className="w-full py-2 rounded-xl bg-green-600 text-white text-xs font-semibold hover:bg-green-700 transition-colors disabled:opacity-60 flex items-center justify-center gap-1.5"
+                  >
+                    {updatingId === order.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle2 className="w-3 h-3" />}
+                    Mark as Delivered
+                  </button>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
@@ -302,17 +460,20 @@ export default function SellerDashboard() {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="bg-secondary/50 p-1 rounded-xl mb-8">
-            <TabsTrigger value="products" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm px-6">
+          <TabsList className="bg-secondary/50 p-1 rounded-xl mb-8 flex-wrap gap-1">
+            <TabsTrigger value="products" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm px-5">
               <Package className="w-4 h-4 mr-2" /> Products
             </TabsTrigger>
-            <TabsTrigger value="messages" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm px-6">
+            <TabsTrigger value="orders" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm px-5">
+              <ShoppingBag className="w-4 h-4 mr-2" /> Orders
+            </TabsTrigger>
+            <TabsTrigger value="messages" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm px-5">
               <MessageCircle className="w-4 h-4 mr-2" /> Messages
             </TabsTrigger>
-            <TabsTrigger value="subscription" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm px-6">
+            <TabsTrigger value="subscription" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm px-5">
               <CreditCard className="w-4 h-4 mr-2" /> Subscription
             </TabsTrigger>
-            <TabsTrigger value="settings" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm px-6">
+            <TabsTrigger value="settings" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm px-5">
               <Settings className="w-4 h-4 mr-2" /> Settings
             </TabsTrigger>
           </TabsList>
@@ -556,6 +717,11 @@ export default function SellerDashboard() {
                 </div>
               )}
             </div>
+          </TabsContent>
+
+          {/* Orders Tab */}
+          <TabsContent value="orders">
+            <SellerOrders />
           </TabsContent>
 
           {/* Messages Tab */}
