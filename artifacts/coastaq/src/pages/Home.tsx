@@ -56,60 +56,36 @@ export default function Home() {
       
       {/* Hero Banner */}
       {!searchQuery && !categoryId && (
-        <section className="bg-gradient-to-br from-[#0ea5e9]/8 via-[#06b6d4]/5 to-[#3b82f6]/8 border-b border-primary/10">
-          <div className="container mx-auto px-4 py-10 md:py-14 flex flex-col items-center text-center gap-7">
+        <section className="bg-gradient-to-r from-[#0ea5e9]/8 via-[#06b6d4]/5 to-[#3b82f6]/8 border-b border-primary/10">
+          <div className="container mx-auto px-4 py-4 flex items-center justify-between gap-6">
             {/* Tagline */}
-            <div className="flex flex-col items-center gap-2">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="h-px w-8 bg-primary/30 rounded-full" />
-                <span className="text-xs font-semibold tracking-[0.18em] uppercase text-primary/60">Coastaq</span>
-                <span className="h-px w-8 bg-primary/30 rounded-full" />
-              </div>
-              <h1 className="text-2xl md:text-3xl font-display font-bold text-foreground/90 tracking-tight">
-                Your everyday marketplace,{" "}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-sky-500 to-cyan-500">
-                  powered by everyone
-                </span>
-              </h1>
-            </div>
+            <p className="text-base md:text-lg font-display font-semibold text-foreground/85 tracking-tight shrink-0">
+              Your everyday marketplace,{" "}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-sky-500 to-cyan-500">
+                powered by everyone
+              </span>
+            </p>
 
-            {/* Hero Search */}
-            <form onSubmit={handleHeroSearch} className="w-full max-w-2xl">
-              <div className="flex gap-2 items-center bg-white rounded-2xl shadow-lg shadow-primary/10 border border-primary/15 px-4 py-2 focus-within:ring-2 focus-within:ring-primary/25 transition-all">
-                <Search className="h-5 w-5 text-primary/40 shrink-0" />
+            {/* Compact Search */}
+            <form onSubmit={handleHeroSearch} className="flex items-center gap-2 shrink-0">
+              <div className="flex items-center bg-white rounded-full border border-primary/20 shadow-sm px-3 py-1.5 focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+                <Search className="h-3.5 w-3.5 text-primary/40 shrink-0 mr-2" />
                 <input
                   type="search"
-                  placeholder="Search for phones, cars, furniture, fashion and more…"
-                  className="flex-1 bg-transparent outline-none text-base text-foreground placeholder:text-muted-foreground/60 py-1.5"
+                  placeholder="Search products…"
+                  className="bg-transparent outline-none text-sm text-foreground placeholder:text-muted-foreground/60 w-44"
                   value={heroSearch}
                   onChange={(e) => setHeroSearch(e.target.value)}
                 />
-                <Button
-                  type="submit"
-                  size="sm"
-                  className="rounded-xl bg-primary hover:bg-primary/90 text-white font-semibold px-5 shadow-sm shadow-primary/20 shrink-0"
-                >
-                  Search
-                </Button>
               </div>
+              <Button
+                type="submit"
+                size="sm"
+                className="rounded-full bg-primary hover:bg-primary/90 text-white text-xs font-semibold px-4 h-8 shadow-sm shadow-primary/20 shrink-0"
+              >
+                Search
+              </Button>
             </form>
-
-            {/* Quick category chips */}
-            <div className="flex flex-wrap justify-center gap-2 text-sm">
-              {["Electronics", "Vehicles", "Fashion", "Property", "Home, Furniture & Appliances"].map(label => (
-                <button
-                  key={label}
-                  type="button"
-                  onClick={() => {
-                    const match = categories?.find((c: any) => c.name === label);
-                    if (match) setLocation(`/?category=${match.id}`);
-                  }}
-                  className="px-4 py-1.5 rounded-full border border-primary/20 bg-white/70 text-primary/80 hover:bg-primary/10 hover:border-primary/40 hover:text-primary transition-colors font-medium"
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
           </div>
         </section>
       )}
