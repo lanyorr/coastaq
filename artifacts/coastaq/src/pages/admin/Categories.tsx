@@ -18,10 +18,14 @@ export default function AdminCategories() {
 
   const load = async () => {
     setLoading(true);
-    const r = await fetch("/api/admin/categories");
-    const d = await r.json();
-    setCats(d);
-    setLoading(false);
+    try {
+      const r = await fetch("/api/admin/categories");
+      if (!r.ok) { setLoading(false); return; }
+      const d = await r.json();
+      setCats(d);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { load(); }, []);
