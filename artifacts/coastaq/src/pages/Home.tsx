@@ -5,13 +5,15 @@ import { Footer } from "@/components/layout/Footer";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Filter, Store } from "lucide-react";
+import { Filter, Store, ChevronDown, ChevronRight } from "lucide-react";
+import { useState } from "react";
 
 export default function Home() {
   const [location] = useLocation();
   const searchParams = new URLSearchParams(window.location.search);
   const searchQuery = searchParams.get("search") || undefined;
   const categoryId = searchParams.get("category") || undefined;
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
   const { data: productsData, isLoading: loadingProducts } = useListProducts({ 
     search: searchQuery,
@@ -20,6 +22,15 @@ export default function Home() {
   });
   
   const { data: categories, isLoading: loadingCats } = useListCategories();
+
+  function toggleExpand(id: string) {
+    setExpanded(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -66,10 +77,10 @@ export default function Home() {
             
             {loadingCats ? (
               <div className="space-y-3">
-                {[1,2,3,4].map(i => <Skeleton key={i} className="h-6 w-3/4 rounded-md" />)}
+                {[1,2,3,4,5,6].map(i => <Skeleton key={i} className="h-6 w-3/4 rounded-md" />)}
               </div>
             ) : (
-              <ul className="space-y-1">
+              <ul className="space-y-0.5">
                 <li>
                   <a 
                     href="/" 
@@ -78,16 +89,54 @@ export default function Home() {
                     All Products
                   </a>
                 </li>
-                {categories?.map((cat) => (
-                  <li key={cat.id}>
-                    <a 
-                      href={`/?category=${cat.id}`}
-                      className={`block px-3 py-2 rounded-xl text-sm font-medium transition-colors ${categoryId === cat.id ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'}`}
-                    >
-                      {cat.name}
-                    </a>
-                  </li>
-                ))}
+                {categories?.map((cat) => {
+                  const children = (cat as any).children ?? [];
+                  const isOpen = expanded.has(cat.id);
+                  const isParentActive = categoryId === cat.id;
+                  const isChildActive = children.some((c: any) => c.id === categoryId);
+
+                  return (
+                    <li key={cat.id}>
+                      {/* Parent row */}
+                      <div className="flex items-center gap-1">
+                        <a
+                          href={`/?category=${cat.id}`}
+                          className={`flex-1 block px-3 py-2 rounded-xl text-sm font-medium transition-colors ${isParentActive || isChildActive ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'}`}
+                        >
+                          {cat.name}
+                        </a>
+                        {children.length > 0 && (
+                          <button
+                            onClick={() => toggleExpand(cat.id)}
+                            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors shrink-0"
+                            aria-label={isOpen ? "Collapse" : "Expand"}
+                          >
+                            {isOpen
+                              ? <ChevronDown className="w-3.5 h-3.5" />
+                              : <ChevronRight className="w-3.5 h-3.5" />
+                            }
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Subcategories */}
+                      {children.length > 0 && isOpen && (
+                        <ul className="ml-3 mt-0.5 mb-1 pl-3 border-l border-border space-y-0.5">
+                          {children.map((child: any) => (
+                            <li key={child.id}>
+                              <a
+                                href={`/?category=${child.id}`}
+                                className={`block px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${categoryId === child.id ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'}`}
+                              >
+                                {child.name}
+                              </a>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </div>
