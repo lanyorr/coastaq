@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Waves, Loader2, Store, User, CheckCircle2, LayoutDashboard, ArrowLeft,
+  Loader2, Store, User, CheckCircle2, LayoutDashboard, ArrowLeft,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -51,11 +51,8 @@ export default function Register() {
           className="fixed inset-0 w-full h-full object-cover opacity-50"
         />
         <div className="relative z-10 w-full max-w-lg p-4">
-          <Link href="/" className="inline-flex items-center justify-center w-full mb-6 hover:opacity-80 transition-opacity">
-            <div className="bg-white/50 backdrop-blur-md p-3 rounded-2xl shadow-sm mr-3">
-              <Waves className="h-8 w-8 text-primary" />
-            </div>
-            <span className="font-display font-bold text-4xl text-foreground">Coastaq</span>
+          <Link href="/" className="flex justify-center w-full mb-6 hover:opacity-90 transition-opacity">
+            <img src="/logo.png" alt="Coastaq" className="h-24 w-auto object-contain drop-shadow-md" />
           </Link>
 
           <div className="glass-panel rounded-[2rem] p-10 text-center">
@@ -155,11 +152,8 @@ export default function Register() {
       />
 
       <div className="relative z-10 w-full max-w-lg p-4">
-        <Link href="/" className="inline-flex items-center justify-center w-full mb-6 hover:opacity-80 transition-opacity">
-          <div className="bg-white/50 backdrop-blur-md p-3 rounded-2xl shadow-sm mr-3">
-            <Waves className="h-8 w-8 text-primary" />
-          </div>
-          <span className="font-display font-bold text-4xl text-foreground">Coastaq</span>
+        <Link href="/" className="flex justify-center w-full mb-6 hover:opacity-90 transition-opacity">
+          <img src="/logo.png" alt="Coastaq" className="h-24 w-auto object-contain drop-shadow-md" />
         </Link>
 
         <div className="glass-panel rounded-[2rem] p-8">
