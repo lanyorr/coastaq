@@ -1,7 +1,7 @@
 import { useState } from "react";
 import {
   useSubscriptionStatus,
-  useActivateSubscription,
+  usePaypalConfig,
   useCancelSubscription,
 } from "@/hooks/use-subscription";
 import { Button } from "@/components/ui/button";
@@ -17,12 +17,14 @@ import {
   AlertCircle,
   XCircle,
   Zap,
-  CreditCard,
   Loader2,
   RefreshCw,
   Star,
+  ShieldCheck,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
+import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 
 const PLAN_FEATURES = [
   "Unlimited product listings",
@@ -67,9 +69,89 @@ function StatusBadge({ status, daysLeft }: { status: string; daysLeft: number })
   );
 }
 
+function PayPalCheckout({
+  clientId,
+  mode,
+  onSuccess,
+  onCancel,
+}: {
+  clientId: string;
+  mode: string;
+  onSuccess: () => void;
+  onCancel: () => void;
+}) {
+  const { toast } = useToast();
+  const qc = useQueryClient();
+
+  return (
+    <PayPalScriptProvider
+      options={{
+        clientId,
+        currency: "USD",
+        intent: "capture",
+        ...(mode === "sandbox" ? { "buyer-country": "US" } : {}),
+      }}
+    >
+      <PayPalButtons
+        style={{ layout: "vertical", color: "gold", shape: "rect", label: "pay" }}
+        forceReRender={[clientId]}
+        createOrder={async () => {
+          const token = localStorage.getItem("coastaq_token");
+          const res = await fetch("/api/subscription/create-order", {
+            method: "POST",
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error((err as any).error || "Failed to create order");
+          }
+          const data = await res.json() as { orderID: string };
+          return data.orderID;
+        }}
+        onApprove={async (data) => {
+          const token = localStorage.getItem("coastaq_token");
+          const res = await fetch("/api/subscription/capture-order", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ orderID: data.orderID }),
+          });
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            toast({
+              variant: "destructive",
+              title: "Payment failed",
+              description: (err as any).error || "Could not complete payment",
+            });
+            return;
+          }
+          const result = await res.json();
+          qc.invalidateQueries({ queryKey: ["/api/subscription/status"] });
+          toast({
+            title: "Subscription activated!",
+            description: result.message ?? "Your seller subscription is now active.",
+          });
+          onSuccess();
+        }}
+        onCancel={onCancel}
+        onError={(err) => {
+          console.error("PayPal error:", err);
+          toast({
+            variant: "destructive",
+            title: "Payment error",
+            description: "Something went wrong with PayPal. Please try again.",
+          });
+        }}
+      />
+    </PayPalScriptProvider>
+  );
+}
+
 export function SubscriptionPanel() {
   const { data: sub, isLoading } = useSubscriptionStatus();
-  const { mutate: activate, isPending: activating } = useActivateSubscription();
+  const { data: paypalConfig, isLoading: configLoading } = usePaypalConfig();
   const { mutate: cancel, isPending: cancelling } = useCancelSubscription();
   const { toast } = useToast();
   const [showPayDialog, setShowPayDialog] = useState(false);
@@ -85,21 +167,6 @@ export function SubscriptionPanel() {
   }
 
   if (!sub) return null;
-
-  const handleActivate = () => {
-    activate(undefined as any, {
-      onSuccess: (data) => {
-        toast({
-          title: "Subscription activated!",
-          description: data.message,
-        });
-        setShowPayDialog(false);
-      },
-      onError: (err: any) => {
-        toast({ variant: "destructive", title: "Activation failed", description: err.message });
-      },
-    });
-  };
 
   const handleCancel = () => {
     cancel(undefined as any, {
@@ -124,6 +191,8 @@ export function SubscriptionPanel() {
         year: "numeric", month: "long", day: "numeric",
       })
     : null;
+
+  const paypalReady = !configLoading && paypalConfig?.paypalConfigured && paypalConfig.paypalClientId;
 
   return (
     <>
@@ -200,7 +269,7 @@ export function SubscriptionPanel() {
         </div>
       </div>
 
-      {/* Subscribe / Payment Dialog */}
+      {/* PayPal Subscribe Dialog */}
       <Dialog open={showPayDialog} onOpenChange={setShowPayDialog}>
         <DialogContent className="sm:max-w-md rounded-3xl">
           <DialogHeader>
@@ -227,49 +296,32 @@ export function SubscriptionPanel() {
               ))}
             </div>
 
-            {/* Payment form stub */}
-            <div className="bg-secondary/50 rounded-2xl p-4 space-y-3">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
-                <CreditCard className="w-3.5 h-3.5" /> Payment Details
-              </p>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-background border border-border rounded-xl p-3 col-span-2">
-                  <p className="text-xs text-muted-foreground mb-1">Card Number</p>
-                  <p className="text-sm font-mono text-foreground">•••• •••• •••• 4242</p>
+            {/* PayPal Buttons or loading/unconfigured state */}
+            <div className="space-y-3">
+              {configLoading ? (
+                <div className="flex items-center justify-center py-6">
+                  <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
                 </div>
-                <div className="bg-background border border-border rounded-xl p-3">
-                  <p className="text-xs text-muted-foreground mb-1">Expiry</p>
-                  <p className="text-sm font-mono">12/28</p>
+              ) : paypalReady ? (
+                <div className="rounded-2xl overflow-hidden">
+                  <PayPalCheckout
+                    clientId={paypalConfig!.paypalClientId!}
+                    mode={paypalConfig!.mode}
+                    onSuccess={() => setShowPayDialog(false)}
+                    onCancel={() => setShowPayDialog(false)}
+                  />
                 </div>
-                <div className="bg-background border border-border rounded-xl p-3">
-                  <p className="text-xs text-muted-foreground mb-1">CVC</p>
-                  <p className="text-sm font-mono">•••</p>
+              ) : (
+                <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-center text-sm text-amber-800">
+                  <AlertCircle className="w-5 h-5 mx-auto mb-2 text-amber-500" />
+                  PayPal payment is not configured yet. Please add your PayPal credentials in the environment settings.
                 </div>
-              </div>
-              <p className="text-xs text-muted-foreground text-center">
-                Demo mode — no real payment processed
-              </p>
-            </div>
+              )}
 
-            <div className="flex gap-3">
-              <Button
-                variant="outline"
-                className="flex-1 h-12 rounded-xl"
-                onClick={() => setShowPayDialog(false)}
-              >
-                Cancel
-              </Button>
-              <Button
-                className="flex-1 h-12 rounded-xl"
-                onClick={handleActivate}
-                disabled={activating}
-              >
-                {activating ? (
-                  <Loader2 className="animate-spin w-5 h-5" />
-                ) : (
-                  <>Pay $20 / month</>
-                )}
-              </Button>
+              <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
+                <ShieldCheck className="w-3.5 h-3.5 text-green-500" />
+                Secured by PayPal · Cancel anytime
+              </div>
             </div>
           </div>
         </DialogContent>

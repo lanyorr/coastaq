@@ -25,6 +25,7 @@ export const shopsTable = pgTable("shops", {
   subscriptionStatus: subscriptionStatusEnum("subscription_status").notNull().default("TRIAL"),
   trialEndsAt: timestamp("trial_ends_at"),
   subscriptionCurrentPeriodEnd: timestamp("subscription_current_period_end"),
+  lastPaypalOrderId: text("last_paypal_order_id"),
 
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),

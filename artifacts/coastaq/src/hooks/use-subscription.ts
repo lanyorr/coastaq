@@ -10,26 +10,37 @@ export interface SubscriptionInfo {
   message?: string;
 }
 
+export interface PaypalConfig {
+  paypalClientId: string | null;
+  paypalConfigured: boolean;
+  mode: "sandbox" | "live";
+}
+
+function authHeaders(): HeadersInit {
+  const token = localStorage.getItem("coastaq_token");
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 async function fetchSubscriptionStatus(): Promise<SubscriptionInfo> {
-  const res = await fetch("/api/subscription/status");
+  const res = await fetch("/api/subscription/status", { headers: authHeaders() });
   if (!res.ok) throw new Error("Failed to fetch subscription status");
   return res.json();
 }
 
-async function activateSubscription(): Promise<SubscriptionInfo & { message: string }> {
-  const res = await fetch("/api/subscription/activate", { method: "POST" });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || "Activation failed");
-  }
+async function fetchPaypalConfig(): Promise<PaypalConfig> {
+  const res = await fetch("/api/subscription/config");
+  if (!res.ok) throw new Error("Failed to fetch PayPal config");
   return res.json();
 }
 
 async function cancelSubscription(): Promise<SubscriptionInfo & { message: string }> {
-  const res = await fetch("/api/subscription/cancel", { method: "POST" });
+  const res = await fetch("/api/subscription/cancel", {
+    method: "POST",
+    headers: authHeaders(),
+  });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || "Cancellation failed");
+    throw new Error((err as any).error || "Cancellation failed");
   }
   return res.json();
 }
@@ -42,11 +53,11 @@ export function useSubscriptionStatus() {
   });
 }
 
-export function useActivateSubscription() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: activateSubscription,
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["/api/subscription/status"] }),
+export function usePaypalConfig() {
+  return useQuery({
+    queryKey: ["/api/subscription/config"],
+    queryFn: fetchPaypalConfig,
+    staleTime: 300_000,
   });
 }
 
