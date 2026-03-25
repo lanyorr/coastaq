@@ -1,0 +1,22 @@
+packages:
+  "zustand": "State management for cart and local preferences"
+  "framer-motion": "Smooth page transitions and micro-interactions"
+  "lucide-react": "Beautiful consistent iconography"
+  "date-fns": "Formatting timestamps for orders and reviews"
+  "clsx": "Utility for constructing className strings conditionally"
+  "tailwind-merge": "Utility to merge tailwind classes safely"
+  "react-hook-form": "Performant, flexible and extensible forms"
+  "@hookform/resolvers": "Zod schema validation integration for react-hook-form"
+
+images:
+  - path: "artifacts/coastaq/public/images/hero-coastal.png"
+    description: "Stunning abstract ocean waves meeting a sandy beach from top-down view, bright sunny day, light airy teal and soft beige colors, minimal and modern"
+    aspect_ratio: "21:9"
+  - path: "artifacts/coastaq/public/images/auth-bg.png"
+    description: "Soft blurred abstract gradient background in coastal colors, light ocean blue blending into warm sand colors, extremely minimal, high key lighting"
+    aspect_ratio: "9:16"
+
+notes:
+  - Using global fetch interceptor in App.tsx to automatically inject Authorization header from localStorage ('coastaq_token') for all /api requests.
+  - Using API hooks generated in @workspace/api-client-react.
+  - Cart state persists to localStorage via Zustand.

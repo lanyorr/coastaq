@@ -1,8 +1,24 @@
 import { Router, type IRouter } from "express";
-import healthRouter from "./health";
+import healthRouter from "./health.js";
+import authRouter from "./auth.js";
+import productsRouter from "./products.js";
+import categoriesRouter from "./categories.js";
+import shopsRouter from "./shops.js";
+import ordersRouter from "./orders.js";
+import checkoutRouter from "./checkout.js";
+import adminRouter from "./admin.js";
+import uploadRouter from "./upload.js";
 
 const router: IRouter = Router();
 
 router.use(healthRouter);
+router.use("/auth", authRouter);
+router.use("/products", productsRouter);
+router.use("/categories", categoriesRouter);
+router.use("/shops", shopsRouter);
+router.use("/orders", ordersRouter);
+router.use("/checkout", checkoutRouter);
+router.use("/admin", adminRouter);
+router.use("/upload", uploadRouter);
 
 export default router;

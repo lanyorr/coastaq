@@ -1,8 +1,8 @@
-# Workspace
+# Coastaq - Multi-Vendor Marketplace
 
 ## Overview
 
-pnpm workspace monorepo using TypeScript. Each package manages its own dependencies.
+Coastaq is a full-stack multi-vendor marketplace built with React + Vite (frontend) and Express (backend) in a pnpm monorepo.
 
 ## Stack
 
@@ -10,87 +10,114 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - **Node.js version**: 24
 - **Package manager**: pnpm
 - **TypeScript version**: 5.9
-- **API framework**: Express 5
+- **Frontend**: React + Vite (artifacts/coastaq)
+- **API framework**: Express 5 (artifacts/api-server)
 - **Database**: PostgreSQL + Drizzle ORM
 - **Validation**: Zod (`zod/v4`), `drizzle-zod`
 - **API codegen**: Orval (from OpenAPI spec)
-- **Build**: esbuild (CJS bundle)
+- **Auth**: JWT (jsonwebtoken + bcryptjs)
+- **Cart**: Zustand (persisted to localStorage)
+- **Payments**: Stripe Connect + PayPal (stubs - need API keys)
+- **Image Upload**: Cloudinary (stub - needs API keys)
 
 ## Structure
 
 ```text
 artifacts-monorepo/
-├── artifacts/              # Deployable applications
-│   └── api-server/         # Express API server
-├── lib/                    # Shared libraries
+├── artifacts/
+│   ├── api-server/         # Express API server
+│   └── coastaq/            # React + Vite marketplace frontend
+├── lib/
 │   ├── api-spec/           # OpenAPI spec + Orval codegen config
 │   ├── api-client-react/   # Generated React Query hooks
 │   ├── api-zod/            # Generated Zod schemas from OpenAPI
 │   └── db/                 # Drizzle ORM schema + DB connection
-├── scripts/                # Utility scripts (single workspace package)
-│   └── src/                # Individual .ts scripts, run via `pnpm --filter @workspace/scripts run <script>`
-├── pnpm-workspace.yaml     # pnpm workspace (artifacts/*, lib/*, lib/integrations/*, scripts)
-├── tsconfig.base.json      # Shared TS options (composite, bundler resolution, es2022)
-├── tsconfig.json           # Root TS project references
-└── package.json            # Root package with hoisted devDeps
+├── scripts/
+│   └── src/seed.ts         # Database seeder
+└── pnpm-workspace.yaml
 ```
+
+## Database Schema
+
+- **users**: id, email, passwordHash, name, role (BUYER/SELLER/ADMIN)
+- **shops**: id, name, description, logo, banner, isApproved, userId
+- **categories**: id, name, parentId (self-referential for hierarchy)
+- **products**: id, title, description, price, stock, condition, location, images[], categoryId, shopId
+- **orders**: id, userId, status, total, shipping fields, paymentMethod, paymentId
+- **order_items**: id, orderId, productId, quantity, price
+
+## API Routes
+
+All routes under `/api`:
+- `POST /api/auth/register` - Register (BUYER or SELLER)
+- `POST /api/auth/login` - Login with email/password
+- `POST /api/auth/logout` - Logout
+- `GET /api/auth/me` - Get current user (requires token)
+- `GET /api/products` - List products (supports ?search=, ?categoryId=, ?shopId=, ?page=, ?limit=)
+- `POST /api/products` - Create product (SELLER/ADMIN)
+- `GET /api/products/:id` - Get product
+- `PUT /api/products/:id` - Update product
+- `DELETE /api/products/:id` - Delete product
+- `GET /api/categories` - List categories (hierarchical)
+- `POST /api/categories` - Create category (ADMIN)
+- `GET /api/shops` - List approved shops
+- `GET /api/shops/my` - Get seller's shop
+- `PUT /api/shops/my` - Update seller's shop
+- `GET /api/shops/:id` - Get shop by ID
+- `GET /api/orders` - List buyer's orders
+- `GET /api/orders/seller` - List seller's orders
+- `GET /api/orders/:id` - Get order
+- `POST /api/checkout/stripe` - Create Stripe session (needs STRIPE_SECRET_KEY)
+- `POST /api/checkout/paypal` - Create PayPal order (needs PAYPAL_CLIENT_ID)
+- `POST /api/checkout/manual` - Place order (for demo/testing)
+- `GET /api/admin/sellers` - List sellers (ADMIN)
+- `POST /api/admin/sellers/:id/approve` - Approve seller (ADMIN)
+- `POST /api/admin/sellers/:id/reject` - Reject seller (ADMIN)
+- `GET /api/admin/analytics` - Platform analytics (ADMIN)
+- `POST /api/upload/image` - Upload image (needs CLOUDINARY_* keys)
+
+## Demo Accounts
+
+- **Admin**: admin@coastaq.com / admin123
+- **Seller**: seller@coastaq.com / seller123
+- **Buyer**: buyer@coastaq.com / buyer123
+
+## Environment Variables
+
+Already set (via Replit):
+- `DATABASE_URL` - PostgreSQL connection string
+- `SESSION_SECRET` - JWT signing secret
+
+Needed for full functionality:
+- `STRIPE_SECRET_KEY` - Stripe secret key
+- `STRIPE_WEBHOOK_SECRET` - Stripe webhook secret
+- `PAYPAL_CLIENT_ID` - PayPal client ID
+- `PAYPAL_CLIENT_SECRET` - PayPal client secret
+- `CLOUDINARY_CLOUD_NAME` - Cloudinary cloud name
+- `CLOUDINARY_API_KEY` - Cloudinary API key
+- `CLOUDINARY_API_SECRET` - Cloudinary API secret
+
+## Seeding
+
+Run seed script: `pnpm --filter @workspace/scripts run seed`
+
+This creates:
+- 5 parent categories (Electronics, Fashion, Home & Garden, Vehicles, Sports) with subcategories
+- 1 admin user, 1 approved seller, 1 buyer
+- 1 approved shop (TechHaven Store) with 6 sample products
 
 ## TypeScript & Composite Projects
 
-Every package extends `tsconfig.base.json` which sets `composite: true`. The root `tsconfig.json` lists all packages as project references. This means:
-
-- **Always typecheck from the root** — run `pnpm run typecheck` (which runs `tsc --build --emitDeclarationOnly`). This builds the full dependency graph so that cross-package imports resolve correctly. Running `tsc` inside a single package will fail if its dependencies haven't been built yet.
-- **`emitDeclarationOnly`** — we only emit `.d.ts` files during typecheck; actual JS bundling is handled by esbuild/tsx/vite...etc, not `tsc`.
-- **Project references** — when package A depends on package B, A's `tsconfig.json` must list B in its `references` array. `tsc --build` uses this to determine build order and skip up-to-date packages.
+- `lib/*` packages are composite and emit declarations via `tsc --build`
+- `artifacts/*` are leaf workspace packages checked with `tsc --noEmit`
+- Root `tsconfig.json` is a solution file for libs only
 
 ## Root Scripts
 
-- `pnpm run build` — runs `typecheck` first, then recursively runs `build` in all packages that define it
-- `pnpm run typecheck` — runs `tsc --build --emitDeclarationOnly` using project references
+- `pnpm run build` — runs `typecheck` first, then recursively builds
+- `pnpm run typecheck` — runs `tsc --build --emitDeclarationOnly`
+- `pnpm --filter @workspace/api-spec run codegen` — regenerate API types
 
-## Packages
+## Platform Fee
 
-### `artifacts/api-server` (`@workspace/api-server`)
-
-Express 5 API server. Routes live in `src/routes/` and use `@workspace/api-zod` for request and response validation and `@workspace/db` for persistence.
-
-- Entry: `src/index.ts` — reads `PORT`, starts Express
-- App setup: `src/app.ts` — mounts CORS, JSON/urlencoded parsing, routes at `/api`
-- Routes: `src/routes/index.ts` mounts sub-routers; `src/routes/health.ts` exposes `GET /health` (full path: `/api/health`)
-- Depends on: `@workspace/db`, `@workspace/api-zod`
-- `pnpm --filter @workspace/api-server run dev` — run the dev server
-- `pnpm --filter @workspace/api-server run build` — production esbuild bundle (`dist/index.cjs`)
-- Build bundles an allowlist of deps (express, cors, pg, drizzle-orm, zod, etc.) and externalizes the rest
-
-### `lib/db` (`@workspace/db`)
-
-Database layer using Drizzle ORM with PostgreSQL. Exports a Drizzle client instance and schema models.
-
-- `src/index.ts` — creates a `Pool` + Drizzle instance, exports schema
-- `src/schema/index.ts` — barrel re-export of all models
-- `src/schema/<modelname>.ts` — table definitions with `drizzle-zod` insert schemas (no models definitions exist right now)
-- `drizzle.config.ts` — Drizzle Kit config (requires `DATABASE_URL`, automatically provided by Replit)
-- Exports: `.` (pool, db, schema), `./schema` (schema only)
-
-Production migrations are handled by Replit when publishing. In development, we just use `pnpm --filter @workspace/db run push`, and we fallback to `pnpm --filter @workspace/db run push-force`.
-
-### `lib/api-spec` (`@workspace/api-spec`)
-
-Owns the OpenAPI 3.1 spec (`openapi.yaml`) and the Orval config (`orval.config.ts`). Running codegen produces output into two sibling packages:
-
-1. `lib/api-client-react/src/generated/` — React Query hooks + fetch client
-2. `lib/api-zod/src/generated/` — Zod schemas
-
-Run codegen: `pnpm --filter @workspace/api-spec run codegen`
-
-### `lib/api-zod` (`@workspace/api-zod`)
-
-Generated Zod schemas from the OpenAPI spec (e.g. `HealthCheckResponse`). Used by `api-server` for response validation.
-
-### `lib/api-client-react` (`@workspace/api-client-react`)
-
-Generated React Query hooks and fetch client from the OpenAPI spec (e.g. `useHealthCheck`, `healthCheck`).
-
-### `scripts` (`@workspace/scripts`)
-
-Utility scripts package. Each script is a `.ts` file in `src/` with a corresponding npm script in `package.json`. Run scripts via `pnpm --filter @workspace/scripts run <script>`. Scripts can import any workspace package (e.g., `@workspace/db`) by adding it as a dependency in `scripts/package.json`.
+Stripe Connect is set up for 10% platform fee (90% goes to sellers). This requires Stripe API keys and seller Stripe Connect onboarding to function.
