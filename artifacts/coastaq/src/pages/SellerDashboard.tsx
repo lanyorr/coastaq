@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   useGetMe, useListProducts, useGetMyShop, useUpdateMyShop,
   useCreateProduct, useDeleteProduct, useListCategories,
@@ -294,6 +294,32 @@ export default function SellerDashboard() {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [newProduct, setNewProduct] = useState(EMPTY_PRODUCT);
   const [activeTab, setActiveTab] = useState("products");
+  const [imageUploading, setImageUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageUpload = async (file: File) => {
+    setImageUploading(true);
+    try {
+      const token = localStorage.getItem("coastaq_token");
+      const form = new FormData();
+      form.append("image", file);
+      const res = await fetch("/api/upload/image", {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: form,
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error((err as any).error || "Upload failed");
+      }
+      const data = await res.json() as { url: string };
+      setNewProduct(p => ({ ...p, image: data.url }));
+    } catch (err: any) {
+      toast({ variant: "destructive", title: "Upload failed", description: err.message });
+    } finally {
+      setImageUploading(false);
+    }
+  };
 
   // Derived: subcategories for selected parent
   const parentCategories = categories ?? [];
@@ -596,26 +622,64 @@ export default function SellerDashboard() {
                         />
                       </div>
 
-                      {/* Image URL + preview */}
+                      {/* Image Upload */}
                       <div className="space-y-2">
-                        <Label>Product Image URL</Label>
-                        <Input
-                          type="url"
-                          placeholder="https://..."
-                          value={newProduct.image}
-                          onChange={e => setNewProduct({ ...newProduct, image: e.target.value })}
+                        <Label>Product Image</Label>
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
+                          className="hidden"
+                          onChange={e => {
+                            const file = e.target.files?.[0];
+                            if (file) handleImageUpload(file);
+                            e.target.value = "";
+                          }}
                         />
-                        {newProduct.image && (
-                          <div className="mt-2 relative rounded-xl overflow-hidden bg-secondary/30 h-40 flex items-center justify-center">
+                        {newProduct.image ? (
+                          <div className="relative rounded-xl overflow-hidden bg-secondary/30 h-44 group">
                             <img
                               src={newProduct.image}
                               alt="Preview"
                               className="h-full w-full object-cover"
-                              onError={e => {
-                                (e.target as HTMLImageElement).style.display = "none";
-                              }}
                             />
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                              <button
+                                type="button"
+                                onClick={() => fileInputRef.current?.click()}
+                                className="bg-white text-foreground text-xs font-medium px-3 py-1.5 rounded-lg shadow"
+                              >
+                                Change
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setNewProduct(p => ({ ...p, image: "" }))}
+                                className="bg-white text-red-500 text-xs font-medium px-3 py-1.5 rounded-lg shadow"
+                              >
+                                Remove
+                              </button>
+                            </div>
                           </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            disabled={imageUploading}
+                            className="w-full h-36 border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-primary hover:text-primary transition-colors disabled:opacity-50 bg-secondary/30"
+                          >
+                            {imageUploading ? (
+                              <>
+                                <Loader2 className="w-6 h-6 animate-spin" />
+                                <span className="text-sm">Uploading…</span>
+                              </>
+                            ) : (
+                              <>
+                                <ImageIcon className="w-7 h-7" />
+                                <span className="text-sm font-medium">Click to upload photo</span>
+                                <span className="text-xs">JPEG, PNG, WebP up to 10MB</span>
+                              </>
+                            )}
+                          </button>
                         )}
                       </div>
 
