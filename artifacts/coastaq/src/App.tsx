@@ -14,6 +14,13 @@ import Checkout from "@/pages/Checkout";
 import Orders from "@/pages/Orders";
 import SellerDashboard from "@/pages/SellerDashboard";
 import AdminDashboard from "@/pages/AdminDashboard";
+import AdminOverview from "@/pages/admin/Overview";
+import AdminUsers from "@/pages/admin/Users";
+import AdminShops from "@/pages/admin/Shops";
+import AdminProducts from "@/pages/admin/Products";
+import AdminReports from "@/pages/admin/Reports";
+import AdminAnalytics from "@/pages/admin/Analytics";
+import AdminCategories from "@/pages/admin/Categories";
 import BuyerDashboard from "@/pages/BuyerDashboard";
 import Messages from "@/pages/Messages";
 import ChatRoom from "@/pages/ChatRoom";
@@ -65,7 +72,13 @@ function Router() {
       <Route path="/orders" component={Orders} />
       <Route path="/buyer/dashboard" component={BuyerDashboard} />
       <Route path="/seller/dashboard" component={SellerDashboard} />
-      <Route path="/admin" component={AdminDashboard} />
+      <Route path="/admin" component={AdminOverview} />
+      <Route path="/admin/users" component={AdminUsers} />
+      <Route path="/admin/shops" component={AdminShops} />
+      <Route path="/admin/products" component={AdminProducts} />
+      <Route path="/admin/reports" component={AdminReports} />
+      <Route path="/admin/analytics" component={AdminAnalytics} />
+      <Route path="/admin/categories" component={AdminCategories} />
       <Route path="/messages" component={Messages} />
       <Route path="/messages/:id" component={ChatRoom} />
       <Route path="/terms" component={TermsPage} />

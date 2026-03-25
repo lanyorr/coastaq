@@ -5,6 +5,7 @@ import { shopsTable } from "./shops";
 import { categoriesTable } from "./categories";
 
 export const conditionEnum = pgEnum("condition", ["NEW", "USED", "REFURBISHED"]);
+export const productStatusEnum = pgEnum("product_status", ["ACTIVE", "FLAGGED", "SUSPENDED"]);
 
 export const productsTable = pgTable("products", {
   id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
@@ -17,6 +18,7 @@ export const productsTable = pgTable("products", {
   images: text("images").array().notNull().default([]),
   categoryId: text("category_id").references(() => categoriesTable.id),
   shopId: text("shop_id").notNull().references(() => shopsTable.id, { onDelete: "cascade" }),
+  status: productStatusEnum("status").notNull().default("ACTIVE"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

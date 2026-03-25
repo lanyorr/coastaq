@@ -17,8 +17,8 @@ Coastaq is a full-stack multi-vendor marketplace built with React + Vite (fronte
 - **API codegen**: Orval (from OpenAPI spec)
 - **Auth**: JWT (jsonwebtoken + bcryptjs)
 - **Cart**: Zustand (persisted to localStorage)
-- **Payments**: Stripe Connect + PayPal (stubs - need API keys)
-- **Image Upload**: Cloudinary (stub - needs API keys)
+- **Payments**: PayPal (sandbox active; PayPal buttons + hosted card fields)
+- **Image Upload**: Multer (local uploads at /api/uploads/)
 
 ## Structure
 

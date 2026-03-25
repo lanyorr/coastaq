@@ -4,4 +4,6 @@ export * from "./categories";
 export * from "./products";
 export * from "./orders";
 export * from "./messages";
+export * from "./reports";
+export * from "./admin-actions";
 export * from "./relations";

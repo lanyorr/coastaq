@@ -19,6 +19,7 @@ export const shopsTable = pgTable("shops", {
   phone: text("phone"),
   whatsapp: text("whatsapp"),
   isApproved: boolean("is_approved").notNull().default(false),
+  isSuspended: boolean("is_suspended").notNull().default(false),
   userId: text("user_id").notNull().references(() => usersTable.id, { onDelete: "cascade" }),
 
   // Subscription fields

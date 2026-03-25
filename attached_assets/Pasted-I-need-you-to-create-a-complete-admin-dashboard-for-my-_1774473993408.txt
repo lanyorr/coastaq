@@ -1,0 +1,193 @@
+I need you to create a complete admin dashboard for my Coastaq marketplace. The admin dashboard should be accessible at /admin and only users with role 'ADMIN' can access it.
+
+## Admin Dashboard Requirements:
+
+### 1. Access & Authentication
+- Create an admin layout with sidebar navigation
+- Protect all /admin/* routes - only users with ADMIN role can access
+- Create a seed script to create the first admin user: admin@coastaq.com / Admin123!
+- Add middleware to redirect non-admin users away from admin pages
+
+### 2. Admin Layout
+Create a professional admin layout with:
+- Left sidebar with navigation menu
+- Top bar showing admin name and logout button
+- Main content area that changes based on route
+- Mobile responsive design
+
+### 3. Dashboard Overview Page (/admin)
+Display key metrics in cards:
+- Total users (count)
+- Total sellers (count)
+- Total buyers (count)
+- Pending shops (count - needs approval)
+- Total products
+- Total orders
+- Platform revenue (sum of all transaction fees)
+- Pending reports (count)
+
+Add Quick Actions section:
+- Button to review pending shops
+- Button to review pending reports
+- Button to view flagged products
+
+Add Recent Activity section:
+- Show last 5 admin actions (shop approvals, user blocks, etc.)
+
+### 4. Users Management Page (/admin/users)
+Features:
+- List all users with columns: Name, Email, Role, Status (active/blocked), Join Date, Actions
+- Search bar to filter users by name or email
+- Filter by role (All, Buyer, Seller, Admin)
+- Filter by status (All, Active, Blocked)
+- Actions for each user:
+  - Block/Unblock user
+  - Change user role (Buyer/Seller/Admin)
+  - View user details
+  - View user's orders and reports
+- Show warning badge if user has multiple reports
+- Pagination
+
+### 5. Shop Approvals Page (/admin/shops)
+Features:
+- Two tabs: "Pending Approval" and "Approved Shops"
+- For pending shops show:
+  - Shop name
+  - Seller name and email
+  - Shop description
+  - Date created
+  - Actions: Approve, Reject, View Details
+- For approved shops show:
+  - All approved shops
+  - Option to suspend/unsuspend shops
+  - View products in shop
+- Search by shop name
+- Filter by approval status
+
+### 6. Products Management Page (/admin/products)
+Features:
+- List all products with:
+  - Product image thumbnail
+  - Product title
+  - Shop name
+  - Price
+  - Status (active/flagged/suspended)
+  - Date listed
+- Search products
+- Filter by status
+- Actions:
+  - Flag product for review
+  - Remove product
+  - Suspend product listing
+  - View product details
+
+### 7. Reports Management Page (/admin/reports)
+Features:
+- List all reported issues with:
+  - Reporter name
+  - Reported user/shop/product
+  - Report reason
+  - Date reported
+  - Status (pending/resolved/dismissed)
+- Priority badges (high/medium/low based on report type)
+- Actions:
+  - View report details
+  - Mark as resolved
+  - Dismiss report
+  - Take action (block user, remove product, etc.)
+- Search and filter by status
+
+### 8. Analytics Page (/admin/analytics)
+Features:
+- Chart showing daily/weekly/monthly sales
+- Chart showing platform fee revenue
+- Top selling categories
+- Top sellers by revenue
+- User growth chart
+- Order volume over time
+
+### 9. Site Settings Page (/admin/settings)
+Features:
+- Manage categories:
+  - List all categories
+  - Add new category (name, slug, parent category)
+  - Edit category
+  - Delete category (only if no products)
+- Platform settings:
+  - Set platform fee percentage (default 10%)
+  - Set minimum payout amount
+  - Set seller approval requirement (auto-approve or manual)
+- About Coastaq content editor
+- Contact information
+
+### 10. API Routes Required
+Create these admin API routes with proper authentication:
+- GET /api/admin/dashboard - Returns dashboard stats and recent activity
+- GET /api/admin/users - Returns paginated users list with filters
+- POST /api/admin/users/block - Block/unblock user
+- POST /api/admin/users/role - Change user role
+- GET /api/admin/shops - Returns shops with approval status
+- POST /api/admin/shops/approve - Approve or reject shop
+- POST /api/admin/shops/suspend - Suspend/unsuspend shop
+- GET /api/admin/products - Returns products with filters
+- POST /api/admin/products/flag - Flag product for review
+- POST /api/admin/products/suspend - Suspend product
+- GET /api/admin/reports - Returns reported issues
+- POST /api/admin/reports/resolve - Resolve or dismiss report
+- GET /api/admin/analytics - Returns analytics data
+- GET /api/admin/categories - Get all categories
+- POST /api/admin/categories - Create/edit/delete categories
+- GET /api/admin/settings - Get platform settings
+- POST /api/admin/settings - Update platform settings
+
+### 11. Database Updates
+Update the Prisma schema to add:
+- admin_actions table to log admin activities
+- reports table for user reports
+- Add reportCount to User model for tracking
+
+### 12. Admin Seed Data
+Create initial data:
+- One admin user: admin@coastaq.com / Admin123!
+- 3 sample pending shops for testing
+- 5 sample users (2 sellers, 3 buyers)
+- 2 sample reports
+- 5 categories with subcategories
+
+### 13. Design Requirements
+- Use Tailwind CSS with Shadcn/ui components
+- Professional, clean design with blue primary color
+- Dark/light mode compatible
+- Loading states for all data fetching
+- Toast notifications for all actions (success/error)
+- Confirmation modals for destructive actions (blocking, deleting)
+
+### 14. Security
+- All admin routes must verify ADMIN role
+- No admin actions available to regular users
+- API endpoints must validate admin session
+- Rate limiting on admin actions
+
+### 15. Navigation
+The sidebar should have these menu items:
+- Dashboard (icon: LayoutDashboard)
+- Users (icon: Users)
+- Shops (icon: Store)
+- Products (icon: ShoppingBag)
+- Reports (icon: Flag)
+- Analytics (icon: TrendingUp)
+- Settings (icon: Settings)
+
+## Implementation Order:
+1. First, update Prisma schema with new models (reports, admin_actions)
+2. Run migration
+3. Create admin layout and route protection
+4. Create dashboard overview page
+5. Create users management page
+6. Create shops approval page
+7. Create reports management page
+8. Create remaining pages
+9. Create all API routes
+10. Add seed data with admin user
+
+Make sure all code is production-ready with proper error handling, TypeScript types, and follows Next.js 14 App Router patterns.
