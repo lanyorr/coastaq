@@ -23,13 +23,16 @@ window.fetch = async (...args) => {
     const token = localStorage.getItem('coastaq_token');
     if (token) {
       config = config || {};
-      config.headers = {
-        ...config.headers,
-        Authorization: `Bearer ${token}`,
-      };
+      // Safely merge headers — Headers instances don't spread with {...obj}
+      const merged = new Headers(config.headers instanceof Headers
+        ? Object.fromEntries((config.headers as Headers).entries())
+        : (config.headers as Record<string, string> | undefined) ?? {});
+      if (!merged.has('Authorization')) {
+        merged.set('Authorization', `Bearer ${token}`);
+      }
+      config = { ...config, headers: merged };
     }
   }
-  // handle relative URL resolution if needed by specific environments
   return originalFetch(resource, config);
 };
 

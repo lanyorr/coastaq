@@ -50,7 +50,7 @@ router.post("/register", async (req, res) => {
         name: shopName,
         description: shopDescription || "",
         userId: user.id,
-        isApproved: false,
+        isApproved: true,
       }).returning();
       shop = newShop;
     }
