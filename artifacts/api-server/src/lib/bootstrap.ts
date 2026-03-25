@@ -23,8 +23,32 @@ async function insertChildren(parentId: string, names: string[]): Promise<void> 
 }
 
 export async function bootstrap(): Promise<void> {
-  const existing = await db.select().from(categoriesTable).limit(1);
-  if (existing.length > 0) {
+  const existingCats = await db.select().from(categoriesTable).limit(1);
+  
+  if (existingCats.length > 0) {
+    // Categories already exist — check if products are seeded too
+    const existingProducts = await db.select().from(productsTable).limit(50);
+    if (existingProducts.length < 50) {
+      // Products are missing or very sparse — seed full catalog using existing demo shop
+      logger.info("Categories found but no products — seeding product catalog...");
+      const shops = await db.select().from(shopsTable).limit(1);
+      if (shops.length > 0) {
+        const shop = shops[0];
+        const allCats = await db.select().from(categoriesTable);
+        const findCat = (name: string) => allCats.find(c => c.name === name)?.id ?? null;
+        const products = getSeedProducts(findCat, shop.id);
+        // Shuffle for variety on the home page
+        for (let i = products.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [products[i], products[j]] = [products[j], products[i]];
+        }
+        for (let i = 0; i < products.length; i += 50) {
+          await db.insert(productsTable).values(products.slice(i, i + 50));
+        }
+        logger.info({ count: products.length }, "Product catalog seeded");
+      }
+    }
+
     logger.info("Database already seeded, skipping bootstrap");
     // Backfill any shops that don't have a trial period yet (migration safety)
     const shopsNeedingTrial = await db.select().from(shopsTable).where(isNull(shopsTable.trialEndsAt));
@@ -190,10 +214,16 @@ export async function bootstrap(): Promise<void> {
     role: "BUYER",
   });
 
-  // ── Sample products (one per subcategory) ──────────────────────
+  // ── Sample products (shuffled for home page variety) ───────────
   const findCat = (name: string) => allCats.find(c => c.name === name)?.id ?? null;
   const products = getSeedProducts(findCat, shop.id);
-  await db.insert(productsTable).values(products);
+  for (let i = products.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [products[i], products[j]] = [products[j], products[i]];
+  }
+  for (let i = 0; i < products.length; i += 50) {
+    await db.insert(productsTable).values(products.slice(i, i + 50));
+  }
 
   logger.info({ count: products.length }, "Sample products seeded");
   logger.info("Bootstrap complete");
