@@ -44,35 +44,35 @@ export function ProductCard({ product }: { product: Product }) {
           )}
         </div>
         
-        <div className="p-5 flex flex-col flex-1">
-          <div className="flex justify-between items-start mb-2 gap-2">
-            <h3 className="font-display font-semibold text-lg text-foreground line-clamp-2 leading-tight group-hover:text-primary transition-colors">
+        <div className="p-3 sm:p-5 flex flex-col flex-1">
+          <div className="flex justify-between items-start mb-1 sm:mb-2 gap-1">
+            <h3 className="font-display font-semibold text-sm sm:text-base text-foreground line-clamp-2 leading-tight group-hover:text-primary transition-colors">
               {product.title}
             </h3>
-            <span className="font-bold text-lg text-primary whitespace-nowrap">
-              ${product.price.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </span>
           </div>
+          <span className="font-bold text-sm sm:text-base text-primary mb-1">
+            ${product.price.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </span>
           
           {product.shop && (
-            <p className="text-sm text-muted-foreground mb-3 font-medium">
-              by {product.shop.name}
+            <p className="text-xs text-muted-foreground mb-2 font-medium truncate">
+              {product.shop.name}
             </p>
           )}
 
-          <div className="mt-auto flex items-center justify-between pt-4">
-            <div className="flex items-center text-xs text-muted-foreground bg-secondary/50 px-2 py-1 rounded-md">
-              <MapPin className="w-3 h-3 mr-1" />
-              <span className="truncate max-w-[100px]">{product.location || "Anywhere"}</span>
+          <div className="mt-auto flex items-center justify-between pt-2 sm:pt-4">
+            <div className="flex items-center text-xs text-muted-foreground bg-secondary/50 px-2 py-1 rounded-md min-w-0">
+              <MapPin className="w-3 h-3 mr-1 shrink-0" />
+              <span className="truncate max-w-[60px] sm:max-w-[100px]">{product.location || "Anywhere"}</span>
             </div>
             
             <Button 
               size="sm" 
-              className="rounded-xl bg-primary/10 text-primary hover:bg-primary hover:text-white transition-colors"
+              className="rounded-xl bg-primary/10 text-primary hover:bg-primary hover:text-white transition-colors h-7 sm:h-8 px-2 sm:px-3 text-xs"
               onClick={handleAddToCart}
             >
-              <ShoppingCart className="w-4 h-4 mr-1.5" />
-              Add
+              <ShoppingCart className="w-3.5 h-3.5 sm:mr-1.5" />
+              <span className="hidden sm:inline">Add</span>
             </Button>
           </div>
         </div>

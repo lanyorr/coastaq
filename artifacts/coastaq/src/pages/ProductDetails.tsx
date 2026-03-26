@@ -161,7 +161,7 @@ export default function ProductDetails() {
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
 
-      <main className="flex-1 container mx-auto px-4 py-8 md:py-12">
+      <main className="flex-1 container mx-auto px-4 py-8 md:py-12 pb-24 lg:pb-12">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-1.5 text-sm text-muted-foreground mb-6">
           <a href="/" className="hover:text-primary transition-colors">Home</a>
@@ -344,6 +344,36 @@ export default function ProductDetails() {
 
         </div>
       </main>
+
+      {/* Mobile sticky bottom CTA */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-md border-t border-border/40 px-4 py-3 flex items-center gap-3">
+        <div className="flex flex-col min-w-0">
+          <span className="font-bold text-lg text-foreground leading-none">
+            ${Number(product.price).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </span>
+          <span className="text-xs text-muted-foreground truncate">{product.title}</span>
+        </div>
+        <div className="flex gap-2 ml-auto shrink-0">
+          <button
+            onClick={handleMessageSeller}
+            disabled={messageSending}
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-primary text-white font-semibold text-sm hover:bg-primary/90 transition-colors shadow-sm disabled:opacity-60"
+          >
+            {messageSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <MessageCircle className="w-4 h-4" />}
+            {messageSending ? "Opening…" : "Message"}
+          </button>
+          <button
+            onClick={() => {
+              if (!user) { setLocation("/auth/login"); return; }
+              setOrderDone(false); setOrderQty(1); setOrderNote(""); setOrderModalOpen(true);
+            }}
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border-2 border-primary text-primary font-semibold text-sm hover:bg-primary/5 transition-colors"
+          >
+            <ShoppingBag className="w-4 h-4" />
+            Order
+          </button>
+        </div>
+      </div>
 
       {/* Place Order Modal */}
       {orderModalOpen && product && (

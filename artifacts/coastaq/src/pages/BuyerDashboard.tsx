@@ -201,10 +201,11 @@ export default function BuyerDashboard() {
           {/* ── Right: Tabs ────────────────────────────── */}
           <div className="flex-1 min-w-0">
             {/* Tab bar */}
-            <div className="flex gap-1 bg-secondary/50 p-1 rounded-xl mb-5">
+            <div className="overflow-x-auto -mx-4 px-4 mb-5">
+            <div className="flex gap-1 bg-secondary/50 p-1 rounded-xl w-max min-w-full">
               <button
                 onClick={() => setTab("messages")}
-                className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${tab === "messages" ? "bg-white shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"}`}
+                className={`shrink-0 px-4 py-2 text-sm font-semibold rounded-lg transition-all whitespace-nowrap ${tab === "messages" ? "bg-white shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"}`}
               >
                 <span className="flex items-center justify-center gap-1.5">
                   <MessageCircle className="w-4 h-4" />
@@ -216,7 +217,7 @@ export default function BuyerDashboard() {
               </button>
               <button
                 onClick={() => setTab("orders")}
-                className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${tab === "orders" ? "bg-white shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"}`}
+                className={`shrink-0 px-4 py-2 text-sm font-semibold rounded-lg transition-all whitespace-nowrap ${tab === "orders" ? "bg-white shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"}`}
               >
                 <span className="flex items-center justify-center gap-1.5">
                   <ShoppingBag className="w-4 h-4" />
@@ -228,7 +229,7 @@ export default function BuyerDashboard() {
               </button>
               <button
                 onClick={() => setTab("saved")}
-                className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${tab === "saved" ? "bg-white shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"}`}
+                className={`shrink-0 px-4 py-2 text-sm font-semibold rounded-lg transition-all whitespace-nowrap ${tab === "saved" ? "bg-white shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"}`}
               >
                 <span className="flex items-center justify-center gap-1.5">
                   <Heart className="w-4 h-4" />
@@ -240,13 +241,14 @@ export default function BuyerDashboard() {
               </button>
               <button
                 onClick={() => setTab("account")}
-                className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${tab === "account" ? "bg-white shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"}`}
+                className={`shrink-0 px-4 py-2 text-sm font-semibold rounded-lg transition-all whitespace-nowrap ${tab === "account" ? "bg-white shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"}`}
               >
                 <span className="flex items-center justify-center gap-1.5">
                   <Settings className="w-4 h-4" />
                   Account
                 </span>
               </button>
+            </div>
             </div>
 
             {/* Messages Tab */}

@@ -488,23 +488,25 @@ export default function SellerDashboard() {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="bg-secondary/50 p-1 rounded-xl mb-8 flex-wrap gap-1">
-            <TabsTrigger value="products" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm px-5">
-              <Package className="w-4 h-4 mr-2" /> Products
+          <div className="overflow-x-auto -mx-4 px-4 mb-8">
+          <TabsList className="bg-secondary/50 p-1 rounded-xl flex-nowrap w-max min-w-full">
+            <TabsTrigger value="products" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm px-4 whitespace-nowrap">
+              <Package className="w-4 h-4 mr-1.5" /> Products
             </TabsTrigger>
-            <TabsTrigger value="orders" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm px-5">
-              <ShoppingBag className="w-4 h-4 mr-2" /> Orders
+            <TabsTrigger value="orders" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm px-4 whitespace-nowrap">
+              <ShoppingBag className="w-4 h-4 mr-1.5" /> Orders
             </TabsTrigger>
-            <TabsTrigger value="messages" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm px-5">
-              <MessageCircle className="w-4 h-4 mr-2" /> Messages
+            <TabsTrigger value="messages" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm px-4 whitespace-nowrap">
+              <MessageCircle className="w-4 h-4 mr-1.5" /> Messages
             </TabsTrigger>
-            <TabsTrigger value="subscription" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm px-5">
-              <CreditCard className="w-4 h-4 mr-2" /> Subscription
+            <TabsTrigger value="subscription" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm px-4 whitespace-nowrap">
+              <CreditCard className="w-4 h-4 mr-1.5" /> Subscription
             </TabsTrigger>
-            <TabsTrigger value="settings" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm px-5">
-              <Settings className="w-4 h-4 mr-2" /> Settings
+            <TabsTrigger value="settings" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm px-4 whitespace-nowrap">
+              <Settings className="w-4 h-4 mr-1.5" /> Settings
             </TabsTrigger>
           </TabsList>
+          </div>
 
           {/* Products Tab */}
           <TabsContent value="products">

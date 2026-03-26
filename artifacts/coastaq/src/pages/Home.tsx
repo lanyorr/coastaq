@@ -63,17 +63,17 @@ export default function Home() {
       {/* Hero Banner */}
       {!searchQuery && !categoryId && (
         <section className="bg-gradient-to-r from-[#0ea5e9]/8 via-[#06b6d4]/5 to-[#3b82f6]/8 border-b border-primary/10">
-          <div className="container mx-auto px-4 py-4 flex items-center justify-between gap-6">
+          <div className="container mx-auto px-4 py-3 md:py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
             {/* Tagline */}
-            <p className="text-base md:text-lg font-display font-semibold text-foreground/85 tracking-tight shrink-0">
+            <p className="text-sm md:text-lg font-display font-semibold text-foreground/85 tracking-tight">
               Your everyday marketplace,{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-sky-500 to-cyan-500">
                 powered by everyone
               </span>
             </p>
 
-            {/* Compact Search */}
-            <form onSubmit={handleHeroSearch} className="flex items-center gap-2 shrink-0">
+            {/* Compact Search — hidden on mobile (navbar has search icon) */}
+            <form onSubmit={handleHeroSearch} className="hidden md:flex items-center gap-2 shrink-0">
               <div className="flex items-center bg-white rounded-full border border-primary/20 shadow-sm px-3 py-1.5 focus-within:ring-2 focus-within:ring-primary/20 transition-all">
                 <Search className="h-3.5 w-3.5 text-primary/40 shrink-0 mr-2" />
                 <input
@@ -96,9 +96,42 @@ export default function Home() {
         </section>
       )}
 
-      <main className="flex-1 container mx-auto px-4 py-8 flex flex-col md:flex-row gap-8">
-        {/* Sidebar */}
-        <aside className="w-full md:w-64 shrink-0">
+      {/* Mobile category chips */}
+      <div className="md:hidden border-b border-border/20 bg-background">
+        <div className="flex gap-2 overflow-x-auto px-4 py-2 scrollbar-hide" style={{ WebkitOverflowScrolling: "touch" }}>
+          <button
+            onClick={() => {
+              const next = new URLSearchParams();
+              if (searchQuery) next.set("search", searchQuery);
+              setLocation(`/${next.toString() ? `?${next}` : ""}`);
+            }}
+            className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors border ${!categoryId ? "bg-primary text-white border-primary" : "bg-background text-muted-foreground border-border hover:border-primary/40 hover:text-foreground"}`}
+          >
+            All
+          </button>
+          {!loadingCats && categories?.map((cat) => {
+            const isActive = categoryId === cat.id || (cat as any).children?.some((c: any) => c.id === categoryId);
+            return (
+              <button
+                key={cat.id}
+                onClick={() => {
+                  const next = new URLSearchParams();
+                  next.set("category", cat.id);
+                  if (searchQuery) next.set("search", searchQuery);
+                  setLocation(`/?${next.toString()}`);
+                }}
+                className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors border ${isActive ? "bg-primary text-white border-primary" : "bg-background text-muted-foreground border-border hover:border-primary/40 hover:text-foreground"}`}
+              >
+                {cat.name}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <main className="flex-1 container mx-auto px-4 py-6 md:py-8 flex flex-col md:flex-row gap-8">
+        {/* Sidebar — desktop only */}
+        <aside className="hidden md:block w-64 shrink-0">
           <div className="sticky top-28 glass-panel p-6 rounded-2xl">
             <div className="flex items-center gap-2 mb-6 text-foreground font-display font-semibold text-lg">
               <Filter className="w-5 h-5 text-primary" />
@@ -207,9 +240,9 @@ export default function Home() {
           </div>
 
           {loadingProducts ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-5">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
               {Array.from({ length: PAGE_SIZE }).map((_, i) => (
-                <div key={i} className="space-y-4">
+                <div key={i} className="space-y-3">
                   <Skeleton className="aspect-square rounded-2xl" />
                   <Skeleton className="h-4 w-2/3" />
                   <Skeleton className="h-4 w-1/4" />
@@ -226,7 +259,7 @@ export default function Home() {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-5">
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
                 {productsData?.products.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}
