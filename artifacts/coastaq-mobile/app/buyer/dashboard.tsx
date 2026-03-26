@@ -66,6 +66,76 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
+// ── Delete Account Modal ───────────────────────────────────────────────────────
+function DeleteAccountModal({ visible, token, onClose, onDeleted }: {
+  visible: boolean; token: string | null; onClose: () => void; onDeleted: () => void;
+}) {
+  const [password, setPassword] = useState("");
+  const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState("");
+
+  React.useEffect(() => { if (visible) { setPassword(""); setError(""); } }, [visible]);
+
+  const handleDelete = async () => {
+    if (!password.trim()) { setError("Please enter your password to confirm."); return; }
+    setDeleting(true);
+    setError("");
+    try {
+      const res = await fetch(`https://${DOMAIN}/api/auth/me`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ password }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error ?? "Failed to delete account."); return; }
+      onDeleted();
+    } catch {
+      setError("Network error. Please try again.");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  return (
+    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
+      <View style={modal.container}>
+        <View style={modal.header}>
+          <Pressable onPress={onClose}><Text style={modal.cancelText}>Cancel</Text></Pressable>
+          <Text style={modal.title}>Delete Account</Text>
+          <View style={{ width: 60 }} />
+        </View>
+        <View style={[modal.content, { gap: 16 }]}>
+          <View style={deleteModal.warningBox}>
+            <Feather name="alert-triangle" size={20} color="#DC2626" />
+            <Text style={deleteModal.warningText}>
+              This will permanently delete your account, order history, and all your data. This cannot be undone.
+            </Text>
+          </View>
+          <Text style={modal.label}>Enter your password to confirm</Text>
+          <TextInput
+            style={modal.input}
+            value={password}
+            onChangeText={(t) => { setPassword(t); setError(""); }}
+            placeholder="Your password"
+            placeholderTextColor={Colors.light.textTertiary}
+            secureTextEntry
+            autoCapitalize="none"
+          />
+          {error ? <Text style={deleteModal.errorText}>{error}</Text> : null}
+          <Pressable
+            style={[deleteModal.deleteBtn, deleting && { opacity: 0.5 }]}
+            onPress={handleDelete}
+            disabled={deleting}
+          >
+            <Feather name="trash-2" size={16} color="#fff" />
+            <Text style={deleteModal.deleteBtnText}>{deleting ? "Deleting…" : "Delete My Account"}</Text>
+          </Pressable>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
 // ── Edit Profile Modal ─────────────────────────────────────────────────────────
 function EditProfileModal({ visible, currentName, token, onClose, onSaved }: {
   visible: boolean; currentName: string; token: string | null;
@@ -172,6 +242,7 @@ export default function BuyerDashboard() {
   const [tab, setTab] = useState<Tab>("overview");
   const [editProfileVisible, setEditProfileVisible] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [deleteAccountVisible, setDeleteAccountVisible] = useState(false);
 
   const topPad = Platform.OS === "web" ? 67 : insets.top;
 
@@ -275,7 +346,6 @@ export default function BuyerDashboard() {
                 </Text>
               </View>
               <View style={{ alignItems: "flex-end", gap: 4 }}>
-                <Text style={styles.orderAmount}>${parseFloat(String(o.totalAmount)).toFixed(2)}</Text>
                 <StatusBadge status={o.status} />
               </View>
             </Pressable>
@@ -470,6 +540,15 @@ export default function BuyerDashboard() {
           <Feather name="chevron-right" size={16} color={Colors.light.textTertiary} />
         </Pressable>
       </View>
+
+      <View style={styles.menuSection}>
+        <Text style={[styles.menuSectionTitle, { color: "#DC2626" }]}>Danger Zone</Text>
+        <Pressable style={styles.menuItem} onPress={() => setDeleteAccountVisible(true)}>
+          <Feather name="trash-2" size={18} color="#DC2626" />
+          <Text style={[styles.menuLabel, { color: "#DC2626" }]}>Delete Account</Text>
+          <Feather name="chevron-right" size={16} color={Colors.light.textTertiary} />
+        </Pressable>
+      </View>
     </ScrollView>
   );
 
@@ -520,6 +599,13 @@ export default function BuyerDashboard() {
       />
 
       <OrderDetailModal order={selectedOrder} onClose={() => setSelectedOrder(null)} />
+
+      <DeleteAccountModal
+        visible={deleteAccountVisible}
+        token={token}
+        onClose={() => setDeleteAccountVisible(false)}
+        onDeleted={() => { logout(); router.replace("/"); }}
+      />
     </View>
   );
 }
@@ -701,4 +787,26 @@ const styles = StyleSheet.create({
 
   badge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 20 },
   badgeText: { fontSize: 11, fontFamily: "Inter_600SemiBold", letterSpacing: 0.3 },
+});
+
+const deleteModal = StyleSheet.create({
+  warningBox: {
+    flexDirection: "row", alignItems: "flex-start", gap: 10,
+    backgroundColor: "#FEF2F2", borderRadius: 12, padding: 14,
+    borderWidth: 1, borderColor: "#FECACA",
+  },
+  warningText: {
+    flex: 1, fontSize: 13, fontFamily: "Inter_400Regular",
+    color: "#DC2626", lineHeight: 20,
+  },
+  errorText: {
+    fontSize: 13, fontFamily: "Inter_500Medium",
+    color: "#DC2626",
+  },
+  deleteBtn: {
+    flexDirection: "row", alignItems: "center", justifyContent: "center",
+    gap: 8, backgroundColor: "#DC2626",
+    borderRadius: 12, paddingVertical: 14,
+  },
+  deleteBtnText: { fontSize: 16, fontFamily: "Inter_600SemiBold", color: "#fff" },
 });

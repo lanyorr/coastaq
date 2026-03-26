@@ -335,16 +335,87 @@ function OrderModal({ order, token, onClose, onUpdated }: {
   );
 }
 
+// ── Delete Account Modal ───────────────────────────────────────────────────────
+function SellerDeleteAccountModal({ visible, token, onClose, onDeleted }: {
+  visible: boolean; token: string | null; onClose: () => void; onDeleted: () => void;
+}) {
+  const [password, setPassword] = useState("");
+  const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState("");
+
+  React.useEffect(() => { if (visible) { setPassword(""); setError(""); } }, [visible]);
+
+  const handleDelete = async () => {
+    if (!password.trim()) { setError("Please enter your password to confirm."); return; }
+    setDeleting(true);
+    setError("");
+    try {
+      const res = await fetch(`https://${DOMAIN}/api/auth/me`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ password }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error ?? "Failed to delete account."); return; }
+      onDeleted();
+    } catch {
+      setError("Network error. Please try again.");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  return (
+    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
+      <View style={modal.container}>
+        <View style={modal.header}>
+          <Pressable onPress={onClose} style={modal.cancelBtn}><Text style={modal.cancelText}>Cancel</Text></Pressable>
+          <Text style={modal.title}>Delete Account</Text>
+          <View style={{ width: 60 }} />
+        </View>
+        <View style={{ padding: 20, gap: 16 }}>
+          <View style={styles.deleteWarningBox}>
+            <Feather name="alert-triangle" size={20} color="#DC2626" />
+            <Text style={styles.deleteWarningText}>
+              This will permanently delete your account, shop, all products, and your data. This cannot be undone.
+            </Text>
+          </View>
+          <Text style={modal.label}>Enter your password to confirm</Text>
+          <TextInput
+            style={modal.input}
+            value={password}
+            onChangeText={(t) => { setPassword(t); setError(""); }}
+            placeholder="Your password"
+            placeholderTextColor={Colors.light.textTertiary}
+            secureTextEntry
+            autoCapitalize="none"
+          />
+          {error ? <Text style={styles.deleteErrorText}>{error}</Text> : null}
+          <Pressable
+            style={[styles.deleteAccountBtn, deleting && { opacity: 0.5 }]}
+            onPress={handleDelete}
+            disabled={deleting}
+          >
+            <Feather name="trash-2" size={16} color="#fff" />
+            <Text style={styles.deleteAccountBtnText}>{deleting ? "Deleting…" : "Delete My Account"}</Text>
+          </Pressable>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
 // ── Main Dashboard ─────────────────────────────────────────────────────────────
 export default function SellerDashboardScreen() {
   const insets = useSafeAreaInsets();
-  const { token } = useAuth();
+  const { token, logout } = useAuth();
   const qc = useQueryClient();
   const [tab, setTab] = useState<Tab>("overview");
   const [productModal, setProductModal] = useState<{ visible: boolean; product: Product | null }>({
     visible: false, product: null,
   });
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [deleteAccountVisible, setDeleteAccountVisible] = useState(false);
 
   const topPadding = Platform.OS === "web" ? 67 : insets.top;
 
@@ -781,6 +852,21 @@ export default function SellerDashboardScreen() {
           )}
         </View>
 
+        {/* Danger Zone */}
+        <View style={styles.dangerCard}>
+          <Text style={[styles.sectionTitle, { color: "#DC2626" }]}>Danger Zone</Text>
+          <Text style={styles.dangerNote}>
+            Deleting your account will permanently remove your shop, all products, and your account data. This cannot be undone.
+          </Text>
+          <Pressable
+            style={styles.deleteAccountBtn}
+            onPress={() => setDeleteAccountVisible(true)}
+          >
+            <Feather name="trash-2" size={16} color="#fff" />
+            <Text style={styles.deleteAccountBtnText}>Delete Account</Text>
+          </Pressable>
+        </View>
+
         {/* Back */}
         <Pressable style={styles.backToDashBtn} onPress={() => router.back()}>
           <Feather name="arrow-left" size={16} color={Colors.light.textSecondary} />
@@ -850,6 +936,14 @@ export default function SellerDashboardScreen() {
         token={token}
         onClose={() => setSelectedOrder(null)}
         onUpdated={() => { refetchOrders(); qc.invalidateQueries({ queryKey: ["seller-orders"] }); }}
+      />
+
+      {/* Delete account modal */}
+      <SellerDeleteAccountModal
+        visible={deleteAccountVisible}
+        token={token}
+        onClose={() => setDeleteAccountVisible(false)}
+        onDeleted={() => { logout(); router.replace("/"); }}
       />
     </View>
   );
@@ -1082,4 +1176,31 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.primary, borderRadius: 12, paddingVertical: 12, paddingHorizontal: 16,
   },
   statusUpdateBtnText: { fontSize: 14, fontFamily: "Inter_600SemiBold", color: "#fff" },
+
+  dangerCard: {
+    backgroundColor: "#FFF5F5", borderRadius: 16, padding: 16, gap: 12,
+    borderWidth: 1, borderColor: "#FECACA",
+  },
+  dangerNote: {
+    fontSize: 13, fontFamily: "Inter_400Regular",
+    color: "#7F1D1D", lineHeight: 20,
+  },
+  deleteAccountBtn: {
+    flexDirection: "row", alignItems: "center", justifyContent: "center",
+    gap: 8, backgroundColor: "#DC2626",
+    borderRadius: 12, paddingVertical: 13,
+  },
+  deleteAccountBtnText: { fontSize: 15, fontFamily: "Inter_600SemiBold", color: "#fff" },
+  deleteWarningBox: {
+    flexDirection: "row", alignItems: "flex-start", gap: 10,
+    backgroundColor: "#FEF2F2", borderRadius: 12, padding: 14,
+    borderWidth: 1, borderColor: "#FECACA",
+  },
+  deleteWarningText: {
+    flex: 1, fontSize: 13, fontFamily: "Inter_400Regular",
+    color: "#DC2626", lineHeight: 20,
+  },
+  deleteErrorText: {
+    fontSize: 13, fontFamily: "Inter_500Medium", color: "#DC2626",
+  },
 });
