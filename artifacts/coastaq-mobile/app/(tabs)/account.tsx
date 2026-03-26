@@ -188,6 +188,12 @@ export default function AccountScreen() {
 
       <MenuSection title="Buying">
         <MenuItem
+          icon="layout"
+          label="Buyer Dashboard"
+          onPress={() => router.push("/buyer/dashboard")}
+        />
+        <View style={styles.itemDivider} />
+        <MenuItem
           icon="shopping-bag"
           label="My Orders"
           onPress={() => router.push("/buyer/orders")}
