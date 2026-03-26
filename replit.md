@@ -11,6 +11,7 @@ Coastaq is a full-stack multi-vendor marketplace built with React + Vite (fronte
 - **Package manager**: pnpm
 - **TypeScript version**: 5.9
 - **Frontend**: React + Vite (artifacts/coastaq)
+- **Mobile App**: Expo React Native (artifacts/coastaq-mobile) — iOS/Android/Web, shares the same Express backend
 - **API framework**: Express 5 (artifacts/api-server)
 - **Database**: PostgreSQL + Drizzle ORM
 - **Validation**: Zod (`zod/v4`), `drizzle-zod`
@@ -26,7 +27,8 @@ Coastaq is a full-stack multi-vendor marketplace built with React + Vite (fronte
 artifacts-monorepo/
 ├── artifacts/
 │   ├── api-server/         # Express API server
-│   └── coastaq/            # React + Vite marketplace frontend
+│   ├── coastaq/            # React + Vite marketplace frontend
+│   └── coastaq-mobile/     # Expo React Native mobile app (iOS/Android/Web)
 ├── lib/
 │   ├── api-spec/           # OpenAPI spec + Orval codegen config
 │   ├── api-client-react/   # Generated React Query hooks
