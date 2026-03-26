@@ -18,9 +18,9 @@ function NativeTabLayout() {
         <Icon sf={{ default: "house", selected: "house.fill" }} />
         <Label>Home</Label>
       </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="search" role="search">
-        <Icon sf={{ default: "magnifyingglass", selected: "magnifyingglass" }} />
-        <Label>Search</Label>
+      <NativeTabs.Trigger name="orders">
+        <Icon sf={{ default: "bag", selected: "bag.fill" }} />
+        <Label>Orders</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="messages">
         <Icon sf={{ default: "message", selected: "message.fill" }} />
@@ -86,14 +86,14 @@ function ClassicTabLayout() {
         }}
       />
       <Tabs.Screen
-        name="search"
+        name="orders"
         options={{
-          title: "Search",
+          title: "Orders",
           tabBarIcon: ({ color }) =>
             isIOS ? (
-              <SymbolView name="magnifyingglass" tintColor={color} size={24} />
+              <SymbolView name="bag" tintColor={color} size={24} />
             ) : (
-              <Feather name="search" size={22} color={color} />
+              <Feather name="shopping-bag" size={22} color={color} />
             ),
         }}
       />
@@ -122,6 +122,7 @@ function ClassicTabLayout() {
             ),
         }}
       />
+      <Tabs.Screen name="search" options={{ href: null }} />
     </Tabs>
   );
 }
