@@ -16,6 +16,16 @@ router.get("/", async (req, res) => {
 
     const conditions = [];
 
+    // Only show active products from approved shops (unless filtering by a specific shop)
+    conditions.push(eq(productsTable.status, 'ACTIVE'));
+    if (!shopId) {
+      conditions.push(
+        inArray(productsTable.shopId,
+          db.select({ id: shopsTable.id }).from(shopsTable).where(eq(shopsTable.isApproved, true))
+        )
+      );
+    }
+
     if (categoryId) {
       // Check whether this is a parent category (has children) or a leaf subcategory
       const children = await db
