@@ -56,7 +56,9 @@ export default function LoginScreen() {
       }
       await login(data.token, data.user);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      if (router.canGoBack()) {
+      if (data.user?.role === "BUYER") {
+        router.replace("/buyer/onboarding");
+      } else if (router.canGoBack()) {
         router.back();
       } else {
         router.replace("/(tabs)");

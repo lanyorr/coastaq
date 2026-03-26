@@ -109,17 +109,6 @@ export default function ProductDetailScreen() {
     }
   };
 
-  const handleOrder = () => {
-    if (!user) {
-      router.push("/auth/login");
-      return;
-    }
-    router.push({
-      pathname: "/checkout",
-      params: { productId: String(product?.id), productName: displayName, price: String(product?.price) },
-    });
-  };
-
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -252,9 +241,6 @@ export default function ProductDetailScreen() {
             <Text style={styles.messageBtnText}>
               {messageSending ? "Opening…" : "Message"}
             </Text>
-          </Pressable>
-          <Pressable style={styles.orderBtn} onPress={handleOrder}>
-            <Text style={styles.orderBtnText}>Buy Now — ${price.toFixed(2)}</Text>
           </Pressable>
         </View>
       )}

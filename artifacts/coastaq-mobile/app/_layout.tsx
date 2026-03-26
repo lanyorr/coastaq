@@ -67,12 +67,8 @@ function RootLayoutNav() {
         options={{ headerShown: true, title: "My Orders" }}
       />
       <Stack.Screen
-        name="checkout"
-        options={{
-          headerShown: true,
-          title: "Checkout",
-          presentation: "modal",
-        }}
+        name="buyer/onboarding"
+        options={{ headerShown: false }}
       />
     </Stack>
   );

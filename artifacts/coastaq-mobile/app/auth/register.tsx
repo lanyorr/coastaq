@@ -78,8 +78,9 @@ export default function RegisterScreen() {
       }
       await login(data.token, data.user);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      // Navigate to tabs — use replace so user can't swipe back to register
-      if (router.canGoBack()) {
+      if (role === "BUYER") {
+        router.replace("/buyer/onboarding");
+      } else if (router.canGoBack()) {
         router.back();
       } else {
         router.replace("/(tabs)");
