@@ -28,9 +28,17 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  const showAlert = (title: string, msg: string) => {
+    if (Platform.OS === "web") {
+      window.alert(`${title}\n\n${msg}`);
+    } else {
+      Alert.alert(title, msg);
+    }
+  };
+
   const handleLogin = async () => {
     if (!email.trim() || !password) {
-      Alert.alert("Missing fields", "Please enter email and password.");
+      showAlert("Missing fields", "Please enter email and password.");
       return;
     }
     setIsLoading(true);
@@ -43,14 +51,18 @@ export default function LoginScreen() {
       });
       const data = await res.json();
       if (!res.ok) {
-        Alert.alert("Sign In Failed", data.error ?? "Invalid credentials");
+        showAlert("Sign In Failed", data.error ?? "Invalid credentials");
         return;
       }
       await login(data.token, data.user);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      router.back();
+      if (router.canGoBack()) {
+        router.back();
+      } else {
+        router.replace("/(tabs)");
+      }
     } catch {
-      Alert.alert("Error", "Could not connect. Please try again.");
+      showAlert("Error", "Could not connect. Please try again.");
     } finally {
       setIsLoading(false);
     }

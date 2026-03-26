@@ -26,42 +26,66 @@ export default function RegisterScreen() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [shopName, setShopName] = useState("");
+  const [shopDescription, setShopDescription] = useState("");
   const [role, setRole] = useState<"BUYER" | "SELLER">("BUYER");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  const showAlert = (title: string, msg: string) => {
+    if (Platform.OS === "web") {
+      window.alert(`${title}\n\n${msg}`);
+    } else {
+      Alert.alert(title, msg);
+    }
+  };
+
   const handleRegister = async () => {
     if (!name.trim() || !email.trim() || !password) {
-      Alert.alert("Missing fields", "Please fill in all fields.");
+      showAlert("Missing fields", "Please fill in all fields.");
       return;
     }
     if (password.length < 6) {
-      Alert.alert("Weak password", "Password must be at least 6 characters.");
+      showAlert("Weak password", "Password must be at least 6 characters.");
+      return;
+    }
+    if (role === "SELLER" && !shopName.trim()) {
+      showAlert("Shop name required", "Please enter a name for your shop.");
       return;
     }
     setIsLoading(true);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     try {
+      const body: Record<string, string> = {
+        name: name.trim(),
+        email: email.trim(),
+        password,
+        role,
+      };
+      if (role === "SELLER") {
+        body.shopName = shopName.trim();
+        if (shopDescription.trim()) body.shopDescription = shopDescription.trim();
+      }
       const res = await fetch(`https://${DOMAIN}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: name.trim(),
-          email: email.trim(),
-          password,
-          role,
-        }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (!res.ok) {
-        Alert.alert("Registration Failed", data.error ?? "Please try again.");
+        showAlert("Registration Failed", data.error ?? "Please try again.");
         return;
       }
       await login(data.token, data.user);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      router.back();
+      // Navigate to tabs — use replace so user can't swipe back to register
+      if (router.canGoBack()) {
+        router.back();
+      } else {
+        router.replace("/(tabs)");
+      }
     } catch {
-      Alert.alert("Error", "Could not connect. Please try again.");
+      showAlert("Error", "Could not connect. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -75,7 +99,7 @@ export default function RegisterScreen() {
       <ScrollView
         contentContainerStyle={[
           styles.content,
-          { paddingBottom: insets.bottom + 40 },
+          { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 40 },
         ]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
@@ -86,6 +110,7 @@ export default function RegisterScreen() {
         </View>
 
         <View style={styles.form}>
+          {/* Role toggle */}
           <View style={styles.roleToggle}>
             <Pressable
               style={[styles.roleBtn, role === "BUYER" && styles.roleBtnActive]}
@@ -125,6 +150,7 @@ export default function RegisterScreen() {
             </Pressable>
           </View>
 
+          {/* Name */}
           <View style={styles.fieldGroup}>
             <Text style={styles.label}>Full Name</Text>
             <View style={styles.inputWrap}>
@@ -141,6 +167,7 @@ export default function RegisterScreen() {
             </View>
           </View>
 
+          {/* Email */}
           <View style={styles.fieldGroup}>
             <Text style={styles.label}>Email</Text>
             <View style={styles.inputWrap}>
@@ -159,6 +186,7 @@ export default function RegisterScreen() {
             </View>
           </View>
 
+          {/* Password */}
           <View style={styles.fieldGroup}>
             <Text style={styles.label}>Password</Text>
             <View style={styles.inputWrap}>
@@ -170,8 +198,8 @@ export default function RegisterScreen() {
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
-                returnKeyType="done"
-                onSubmitEditing={handleRegister}
+                returnKeyType={role === "SELLER" ? "next" : "done"}
+                onSubmitEditing={role === "SELLER" ? undefined : handleRegister}
               />
               <Pressable onPress={() => setShowPassword(!showPassword)}>
                 <Feather
@@ -183,13 +211,65 @@ export default function RegisterScreen() {
             </View>
           </View>
 
+          {/* Seller-only shop fields */}
+          {role === "SELLER" && (
+            <View style={styles.shopSection}>
+              <View style={styles.shopSectionHeader}>
+                <Feather name="store" size={15} color={Colors.light.primary} />
+                <Text style={styles.shopSectionTitle}>Your Shop</Text>
+              </View>
+
+              <View style={styles.fieldGroup}>
+                <Text style={styles.label}>
+                  Shop Name <Text style={styles.required}>*</Text>
+                </Text>
+                <View style={styles.inputWrap}>
+                  <Feather name="shopping-bag" size={16} color={Colors.light.textTertiary} />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="e.g. Lagos Tech Hub"
+                    placeholderTextColor={Colors.light.textTertiary}
+                    value={shopName}
+                    onChangeText={setShopName}
+                    autoCapitalize="words"
+                    returnKeyType="next"
+                  />
+                </View>
+              </View>
+
+              <View style={styles.fieldGroup}>
+                <Text style={styles.label}>
+                  Shop Description{" "}
+                  <Text style={styles.optional}>(optional)</Text>
+                </Text>
+                <View style={[styles.inputWrap, styles.textareaWrap]}>
+                  <TextInput
+                    style={[styles.input, styles.textarea]}
+                    placeholder="Tell buyers what you sell…"
+                    placeholderTextColor={Colors.light.textTertiary}
+                    value={shopDescription}
+                    onChangeText={setShopDescription}
+                    multiline
+                    numberOfLines={3}
+                    returnKeyType="done"
+                    onSubmitEditing={handleRegister}
+                  />
+                </View>
+              </View>
+            </View>
+          )}
+
           <Pressable
             style={[styles.submitBtn, isLoading && styles.submitBtnDisabled]}
             onPress={handleRegister}
             disabled={isLoading}
           >
             <Text style={styles.submitBtnText}>
-              {isLoading ? "Creating account…" : "Create Account"}
+              {isLoading
+                ? "Creating account…"
+                : role === "SELLER"
+                ? "Create Seller Account"
+                : "Create Account"}
             </Text>
           </Pressable>
 
@@ -215,7 +295,6 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: 28,
-    paddingTop: 32,
     gap: 28,
   },
   logoArea: {
@@ -272,6 +351,13 @@ const styles = StyleSheet.create({
     color: Colors.light.text,
     paddingHorizontal: 2,
   },
+  required: {
+    color: "#EF4444",
+  },
+  optional: {
+    fontFamily: "Inter_400Regular",
+    color: Colors.light.textTertiary,
+  },
   inputWrap: {
     flexDirection: "row",
     alignItems: "center",
@@ -283,11 +369,37 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.light.border,
   },
+  textareaWrap: {
+    alignItems: "flex-start",
+    paddingTop: 12,
+  },
   input: {
     flex: 1,
     fontSize: 15,
     fontFamily: "Inter_400Regular",
     color: Colors.light.text,
+  },
+  textarea: {
+    minHeight: 64,
+    textAlignVertical: "top",
+  },
+  shopSection: {
+    gap: 14,
+    padding: 16,
+    backgroundColor: Colors.light.primary + "08",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: Colors.light.primary + "20",
+  },
+  shopSectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  shopSectionTitle: {
+    fontSize: 14,
+    fontFamily: "Inter_700Bold",
+    color: Colors.light.primary,
   },
   submitBtn: {
     backgroundColor: Colors.light.primary,

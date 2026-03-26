@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useLocation, Link } from "wouter";
 import { useLogin } from "@workspace/api-client-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,24 +11,35 @@ import { useToast } from "@/hooks/use-toast";
 export default function Login() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  
+
   const { mutate: login, isPending } = useLogin({
     mutation: {
-      onSuccess: (data) => {
+      onSuccess: (data: any) => {
         localStorage.setItem("coastaq_token", data.token);
+        // Invalidate all queries so Navbar & pages pick up the new auth state
+        queryClient.invalidateQueries();
         toast({ title: "Welcome back!", description: "Successfully logged in." });
-        setLocation("/");
+        // Redirect to the right dashboard based on role
+        const role = data.user?.role;
+        if (role === "SELLER") {
+          setLocation("/seller/dashboard");
+        } else if (role === "BUYER") {
+          setLocation("/buyer/dashboard");
+        } else {
+          setLocation("/");
+        }
       },
       onError: (err: any) => {
-        toast({ 
-          variant: "destructive", 
-          title: "Login failed", 
-          description: err.message || "Invalid credentials." 
+        toast({
+          variant: "destructive",
+          title: "Login failed",
+          description: err.message || "Invalid credentials.",
         });
-      }
-    }
+      },
+    },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -37,17 +49,17 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-background">
-      <img 
-        src={`${import.meta.env.BASE_URL}images/auth-bg.png`} 
-        alt="Background" 
+      <img
+        src={`${import.meta.env.BASE_URL}images/auth-bg.png`}
+        alt="Background"
         className="absolute inset-0 w-full h-full object-cover opacity-60"
       />
-      
+
       <div className="relative z-10 w-full max-w-md p-4">
         <Link href="/" className="flex justify-center w-full mb-8 hover:opacity-90 transition-opacity">
           <img src="/logo.png" alt="Coastaq" className="h-24 w-auto object-contain drop-shadow-md" />
         </Link>
-        
+
         <div className="glass-panel rounded-[2rem] p-8 md:p-10">
           <div className="text-center mb-8">
             <h1 className="text-2xl font-bold font-display text-foreground">Welcome back</h1>
@@ -57,35 +69,35 @@ export default function Login() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Input 
-                id="email" 
-                type="email" 
-                placeholder="you@example.com" 
-                required 
+              <Input
+                id="email"
+                type="email"
+                placeholder="you@example.com"
+                required
                 className="bg-white/50 h-12 rounded-xl"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
               />
             </div>
-            
+
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <Label htmlFor="password">Password</Label>
                 <a href="#" className="text-sm text-primary hover:underline font-medium">Forgot password?</a>
               </div>
-              <Input 
-                id="password" 
-                type="password" 
-                required 
+              <Input
+                id="password"
+                type="password"
+                required
                 className="bg-white/50 h-12 rounded-xl"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
               />
             </div>
 
-            <Button 
-              type="submit" 
-              className="w-full h-12 rounded-xl text-base font-bold shadow-md shadow-primary/20" 
+            <Button
+              type="submit"
+              className="w-full h-12 rounded-xl text-base font-bold shadow-md shadow-primary/20"
               disabled={isPending}
             >
               {isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : "Sign In"}
