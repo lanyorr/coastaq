@@ -223,42 +223,36 @@ export default function Home() {
 
                   return (
                     <li key={cat.id}>
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => navToCategory(cat.id)}
-                          className={`flex-1 flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-colors group ${isParentActive || isChildActive ? 'bg-primary/10 text-primary' : 'text-foreground hover:bg-gray-50'}`}
-                        >
-                          <div className="flex items-center gap-3">
-                            {(() => {
-                              const meta = getCategoryMeta(cat.name);
-                              return (
-                                <div
-                                  className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
-                                  style={{
-                                    background: isParentActive || isChildActive ? "#1d4ed8" : meta.bg,
-                                    color: isParentActive || isChildActive ? "#fff" : meta.fg,
-                                  }}
-                                >
-                                  {meta.icon}
-                                </div>
-                              );
-                            })()}
-                            <span className="truncate">{cat.name}</span>
-                          </div>
-                          {children.length === 0 && (
-                            <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50 group-hover:text-muted-foreground transition-colors shrink-0" />
-                          )}
-                        </button>
-                        {children.length > 0 && (
-                          <button
-                            onClick={() => toggleExpand(cat.id)}
-                            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-gray-50 transition-colors shrink-0"
-                            aria-label={isOpen ? "Collapse" : "Expand"}
-                          >
-                            {isOpen ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
-                          </button>
+                      <button
+                        onClick={() => children.length > 0 ? toggleExpand(cat.id) : navToCategory(cat.id)}
+                        className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-colors group ${isParentActive || isChildActive ? 'bg-primary/10 text-primary' : 'text-foreground hover:bg-gray-50'}`}
+                        aria-expanded={children.length > 0 ? isOpen : undefined}
+                      >
+                        <div className="flex items-center gap-3">
+                          {(() => {
+                            const meta = getCategoryMeta(cat.name);
+                            return (
+                              <div
+                                className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                                style={{
+                                  background: isParentActive || isChildActive ? "#1d4ed8" : meta.bg,
+                                  color: isParentActive || isChildActive ? "#fff" : meta.fg,
+                                }}
+                              >
+                                {meta.icon}
+                              </div>
+                            );
+                          })()}
+                          <span className="truncate">{cat.name}</span>
+                        </div>
+                        {children.length > 0 ? (
+                          <ChevronDown
+                            className={`w-3.5 h-3.5 shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-0 text-primary' : '-rotate-90 text-muted-foreground/50 group-hover:text-muted-foreground'}`}
+                          />
+                        ) : (
+                          <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50 group-hover:text-muted-foreground transition-colors shrink-0" />
                         )}
-                      </div>
+                      </button>
 
                       {children.length > 0 && isOpen && (
                         <ul className="ml-3 mt-0.5 mb-1 pl-3 border-l border-border space-y-0.5">
