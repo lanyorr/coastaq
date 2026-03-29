@@ -5,8 +5,62 @@ import { Footer } from "@/components/layout/Footer";
 import { useLocation, useSearch } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Filter, Search, ChevronDown, ChevronRight, ChevronLeft, Store, MapPin, Star, Plus, Zap, TrendingUp, Users } from "lucide-react";
-import { useState } from "react";
+import {
+  Filter, Search, ChevronDown, ChevronRight, ChevronLeft,
+  Store, MapPin, Plus, Zap, Users,
+  Laptop, Car, Building2, Shirt, Sofa, Heart, Trophy,
+  Briefcase, Wrench, PawPrint, Leaf, ShoppingBag, Package,
+  Camera, Cpu, Bike, Hammer, Apple, Music, BookOpen,
+  Baby, Gem, Plug
+} from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+
+// Maps a category name → { icon, bg color }
+function getCategoryMeta(name: string): { icon: React.ReactNode; bg: string; fg: string } {
+  const n = name.toLowerCase();
+  if (n.includes("electron") || n.includes("gadget") || n.includes("computer") || n.includes("laptop") || n.includes("phone"))
+    return { icon: <Laptop className="w-4 h-4" />, bg: "#dbeafe", fg: "#1d4ed8" };
+  if (n.includes("mobile") || n.includes("accessori"))
+    return { icon: <Cpu className="w-4 h-4" />, bg: "#e0e7ff", fg: "#4338ca" };
+  if (n.includes("vehicle") || n.includes("car") || n.includes("auto") || n.includes("truck"))
+    return { icon: <Car className="w-4 h-4" />, bg: "#ffedd5", fg: "#c2410c" };
+  if (n.includes("bike") || n.includes("motor"))
+    return { icon: <Bike className="w-4 h-4" />, bg: "#fef9c3", fg: "#a16207" };
+  if (n.includes("property") || n.includes("real estate") || n.includes("land") || n.includes("house") || n.includes("apartment"))
+    return { icon: <Building2 className="w-4 h-4" />, bg: "#dcfce7", fg: "#15803d" };
+  if (n.includes("fashion") || n.includes("cloth") || n.includes("wear") || n.includes("dress") || n.includes("shirt"))
+    return { icon: <Shirt className="w-4 h-4" />, bg: "#fae8ff", fg: "#9333ea" };
+  if (n.includes("shoe") || n.includes("footwear") || n.includes("bag") || n.includes("jewel") || n.includes("accessori"))
+    return { icon: <Gem className="w-4 h-4" />, bg: "#fdf2f8", fg: "#db2777" };
+  if (n.includes("furniture") || n.includes("home") || n.includes("kitchen") || n.includes("applian") || n.includes("sofa"))
+    return { icon: <Sofa className="w-4 h-4" />, bg: "#fef3c7", fg: "#d97706" };
+  if (n.includes("health") || n.includes("beauty") || n.includes("cosmetic") || n.includes("medical") || n.includes("pharma"))
+    return { icon: <Heart className="w-4 h-4" />, bg: "#ffe4e6", fg: "#e11d48" };
+  if (n.includes("sport") || n.includes("outdoor") || n.includes("gym") || n.includes("fitness"))
+    return { icon: <Trophy className="w-4 h-4" />, bg: "#d1fae5", fg: "#059669" };
+  if (n.includes("art") || n.includes("craft") || n.includes("music") || n.includes("instrument"))
+    return { icon: <Music className="w-4 h-4" />, bg: "#ede9fe", fg: "#7c3aed" };
+  if (n.includes("job") || n.includes("career") || n.includes("employ") || n.includes("hire") || n.includes("recruit"))
+    return { icon: <Briefcase className="w-4 h-4" />, bg: "#e0e7ff", fg: "#4f46e5" };
+  if (n.includes("service") || n.includes("repair") || n.includes("technician") || n.includes("plumb") || n.includes("electric"))
+    return { icon: <Wrench className="w-4 h-4" />, bg: "#f1f5f9", fg: "#475569" };
+  if (n.includes("animal") || n.includes("pet") || n.includes("dog") || n.includes("cat") || n.includes("bird"))
+    return { icon: <PawPrint className="w-4 h-4" />, bg: "#fef9c3", fg: "#92400e" };
+  if (n.includes("food") || n.includes("agric") || n.includes("farm") || n.includes("grocery") || n.includes("crop"))
+    return { icon: <Leaf className="w-4 h-4" />, bg: "#dcfce7", fg: "#16a34a" };
+  if (n.includes("baby") || n.includes("kid") || n.includes("child") || n.includes("toy"))
+    return { icon: <Baby className="w-4 h-4" />, bg: "#fce7f3", fg: "#be185d" };
+  if (n.includes("book") || n.includes("education") || n.includes("learn") || n.includes("school"))
+    return { icon: <BookOpen className="w-4 h-4" />, bg: "#ecfdf5", fg: "#065f46" };
+  if (n.includes("camera") || n.includes("photo") || n.includes("video"))
+    return { icon: <Camera className="w-4 h-4" />, bg: "#dbeafe", fg: "#1e40af" };
+  if (n.includes("tool") || n.includes("hardware") || n.includes("equipment") || n.includes("construct"))
+    return { icon: <Hammer className="w-4 h-4" />, bg: "#ffedd5", fg: "#9a3412" };
+  if (n.includes("electric") || n.includes("solar") || n.includes("power") || n.includes("energy"))
+    return { icon: <Plug className="w-4 h-4" />, bg: "#fef9c3", fg: "#ca8a04" };
+  // default
+  return { icon: <Package className="w-4 h-4" />, bg: "#f1f5f9", fg: "#475569" };
+}
 
 const PAGE_SIZE = 24;
 
@@ -46,6 +100,31 @@ export default function Home() {
   });
   
   const { data: categories, isLoading: loadingCats } = useListCategories();
+
+  // Featured carousel
+  const { data: featuredData } = useListProducts({ limit: 6, page: 1 });
+  const featuredProducts = featuredData?.products ?? [];
+  const [featuredIdx, setFeaturedIdx] = useState(0);
+  const featuredTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    if (featuredProducts.length < 2) return;
+    featuredTimerRef.current = setInterval(() => {
+      setFeaturedIdx(i => (i + 1) % featuredProducts.length);
+    }, 4000);
+    return () => { if (featuredTimerRef.current) clearInterval(featuredTimerRef.current); };
+  }, [featuredProducts.length]);
+
+  const goFeaturedPrev = () => {
+    if (featuredTimerRef.current) clearInterval(featuredTimerRef.current);
+    setFeaturedIdx(i => (i - 1 + featuredProducts.length) % featuredProducts.length);
+  };
+  const goFeaturedNext = () => {
+    if (featuredTimerRef.current) clearInterval(featuredTimerRef.current);
+    setFeaturedIdx(i => (i + 1) % featuredProducts.length);
+  };
+
+  const currentFeatured = featuredProducts[featuredIdx] ?? null;
 
   function toggleExpand(id: string) {
     setExpanded(prev => {
@@ -118,8 +197,11 @@ export default function Home() {
                     className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-colors group ${!categoryId ? 'bg-primary/10 text-primary' : 'text-foreground hover:bg-gray-50'}`}
                   >
                     <div className="flex items-center gap-3">
-                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold ${!categoryId ? 'bg-primary text-white' : 'bg-gray-100 text-gray-500'}`}>
-                        <Filter className="w-3.5 h-3.5" />
+                      <div
+                        className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                        style={{ background: !categoryId ? "#1d4ed8" : "#dbeafe", color: !categoryId ? "#fff" : "#1d4ed8" }}
+                      >
+                        <ShoppingBag className="w-4 h-4" />
                       </div>
                       <span>All Products</span>
                     </div>
@@ -147,9 +229,20 @@ export default function Home() {
                           className={`flex-1 flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-colors group ${isParentActive || isChildActive ? 'bg-primary/10 text-primary' : 'text-foreground hover:bg-gray-50'}`}
                         >
                           <div className="flex items-center gap-3">
-                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 ${isParentActive || isChildActive ? 'bg-primary text-white' : 'bg-primary/10 text-primary'}`}>
-                              {cat.name.charAt(0)}
-                            </div>
+                            {(() => {
+                              const meta = getCategoryMeta(cat.name);
+                              return (
+                                <div
+                                  className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                                  style={{
+                                    background: isParentActive || isChildActive ? "#1d4ed8" : meta.bg,
+                                    color: isParentActive || isChildActive ? "#fff" : meta.fg,
+                                  }}
+                                >
+                                  {meta.icon}
+                                </div>
+                              );
+                            })()}
                             <span className="truncate">{cat.name}</span>
                           </div>
                           {children.length === 0 && (
@@ -272,35 +365,82 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* Right: Featured listing card */}
+                {/* Right: Live featured listing carousel */}
                 <div className="hidden lg:flex flex-col gap-3 shrink-0 w-[320px] z-10">
                   <div className="rounded-2xl overflow-hidden shadow-2xl border border-white/10">
+                    {/* Image area */}
                     <div className="relative h-44 overflow-hidden" style={{ background: "linear-gradient(135deg, #1e3a5f 0%, #2d5a8e 100%)" }}>
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="text-center text-blue-200/40">
-                          <Store className="w-14 h-14 mx-auto mb-2" />
-                          <p className="text-xs font-medium">Featured Listings</p>
+                      {currentFeatured?.images?.[0] ? (
+                        <img
+                          src={currentFeatured.images[0]}
+                          alt={currentFeatured.title}
+                          className="w-full h-full object-cover transition-opacity duration-500"
+                        />
+                      ) : (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="text-center text-blue-200/40">
+                            <Store className="w-14 h-14 mx-auto mb-2" />
+                            <p className="text-xs font-medium">Featured Listings</p>
+                          </div>
                         </div>
-                      </div>
-                      <button className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm flex items-center justify-center transition-colors">
+                      )}
+                      {/* Dark overlay for readability */}
+                      {currentFeatured?.images?.[0] && (
+                        <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 60%)" }} />
+                      )}
+                      {/* Prev / Next */}
+                      <button
+                        onClick={goFeaturedPrev}
+                        className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/20 hover:bg-white/35 backdrop-blur-sm flex items-center justify-center transition-colors"
+                      >
                         <ChevronLeft className="w-4 h-4 text-white" />
                       </button>
-                      <button className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm flex items-center justify-center transition-colors">
+                      <button
+                        onClick={goFeaturedNext}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/20 hover:bg-white/35 backdrop-blur-sm flex items-center justify-center transition-colors"
+                      >
                         <ChevronRight className="w-4 h-4 text-white" />
                       </button>
+                      {/* Badges */}
                       <div className="absolute bottom-3 left-3 flex gap-2">
                         <span className="px-2.5 py-1 rounded-full text-xs font-semibold text-white" style={{ background: "#f97316" }}>Featured</span>
-                        <span className="px-2.5 py-1 rounded-full text-xs font-semibold text-white bg-primary">Top Seller</span>
+                        {currentFeatured?.shop && (
+                          <span className="px-2.5 py-1 rounded-full text-xs font-semibold text-white bg-primary">Top Seller</span>
+                        )}
                       </div>
+                      {/* Dot indicators */}
+                      {featuredProducts.length > 1 && (
+                        <div className="absolute top-3 left-0 right-0 flex justify-center gap-1.5">
+                          {featuredProducts.map((_, i) => (
+                            <button
+                              key={i}
+                              onClick={() => setFeaturedIdx(i)}
+                              className="w-1.5 h-1.5 rounded-full transition-all"
+                              style={{ background: i === featuredIdx ? "#fff" : "rgba(255,255,255,0.4)" }}
+                            />
+                          ))}
+                        </div>
+                      )}
                     </div>
-                    <div className="p-4" style={{ background: "rgba(15, 30, 80, 0.85)", backdropFilter: "blur(12px)" }}>
-                      <h3 className="text-white font-display font-bold text-base leading-tight mb-1">Premium Marketplace Deals</h3>
+                    {/* Info */}
+                    <div
+                      className="p-4 cursor-pointer"
+                      style={{ background: "rgba(15, 30, 80, 0.88)", backdropFilter: "blur(12px)" }}
+                      onClick={() => currentFeatured && setLocation(`/products/${currentFeatured.id}`)}
+                    >
+                      <h3 className="text-white font-display font-bold text-base leading-tight mb-1 line-clamp-1">
+                        {currentFeatured?.title ?? "Premium Marketplace Deals"}
+                      </h3>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1.5 text-blue-200/60">
                           <MapPin className="w-3.5 h-3.5" />
-                          <span className="text-xs">Coastaq Global</span>
+                          <span className="text-xs truncate max-w-[140px]">
+                            {currentFeatured?.location ?? "Coastaq Global"}
+                          </span>
                         </div>
-                        <span className="font-bold text-sm" style={{ color: "#60a5fa" }}>Explore →</span>
+                        <span className="font-bold text-sm shrink-0" style={{ color: "#60a5fa" }}>
+                          ${currentFeatured?.price?.toLocaleString() ?? "Explore"} →
+                        </span>
                       </div>
                     </div>
                   </div>
