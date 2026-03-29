@@ -371,10 +371,10 @@ export default function Home() {
                 </div>
 
                 {/* Right: Live featured listing carousel */}
-                <div className="hidden lg:flex flex-col gap-3 shrink-0 w-[368px] z-10">
+                <div className="hidden lg:flex flex-col gap-3 shrink-0 w-[552px] z-10">
                   <div className="rounded-2xl overflow-hidden shadow-2xl border border-white/10">
                     {/* Image area */}
-                    <div className="relative h-[229px] overflow-hidden" style={{ background: "linear-gradient(135deg, #1e3a5f 0%, #2d5a8e 100%)" }}>
+                    <div className="relative h-[344px] overflow-hidden" style={{ background: "linear-gradient(135deg, #1e3a5f 0%, #2d5a8e 100%)" }}>
                       {currentFeatured?.images?.[0] ? (
                         <img
                           src={currentFeatured.images[0]}
