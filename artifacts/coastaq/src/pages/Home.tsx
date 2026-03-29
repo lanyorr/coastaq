@@ -284,7 +284,7 @@ export default function Home() {
             <section
               className="relative overflow-hidden"
               style={{
-                background: "#1a59d5",
+                background: "#3b82f6",
                 minHeight: 460,
               }}
             >
