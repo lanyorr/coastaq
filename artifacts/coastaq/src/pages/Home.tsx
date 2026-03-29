@@ -303,9 +303,9 @@ export default function Home() {
                     <h1 className="text-4xl md:text-5xl font-display font-bold text-white leading-[1.1] tracking-tight mb-4">
                       Where Every<br />
                       Transaction Builds<br />
-                      <span style={{ color: "#60a5fa" }}>Community</span>
+                      <span style={{ color: "#ffffff", textShadow: "0 0 32px rgba(255,255,255,0.35)" }}>Community</span>
                     </h1>
-                    <p className="text-base text-blue-100/80 max-w-md leading-relaxed">
+                    <p className="text-base text-white/95 max-w-md leading-relaxed font-medium">
                       Discover trusted marketplace connecting coastal commerce globally. Buy, sell, and trade with confidence in our vibrant community.
                     </p>
                   </div>
