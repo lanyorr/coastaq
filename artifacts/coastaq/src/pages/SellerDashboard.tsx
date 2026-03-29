@@ -13,6 +13,7 @@ import {
   Store, Package, Settings, Plus, Trash2, Loader2, Home,
   ImageIcon, AlertCircle, CreditCard, MessageCircle, ChevronRight, Inbox,
   ShoppingBag, CheckCircle2, XCircle, Truck, Clock as ClockIcon, AlertTriangle,
+  Pencil,
 } from "lucide-react";
 import { DeleteAccountDialog } from "@/components/account/DeleteAccountDialog";
 import { useToast } from "@/hooks/use-toast";
@@ -299,6 +300,15 @@ export default function SellerDashboard() {
   const [imageUploading, setImageUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Edit product state
+  const [editOpen, setEditOpen] = useState(false);
+  const [editProduct, setEditProduct] = useState<typeof EMPTY_PRODUCT & { id: string }>(
+    { ...EMPTY_PRODUCT, id: "" }
+  );
+  const [editImageUploading, setEditImageUploading] = useState(false);
+  const [editSaving, setEditSaving] = useState(false);
+  const editFileInputRef = useRef<HTMLInputElement>(null);
+
   const handleImageUpload = async (file: File) => {
     setImageUploading(true);
     try {
@@ -320,6 +330,76 @@ export default function SellerDashboard() {
       toast({ variant: "destructive", title: "Upload failed", description: err.message });
     } finally {
       setImageUploading(false);
+    }
+  };
+
+  const handleEditImageUpload = async (file: File) => {
+    setEditImageUploading(true);
+    try {
+      const token = localStorage.getItem("coastaq_token");
+      const form = new FormData();
+      form.append("image", file);
+      const res = await fetch("/api/upload/image", {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: form,
+      });
+      if (!res.ok) throw new Error("Upload failed");
+      const data = await res.json() as { url: string };
+      setEditProduct(p => ({ ...p, image: data.url }));
+    } catch (err: any) {
+      toast({ variant: "destructive", title: "Upload failed", description: err.message });
+    } finally {
+      setEditImageUploading(false);
+    }
+  };
+
+  const openEdit = (p: any) => {
+    setEditProduct({
+      id: p.id,
+      title: p.title ?? "",
+      price: String(p.price ?? ""),
+      stock: String(p.stock ?? "1"),
+      condition: p.condition ?? "NEW",
+      description: p.description ?? "",
+      location: p.location ?? "",
+      image: p.images?.[0] ?? "",
+      parentCategoryId: "",
+      categoryId: p.categoryId ?? "",
+    });
+    setEditOpen(true);
+  };
+
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setEditSaving(true);
+    try {
+      const token = localStorage.getItem("coastaq_token");
+      const res = await fetch(`/api/products/${editProduct.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          title: editProduct.title,
+          price: parseFloat(editProduct.price),
+          stock: parseInt(editProduct.stock),
+          condition: editProduct.condition,
+          description: editProduct.description,
+          location: editProduct.location,
+          images: editProduct.image ? [editProduct.image] : [],
+          categoryId: editProduct.categoryId || editProduct.parentCategoryId || undefined,
+        }),
+      });
+      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || "Update failed");
+      toast({ title: "Product updated", description: `"${editProduct.title}" has been saved.` });
+      setEditOpen(false);
+      queryClient.invalidateQueries({ queryKey: ["/api/products"] });
+    } catch (err: any) {
+      toast({ variant: "destructive", title: "Failed to update", description: err.message });
+    } finally {
+      setEditSaving(false);
     }
   };
 
@@ -716,6 +796,137 @@ export default function SellerDashboard() {
                 </Dialog>
               </div>
 
+              {/* Edit Product Dialog */}
+              <Dialog open={editOpen} onOpenChange={setEditOpen}>
+                <DialogContent className="sm:max-w-[640px] rounded-3xl max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle className="text-xl font-display">Edit Product</DialogTitle>
+                  </DialogHeader>
+                  <form onSubmit={handleSaveEdit} className="space-y-5 mt-4">
+                    <div className="space-y-2">
+                      <Label>Product Title <span className="text-destructive">*</span></Label>
+                      <Input
+                        required
+                        value={editProduct.title}
+                        onChange={e => setEditProduct({ ...editProduct, title: e.target.value })}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <Label>Price ($) <span className="text-destructive">*</span></Label>
+                        <Input
+                          type="number" step="0.01" min="0" required
+                          value={editProduct.price}
+                          onChange={e => setEditProduct({ ...editProduct, price: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Stock <span className="text-destructive">*</span></Label>
+                        <Input
+                          type="number" min="0" required
+                          value={editProduct.stock}
+                          onChange={e => setEditProduct({ ...editProduct, stock: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Condition</Label>
+                        <select
+                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                          value={editProduct.condition}
+                          onChange={e => setEditProduct({ ...editProduct, condition: e.target.value as any })}
+                        >
+                          <option value="NEW">New</option>
+                          <option value="USED">Used</option>
+                          <option value="REFURBISHED">Refurbished</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Location</Label>
+                      <Input
+                        placeholder="e.g. Victoria Island, Lagos"
+                        value={editProduct.location}
+                        onChange={e => setEditProduct({ ...editProduct, location: e.target.value })}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Product Image</Label>
+                      <input
+                        ref={editFileInputRef}
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
+                        className="hidden"
+                        onChange={e => {
+                          const file = e.target.files?.[0];
+                          if (file) handleEditImageUpload(file);
+                          e.target.value = "";
+                        }}
+                      />
+                      {editProduct.image ? (
+                        <div className="relative rounded-xl overflow-hidden bg-secondary/30 h-44 group">
+                          <img src={editProduct.image} alt="Preview" className="h-full w-full object-cover" />
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                            <button
+                              type="button"
+                              onClick={() => editFileInputRef.current?.click()}
+                              className="bg-white text-foreground text-xs font-medium px-3 py-1.5 rounded-lg shadow"
+                            >
+                              Change
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setEditProduct(p => ({ ...p, image: "" }))}
+                              className="bg-white text-red-500 text-xs font-medium px-3 py-1.5 rounded-lg shadow"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => editFileInputRef.current?.click()}
+                          disabled={editImageUploading}
+                          className="w-full h-36 border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-primary hover:text-primary transition-colors disabled:opacity-50 bg-secondary/30"
+                        >
+                          {editImageUploading ? (
+                            <><Loader2 className="w-6 h-6 animate-spin" /><span className="text-sm">Uploading…</span></>
+                          ) : (
+                            <><ImageIcon className="w-7 h-7" /><span className="text-sm font-medium">Click to upload photo</span></>
+                          )}
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Description</Label>
+                      <Textarea
+                        rows={3}
+                        value={editProduct.description}
+                        onChange={e => setEditProduct({ ...editProduct, description: e.target.value })}
+                      />
+                    </div>
+
+                    <div className="flex gap-3 pt-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="flex-1 h-12 rounded-xl"
+                        onClick={() => setEditOpen(false)}
+                      >
+                        Cancel
+                      </Button>
+                      <Button type="submit" className="flex-1 h-12 rounded-xl" disabled={editSaving}>
+                        {editSaving ? <Loader2 className="animate-spin w-5 h-5" /> : "Save Changes"}
+                      </Button>
+                    </div>
+                  </form>
+                </DialogContent>
+              </Dialog>
+
               {/* Product table */}
               {products.length === 0 ? (
                 <div className="text-center py-16">
@@ -769,14 +980,26 @@ export default function SellerDashboard() {
                             </span>
                           </td>
                           <td className="px-4 py-3">
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              className="h-8 w-8 text-destructive hover:bg-destructive hover:text-white"
-                              onClick={() => handleDelete(p.id, p.title)}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-8 w-8 text-primary hover:bg-primary hover:text-white"
+                                onClick={() => openEdit(p)}
+                                title="Edit product"
+                              >
+                                <Pencil className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-8 w-8 text-destructive hover:bg-destructive hover:text-white"
+                                onClick={() => handleDelete(p.id, p.title)}
+                                title="Delete product"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
                           </td>
                         </tr>
                       ))}
