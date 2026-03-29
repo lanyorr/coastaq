@@ -284,7 +284,7 @@ export default function Home() {
             <section
               className="relative overflow-hidden"
               style={{
-                background: "linear-gradient(to bottom right, #1a59d5, #2563eb, #6d28d9)",
+                background: "#1a59d5",
                 minHeight: 460,
               }}
             >
