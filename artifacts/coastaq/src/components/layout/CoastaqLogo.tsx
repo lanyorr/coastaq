@@ -8,8 +8,8 @@ export function CoastaqLogo({ iconSize = 36, textSize = 20, gap = 10 }: CoastaqL
   const r = iconSize / 2;
   const cx = r;
   const cy = r;
-  const arcR = iconSize * 0.30;
-  const sw = iconSize * 0.115;
+  const arcR = iconSize * 0.22;
+  const sw = iconSize * 0.155;
 
   const gradId = `cq-teal-${iconSize}`;
 
