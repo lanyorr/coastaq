@@ -294,6 +294,11 @@ export default function Home() {
                 minHeight: 460,
               }}
             >
+              {/* Reflective white gloss — top-left highlight simulating light reflection */}
+              <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.10) 20%, rgba(255,255,255,0.03) 45%, transparent 65%)" }} />
+              {/* Subtle secondary shimmer on right edge */}
+              <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(225deg, rgba(255,255,255,0.07) 0%, transparent 40%)" }} />
+
               <div className="absolute -top-20 -right-20 w-96 h-96 rounded-full opacity-10" style={{ background: "radial-gradient(circle, #60a5fa, transparent)" }} />
               <div className="absolute -bottom-16 -left-16 w-72 h-72 rounded-full opacity-10" style={{ background: "radial-gradient(circle, #93c5fd, transparent)" }} />
 
@@ -366,10 +371,10 @@ export default function Home() {
                 </div>
 
                 {/* Right: Live featured listing carousel */}
-                <div className="hidden lg:flex flex-col gap-3 shrink-0 w-[320px] z-10">
+                <div className="hidden lg:flex flex-col gap-3 shrink-0 w-[368px] z-10">
                   <div className="rounded-2xl overflow-hidden shadow-2xl border border-white/10">
                     {/* Image area */}
-                    <div className="relative h-44 overflow-hidden" style={{ background: "linear-gradient(135deg, #1e3a5f 0%, #2d5a8e 100%)" }}>
+                    <div className="relative h-[229px] overflow-hidden" style={{ background: "linear-gradient(135deg, #1e3a5f 0%, #2d5a8e 100%)" }}>
                       {currentFeatured?.images?.[0] ? (
                         <img
                           src={currentFeatured.images[0]}
