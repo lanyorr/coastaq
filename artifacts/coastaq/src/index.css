@@ -58,11 +58,11 @@
   --popover-foreground: 222 47% 11%;
   --popover-border: 214 32% 91%;
   
-  --primary: 189 88% 35%;         /* Ocean Teal */
+  --primary: 220 78% 47%;         /* Bold Royal Blue */
   --primary-foreground: 0 0% 100%;
   
-  --secondary: 198 40% 90%;       /* Light sky blue */
-  --secondary-foreground: 199 89% 25%;
+  --secondary: 220 40% 92%;       /* Light blue */
+  --secondary-foreground: 220 60% 25%;
   
   --muted: 210 40% 96%;
   --muted-foreground: 215 16% 47%;
@@ -75,7 +75,7 @@
   
   --border: 214 32% 91%;
   --input: 214 32% 91%;
-  --ring: 189 88% 35%;
+  --ring: 220 78% 47%;
   
   --radius: 0.75rem;
 }

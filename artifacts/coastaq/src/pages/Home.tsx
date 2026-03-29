@@ -5,7 +5,7 @@ import { Footer } from "@/components/layout/Footer";
 import { useLocation, useSearch } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Filter, Search, ChevronDown, ChevronRight, ChevronLeft, Store } from "lucide-react";
+import { Filter, Search, ChevronDown, ChevronRight, ChevronLeft, Store, MapPin, Star, Plus, Zap, TrendingUp, Users } from "lucide-react";
 import { useState } from "react";
 
 const PAGE_SIZE = 24;
@@ -62,36 +62,138 @@ export default function Home() {
       
       {/* Hero Banner */}
       {!searchQuery && !categoryId && (
-        <section className="bg-gradient-to-r from-[#0ea5e9]/8 via-[#06b6d4]/5 to-[#3b82f6]/8 border-b border-primary/10">
-          <div className="container mx-auto px-4 py-3 md:py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-            {/* Tagline */}
-            <p className="text-sm md:text-lg font-display font-semibold text-foreground/85 tracking-tight">
-              Your everyday marketplace,{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-sky-500 to-cyan-500">
-                powered by everyone
-              </span>
-            </p>
+        <section
+          className="relative overflow-hidden"
+          style={{
+            background: "linear-gradient(135deg, #0f2d6e 0%, #1a4a9e 30%, #1e5cbf 55%, #1a4a9e 80%, #0d2558 100%)",
+            minHeight: 460,
+          }}
+        >
+          {/* Decorative circles */}
+          <div className="absolute -top-20 -right-20 w-96 h-96 rounded-full opacity-10" style={{ background: "radial-gradient(circle, #60a5fa, transparent)" }} />
+          <div className="absolute -bottom-16 -left-16 w-72 h-72 rounded-full opacity-10" style={{ background: "radial-gradient(circle, #93c5fd, transparent)" }} />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full opacity-5" style={{ background: "radial-gradient(circle, #bfdbfe, transparent)" }} />
 
-            {/* Compact Search — hidden on mobile (navbar has search icon) */}
-            <form onSubmit={handleHeroSearch} className="hidden md:flex items-center gap-2 shrink-0">
-              <div className="flex items-center bg-white rounded-full border border-primary/20 shadow-sm px-3 py-1.5 focus-within:ring-2 focus-within:ring-primary/20 transition-all">
-                <Search className="h-3.5 w-3.5 text-primary/40 shrink-0 mr-2" />
-                <input
-                  type="search"
-                  placeholder="Search products…"
-                  className="bg-transparent outline-none text-sm text-foreground placeholder:text-muted-foreground/60 w-44"
-                  value={heroSearch}
-                  onChange={(e) => setHeroSearch(e.target.value)}
-                />
+          <div className="relative container mx-auto px-4 md:px-8 py-10 md:py-14 flex flex-col md:flex-row items-center gap-8 md:gap-12" style={{ minHeight: 460 }}>
+            {/* Left: Hero content */}
+            <div className="flex-1 flex flex-col gap-6 md:gap-7 z-10">
+              <div>
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold text-white leading-[1.1] tracking-tight mb-4">
+                  Where Every<br />
+                  Transaction Builds<br />
+                  <span style={{ color: "#60a5fa" }}>Community</span>
+                </h1>
+                <p className="text-base md:text-lg text-blue-100/80 max-w-md leading-relaxed">
+                  Discover trusted marketplace connecting coastal commerce globally. Buy, sell, and trade with confidence in our vibrant community.
+                </p>
               </div>
-              <Button
-                type="submit"
-                size="sm"
-                className="rounded-full bg-primary hover:bg-primary/90 text-white text-xs font-semibold px-4 h-8 shadow-sm shadow-primary/20 shrink-0"
+
+              {/* Search bar */}
+              <form onSubmit={handleHeroSearch} className="flex items-center gap-0 max-w-lg">
+                <div className="flex items-center flex-1 bg-white rounded-l-full px-4 py-3 shadow-lg gap-3">
+                  <Search className="h-4 w-4 text-gray-400 shrink-0" />
+                  <input
+                    type="search"
+                    placeholder="Search for anything..."
+                    className="flex-1 bg-transparent outline-none text-sm text-gray-800 placeholder:text-gray-400 min-w-0"
+                    value={heroSearch}
+                    onChange={(e) => setHeroSearch(e.target.value)}
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="rounded-r-full px-6 py-3 text-sm font-semibold text-white shadow-lg transition-opacity hover:opacity-90 shrink-0"
+                  style={{ background: "linear-gradient(135deg, #f97316, #ef4444)" }}
+                >
+                  Search
+                </button>
+              </form>
+
+              {/* CTA Buttons */}
+              <div className="flex items-center gap-3 flex-wrap">
+                <button
+                  onClick={() => setLocation("/auth/register?role=SELLER")}
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-full border-2 border-white/40 text-white text-sm font-semibold hover:bg-white/10 transition-colors"
+                >
+                  <Plus className="w-4 h-4" />
+                  Post Free Ad
+                </button>
+                <button
+                  onClick={() => document.getElementById("product-grid")?.scrollIntoView({ behavior: "smooth" })}
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-full border-2 border-white/30 text-white/90 text-sm font-semibold hover:bg-white/10 transition-colors"
+                >
+                  <Zap className="w-4 h-4" />
+                  Browse Deals
+                </button>
+              </div>
+
+              {/* Stats row */}
+              <div className="flex items-center gap-6 md:gap-8 pt-2">
+                {[
+                  { value: "2.5M+", label: "Listings", icon: <TrendingUp className="w-4 h-4" /> },
+                  { value: "850K+", label: "Sellers", icon: <Store className="w-4 h-4" /> },
+                  { value: "4.8★", label: "Rating", icon: <Star className="w-4 h-4 fill-current" /> },
+                ].map((s) => (
+                  <div key={s.label} className="flex flex-col">
+                    <span className="text-2xl md:text-3xl font-display font-bold text-white tracking-tight">{s.value}</span>
+                    <span className="text-xs text-blue-200/70 font-medium uppercase tracking-wide">{s.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Right: Featured listing card */}
+            <div className="hidden md:flex flex-col gap-3 shrink-0 w-[340px] z-10">
+              <div
+                className="rounded-2xl overflow-hidden shadow-2xl border border-white/10"
+                style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.04) 100%)" }}
               >
-                Search
-              </Button>
-            </form>
+                {/* Card image placeholder */}
+                <div className="relative h-48 overflow-hidden" style={{ background: "linear-gradient(135deg, #1e3a5f 0%, #2d5a8e 100%)" }}>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-center text-blue-200/40">
+                      <Store className="w-16 h-16 mx-auto mb-2" />
+                      <p className="text-xs font-medium">Featured Listings</p>
+                    </div>
+                  </div>
+                  {/* Carousel arrows */}
+                  <button className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm flex items-center justify-center transition-colors">
+                    <ChevronLeft className="w-4 h-4 text-white" />
+                  </button>
+                  <button className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm flex items-center justify-center transition-colors">
+                    <ChevronRight className="w-4 h-4 text-white" />
+                  </button>
+                  {/* Badges */}
+                  <div className="absolute bottom-3 left-3 flex gap-2">
+                    <span className="px-2.5 py-1 rounded-full text-xs font-semibold text-white" style={{ background: "#f97316" }}>
+                      Featured
+                    </span>
+                    <span className="px-2.5 py-1 rounded-full text-xs font-semibold text-white bg-primary">
+                      Top Seller
+                    </span>
+                  </div>
+                </div>
+                {/* Card info */}
+                <div className="p-4" style={{ background: "rgba(15, 30, 80, 0.85)", backdropFilter: "blur(12px)" }}>
+                  <h3 className="text-white font-display font-bold text-lg leading-tight mb-1">
+                    Premium Marketplace Deals
+                  </h3>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5 text-blue-200/60">
+                      <MapPin className="w-3.5 h-3.5" />
+                      <span className="text-xs">Coastaq Global</span>
+                    </div>
+                    <span className="text-white font-bold text-lg" style={{ color: "#60a5fa" }}>Explore →</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Live indicator */}
+              <div className="flex items-center justify-center gap-2 text-blue-200/60 text-xs">
+                <Users className="w-3.5 h-3.5" />
+                <span>Thousands of buyers active right now</span>
+              </div>
+            </div>
           </div>
         </section>
       )}
@@ -217,7 +319,7 @@ export default function Home() {
         </aside>
 
         {/* Product Grid */}
-        <div className="flex-1 min-w-0">
+        <div id="product-grid" className="flex-1 min-w-0">
           {/* Header: title + count */}
           <div className="flex items-center justify-between mb-5 gap-4 flex-wrap">
             <h2 className="text-xl font-display font-bold text-foreground">

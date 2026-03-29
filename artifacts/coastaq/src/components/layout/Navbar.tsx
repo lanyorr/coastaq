@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Search, User, Store, LayoutDashboard, MessageCircle, Menu, X } from "lucide-react";
+import { Search, User, Store, LayoutDashboard, MessageCircle, Menu, X, ExternalLink, Home } from "lucide-react";
 import { useGetMe, useLogout } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,27 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useState, useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+
+function CoastaqLogo() {
+  return (
+    <div className="flex items-center gap-2.5">
+      <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center shadow-md shadow-primary/30 shrink-0">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M15.5 10C15.5 13.0376 13.0376 15.5 10 15.5C6.96243 15.5 4.5 13.0376 4.5 10C4.5 6.96243 6.96243 4.5 10 4.5"
+            stroke="white" strokeWidth="2.2" strokeLinecap="round"
+          />
+          <path
+            d="M10 4.5C10 4.5 13 4.5 14.5 6M14.5 6L13 4.5M14.5 6L13 7.5"
+            stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"
+          />
+          <circle cx="10" cy="10" r="1.5" fill="white" />
+        </svg>
+      </div>
+      <span className="font-display font-bold text-xl text-foreground tracking-tight">Coastaq</span>
+    </div>
+  );
+}
 
 export function Navbar() {
   const [_, setLocation] = useLocation();
@@ -65,39 +86,69 @@ export function Navbar() {
   const nav = (path: string) => { setLocation(path); setMobileOpen(false); };
 
   return (
-    <header className="sticky top-0 z-50 w-full glass-panel border-b-0">
+    <header className="sticky top-0 z-50 w-full bg-white border-b border-gray-200 shadow-sm">
       {/* Main bar */}
-      <div className="container mx-auto px-4 h-16 md:h-20 flex items-center justify-between gap-4">
+      <div className="container mx-auto px-4 h-16 flex items-center justify-between gap-4">
+        {/* Logo */}
         <Link href="/" className="flex items-center shrink-0" onClick={() => setMobileOpen(false)}>
-          <img src="/logo.png" alt="Coastaq" className="h-10 md:h-14 w-auto object-contain drop-shadow-sm" />
+          <CoastaqLogo />
         </Link>
 
+        {/* Desktop nav links */}
+        <nav className="hidden lg:flex items-center gap-1 ml-4">
+          <Link
+            href="/"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-foreground hover:bg-primary/8 hover:text-primary transition-colors"
+          >
+            <Home className="w-3.5 h-3.5" />
+            Home
+          </Link>
+          <a
+            href="https://afrigocall.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-foreground hover:bg-primary/8 hover:text-primary transition-colors"
+          >
+            Afrigocall
+            <ExternalLink className="w-3 h-3 opacity-50" />
+          </a>
+          <a
+            href="https://antiques.coastaq.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-foreground hover:bg-primary/8 hover:text-primary transition-colors"
+          >
+            Antiques
+            <ExternalLink className="w-3 h-3 opacity-50" />
+          </a>
+        </nav>
+
         {/* Desktop search */}
-        <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-md relative group">
+        <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-xs relative group ml-2">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
           <Input
             type="search"
             placeholder="Search listings..."
-            className="w-full pl-10 bg-secondary/50 border-transparent focus-visible:bg-white focus-visible:ring-primary/20 rounded-full transition-all"
+            className="w-full pl-10 bg-gray-50 border-gray-200 focus-visible:bg-white focus-visible:ring-primary/20 rounded-full transition-all text-sm"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </form>
 
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-2">
           {/* Mobile search icon */}
           <button
-            className="md:hidden p-2 rounded-full hover:bg-secondary transition-colors"
+            className="md:hidden p-2 rounded-full hover:bg-gray-100 transition-colors"
             onClick={() => { setMobileSearchOpen(v => !v); setMobileOpen(false); }}
             aria-label="Search"
           >
-            <Search className="h-5 w-5 text-muted-foreground" />
+            <Search className="h-5 w-5 text-gray-500" />
           </button>
 
           {!user && (
             <Button
               variant="ghost"
-              className="hidden sm:flex text-primary hover:text-primary hover:bg-primary/10 rounded-full text-sm"
+              className="hidden sm:flex text-primary hover:text-primary hover:bg-primary/10 rounded-full text-sm font-medium"
               onClick={() => setLocation("/auth/register?role=SELLER")}
             >
               Sell on Coastaq
@@ -107,10 +158,10 @@ export function Navbar() {
           {user && (
             <button
               onClick={() => nav("/messages")}
-              className="relative p-2 rounded-full hover:bg-secondary transition-colors"
+              className="relative p-2 rounded-full hover:bg-gray-100 transition-colors"
               title="Messages"
             >
-              <MessageCircle className="h-5 w-5 text-muted-foreground hover:text-primary transition-colors" />
+              <MessageCircle className="h-5 w-5 text-gray-500 hover:text-primary transition-colors" />
               {unread > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 bg-primary text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center leading-none">
                   {unread > 9 ? "9+" : unread}
@@ -125,7 +176,7 @@ export function Navbar() {
               <div className="hidden md:block">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="icon" className="rounded-full border-primary/20 hover:bg-primary/5">
+                    <Button variant="outline" size="icon" className="rounded-full border-gray-200 hover:bg-primary/5 hover:border-primary/30">
                       <User className="h-5 w-5 text-primary" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -175,7 +226,7 @@ export function Navbar() {
 
               {/* Mobile hamburger */}
               <button
-                className="md:hidden p-2 rounded-full hover:bg-secondary transition-colors"
+                className="md:hidden p-2 rounded-full hover:bg-gray-100 transition-colors"
                 onClick={() => { setMobileOpen(v => !v); setMobileSearchOpen(false); }}
                 aria-label={mobileOpen ? "Close menu" : "Open menu"}
               >
@@ -186,20 +237,21 @@ export function Navbar() {
             <>
               <Button
                 variant="ghost"
-                className="hidden sm:inline-flex rounded-full"
+                className="hidden sm:inline-flex rounded-full text-sm font-medium text-gray-700 hover:text-primary"
                 onClick={() => setLocation("/auth/login")}
               >
-                Log in
+                Login
               </Button>
               <Button
-                className="rounded-full bg-primary hover:bg-primary/90 text-white shadow-md shadow-primary/20 text-sm px-4"
+                className="rounded-full bg-primary hover:bg-primary/90 text-white shadow-md shadow-primary/25 text-sm px-4 font-semibold gap-1.5"
                 onClick={() => setLocation("/auth/register")}
               >
-                Sign up
+                <User className="w-4 h-4" />
+                Sign Up
               </Button>
               {/* Mobile hamburger for guest */}
               <button
-                className="sm:hidden p-2 rounded-full hover:bg-secondary transition-colors"
+                className="sm:hidden p-2 rounded-full hover:bg-gray-100 transition-colors"
                 onClick={() => { setMobileOpen(v => !v); setMobileSearchOpen(false); }}
                 aria-label={mobileOpen ? "Close menu" : "Open menu"}
               >
@@ -212,14 +264,14 @@ export function Navbar() {
 
       {/* Mobile search bar */}
       {mobileSearchOpen && (
-        <div className="md:hidden border-t border-border/30 px-4 py-3 bg-background/95 backdrop-blur-sm">
+        <div className="md:hidden border-t border-gray-100 px-4 py-3 bg-white">
           <form onSubmit={handleSearch} className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
               ref={mobileSearchRef}
               type="search"
               placeholder="Search listings..."
-              className="w-full pl-10 bg-secondary/50 border-transparent focus-visible:bg-white focus-visible:ring-primary/20 rounded-full"
+              className="w-full pl-10 bg-gray-50 border-gray-200 rounded-full"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -229,35 +281,45 @@ export function Navbar() {
 
       {/* Mobile nav menu */}
       {mobileOpen && (
-        <div className="md:hidden border-t border-border/30 bg-background/95 backdrop-blur-sm">
+        <div className="md:hidden border-t border-gray-100 bg-white">
           <nav className="container mx-auto px-4 py-4 flex flex-col gap-1">
+            <Link href="/" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 text-sm font-medium text-foreground">
+              <Home className="w-4 h-4 text-primary" /> Home
+            </Link>
+            <a href="https://afrigocall.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 text-sm font-medium text-foreground">
+              Afrigocall <ExternalLink className="w-3.5 h-3.5 ml-auto text-gray-400" />
+            </a>
+            <a href="https://antiques.coastaq.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 text-sm font-medium text-foreground">
+              Antiques <ExternalLink className="w-3.5 h-3.5 ml-auto text-gray-400" />
+            </a>
+            <div className="border-t border-gray-100 my-2" />
             {user ? (
               <>
-                <div className="px-3 py-2 mb-2">
+                <div className="px-3 py-2 mb-1">
                   <p className="font-semibold text-foreground text-sm">{user.name}</p>
                   <p className="text-xs text-muted-foreground">{user.email}</p>
                 </div>
                 {user.role === "BUYER" && (
-                  <button onClick={() => nav("/buyer/dashboard")} className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-secondary text-sm font-medium text-foreground w-full text-left">
+                  <button onClick={() => nav("/buyer/dashboard")} className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 text-sm font-medium text-foreground w-full text-left">
                     <LayoutDashboard className="w-4 h-4 text-primary" /> My Dashboard
                   </button>
                 )}
                 {user.role === "SELLER" && (
-                  <button onClick={() => nav("/seller/dashboard")} className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-secondary text-sm font-medium text-primary w-full text-left">
+                  <button onClick={() => nav("/seller/dashboard")} className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 text-sm font-medium text-primary w-full text-left">
                     <Store className="w-4 h-4" /> Seller Dashboard
                   </button>
                 )}
                 {user.role === "ADMIN" && (
-                  <button onClick={() => nav("/admin")} className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-secondary text-sm font-medium text-foreground w-full text-left">
+                  <button onClick={() => nav("/admin")} className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 text-sm font-medium text-foreground w-full text-left">
                     <User className="w-4 h-4 text-primary" /> Admin Panel
                   </button>
                 )}
-                <button onClick={() => nav("/messages")} className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-secondary text-sm font-medium text-foreground w-full text-left">
+                <button onClick={() => nav("/messages")} className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 text-sm font-medium text-foreground w-full text-left">
                   <MessageCircle className="w-4 h-4 text-primary" />
                   Messages
                   {unread > 0 && <span className="ml-auto bg-primary text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center">{unread > 9 ? "9+" : unread}</span>}
                 </button>
-                <div className="border-t border-border/30 mt-2 pt-2">
+                <div className="border-t border-gray-100 mt-2 pt-2">
                   <button onClick={handleLogout} className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-red-50 text-sm font-medium text-destructive w-full text-left">
                     Log out
                   </button>
@@ -265,13 +327,13 @@ export function Navbar() {
               </>
             ) : (
               <>
-                <button onClick={() => nav("/auth/login")} className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-secondary text-sm font-medium text-foreground w-full text-left">
-                  Log in
+                <button onClick={() => nav("/auth/login")} className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 text-sm font-medium text-foreground w-full text-left">
+                  Login
                 </button>
-                <button onClick={() => nav("/auth/register")} className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-secondary text-sm font-medium text-foreground w-full text-left">
-                  Sign up
+                <button onClick={() => nav("/auth/register")} className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-primary/5 hover:bg-primary/10 text-sm font-medium text-primary w-full text-left">
+                  <User className="w-4 h-4" /> Sign Up
                 </button>
-                <button onClick={() => nav("/auth/register?role=SELLER")} className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-primary/10 text-sm font-medium text-primary w-full text-left">
+                <button onClick={() => nav("/auth/register?role=SELLER")} className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 text-sm font-medium text-primary w-full text-left">
                   <Store className="w-4 h-4" /> Sell on Coastaq
                 </button>
               </>
