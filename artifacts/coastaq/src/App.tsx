@@ -29,6 +29,7 @@ import PrivacyPage from "@/pages/legal/PrivacyPage";
 import ContactPage from "@/pages/legal/ContactPage";
 import RefundPage from "@/pages/legal/RefundPage";
 import SellerAgreementPage from "@/pages/legal/SellerAgreementPage";
+import Antiques from "@/pages/Antiques";
 
 // Setup global fetch interceptor to inject Authorization header
 const originalFetch = window.fetch;
@@ -86,6 +87,7 @@ function Router() {
       <Route path="/contact" component={ContactPage} />
       <Route path="/refunds" component={RefundPage} />
       <Route path="/seller-agreement" component={SellerAgreementPage} />
+      <Route path="/antiques" component={Antiques} />
       <Route component={NotFound} />
     </Switch>
   );

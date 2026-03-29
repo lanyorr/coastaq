@@ -139,7 +139,7 @@ export function Navbar() {
             Home
           </Link>
           <a
-            href="https://afrigocall.com"
+            href="https://web.afrigocall.com"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-foreground hover:bg-primary/8 hover:text-primary transition-colors"
@@ -147,15 +147,12 @@ export function Navbar() {
             Afrigocall
             <ExternalLink className="w-3 h-3 opacity-50" />
           </a>
-          <a
-            href="https://antiques.coastaq.com"
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link
+            href="/antiques"
             className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-foreground hover:bg-primary/8 hover:text-primary transition-colors"
           >
             Antiques
-            <ExternalLink className="w-3 h-3 opacity-50" />
-          </a>
+          </Link>
         </nav>
 
         {/* Desktop search */}
@@ -321,12 +318,12 @@ export function Navbar() {
             <Link href="/" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 text-sm font-medium text-foreground">
               <Home className="w-4 h-4 text-primary" /> Home
             </Link>
-            <a href="https://afrigocall.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 text-sm font-medium text-foreground">
+            <a href="https://web.afrigocall.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 text-sm font-medium text-foreground">
               Afrigocall <ExternalLink className="w-3.5 h-3.5 ml-auto text-gray-400" />
             </a>
-            <a href="https://antiques.coastaq.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 text-sm font-medium text-foreground">
-              Antiques <ExternalLink className="w-3.5 h-3.5 ml-auto text-gray-400" />
-            </a>
+            <Link href="/antiques" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 text-sm font-medium text-foreground">
+              Antiques
+            </Link>
             <div className="border-t border-gray-100 my-2" />
             {user ? (
               <>
