@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Loader2, Store, User, CheckCircle2, LayoutDashboard, ArrowLeft,
-  CreditCard, Zap, Clock, ChevronLeft,
+  CreditCard, Zap, Clock, ChevronLeft, Eye, EyeOff,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
@@ -332,6 +332,8 @@ export default function Register() {
     name: "", email: "", password: "", shopName: "", shopDescription: "",
   });
 
+  const [showPassword, setShowPassword] = useState(false);
+
   const { mutate: register, isPending } = useRegister({
     mutation: {
       onSuccess: (data) => {
@@ -478,7 +480,25 @@ export default function Register() {
             </div>
             <div className="space-y-2">
               <Label>Password</Label>
-              <Input type="password" required minLength={6} className="bg-white/50 h-12 rounded-xl" value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} />
+              <div className="relative">
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  required
+                  minLength={6}
+                  className="bg-white/50 h-12 rounded-xl pr-12"
+                  value={formData.password}
+                  onChange={e => setFormData({ ...formData, password: e.target.value })}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(v => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  tabIndex={-1}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
             </div>
 
             {role === "SELLER" && (

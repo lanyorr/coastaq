@@ -1,4 +1,5 @@
 import { Link } from "wouter";
+import { CoastaqLogo } from "@/components/layout/CoastaqLogo";
 
 const LINKS = [
   { label: "Terms & Conditions", to: "/terms" },
@@ -13,8 +14,8 @@ export function Footer() {
     <footer className="bg-white border-t border-border/50 py-10 mt-20">
       <div className="container mx-auto px-4 max-w-5xl">
         <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="opacity-70 hover:opacity-100 transition-opacity">
-            <img src="/logo.png" alt="Coastaq" className="h-12 w-auto object-contain" />
+          <div className="opacity-80 hover:opacity-100 transition-opacity">
+            <Link href="/"><CoastaqLogo iconSize={36} textSize={20} gap={8} /></Link>
           </div>
           <p className="text-sm text-muted-foreground text-center md:text-left order-last md:order-none">
             © {new Date().getFullYear()} Coastaq Marketplace. All rights reserved.
