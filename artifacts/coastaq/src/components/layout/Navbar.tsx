@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Search, User, Store, LayoutDashboard, MessageCircle, Menu, X, ExternalLink, Home } from "lucide-react";
+import { Search, User, Store, LayoutDashboard, MessageCircle, Menu, X, ExternalLink, ShoppingBag } from "lucide-react";
 import { useGetMe, useLogout } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -77,11 +77,11 @@ export function Navbar() {
         {/* Desktop nav links */}
         <nav className="hidden lg:flex items-center gap-1 ml-4">
           <Link
-            href="/"
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-foreground hover:bg-primary/8 hover:text-primary transition-colors"
+            href="/shop"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-gradient-to-r from-primary to-blue-600 text-white shadow-md shadow-primary/25 hover:shadow-lg hover:shadow-primary/30 hover:scale-105 transition-all duration-200"
           >
-            <Home className="w-3.5 h-3.5" />
-            Home
+            <ShoppingBag className="w-4 h-4" />
+            Shop
           </Link>
           <a
             href="https://web.afrigocall.com"
@@ -260,8 +260,8 @@ export function Navbar() {
       {mobileOpen && (
         <div className="md:hidden border-t border-gray-100 bg-white">
           <nav className="container mx-auto px-4 py-4 flex flex-col gap-1">
-            <Link href="/" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 text-sm font-medium text-foreground">
-              <Home className="w-4 h-4 text-primary" /> Home
+            <Link href="/shop" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-gradient-to-r from-primary to-blue-600 text-white text-sm font-semibold shadow-md shadow-primary/20">
+              <ShoppingBag className="w-4 h-4" /> Shop
             </Link>
             <a href="https://web.afrigocall.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 text-sm font-medium text-foreground">
               Afrigocall <ExternalLink className="w-3.5 h-3.5 ml-auto text-gray-400" />
