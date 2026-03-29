@@ -60,144 +60,6 @@ export default function Home() {
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
       
-      {/* Hero Banner */}
-      {!searchQuery && !categoryId && (
-        <section
-          className="relative overflow-hidden"
-          style={{
-            background: "linear-gradient(135deg, #0f2d6e 0%, #1a4a9e 30%, #1e5cbf 55%, #1a4a9e 80%, #0d2558 100%)",
-            minHeight: 460,
-          }}
-        >
-          {/* Decorative circles */}
-          <div className="absolute -top-20 -right-20 w-96 h-96 rounded-full opacity-10" style={{ background: "radial-gradient(circle, #60a5fa, transparent)" }} />
-          <div className="absolute -bottom-16 -left-16 w-72 h-72 rounded-full opacity-10" style={{ background: "radial-gradient(circle, #93c5fd, transparent)" }} />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full opacity-5" style={{ background: "radial-gradient(circle, #bfdbfe, transparent)" }} />
-
-          <div className="relative container mx-auto px-4 md:px-8 py-10 md:py-14 flex flex-col md:flex-row items-center gap-8 md:gap-12" style={{ minHeight: 460 }}>
-            {/* Left: Hero content */}
-            <div className="flex-1 flex flex-col gap-6 md:gap-7 z-10">
-              <div>
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold text-white leading-[1.1] tracking-tight mb-4">
-                  Where Every<br />
-                  Transaction Builds<br />
-                  <span style={{ color: "#60a5fa" }}>Community</span>
-                </h1>
-                <p className="text-base md:text-lg text-blue-100/80 max-w-md leading-relaxed">
-                  Discover trusted marketplace connecting coastal commerce globally. Buy, sell, and trade with confidence in our vibrant community.
-                </p>
-              </div>
-
-              {/* Search bar */}
-              <form onSubmit={handleHeroSearch} className="flex items-center gap-0 max-w-lg">
-                <div className="flex items-center flex-1 bg-white rounded-l-full px-4 py-3 shadow-lg gap-3">
-                  <Search className="h-4 w-4 text-gray-400 shrink-0" />
-                  <input
-                    type="search"
-                    placeholder="Search for anything..."
-                    className="flex-1 bg-transparent outline-none text-sm text-gray-800 placeholder:text-gray-400 min-w-0"
-                    value={heroSearch}
-                    onChange={(e) => setHeroSearch(e.target.value)}
-                  />
-                </div>
-                <button
-                  type="submit"
-                  className="rounded-r-full px-6 py-3 text-sm font-semibold text-white shadow-lg transition-opacity hover:opacity-90 shrink-0"
-                  style={{ background: "linear-gradient(135deg, #f97316, #ef4444)" }}
-                >
-                  Search
-                </button>
-              </form>
-
-              {/* CTA Buttons */}
-              <div className="flex items-center gap-3 flex-wrap">
-                <button
-                  onClick={() => setLocation("/auth/register?role=SELLER")}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-full border-2 border-white/40 text-white text-sm font-semibold hover:bg-white/10 transition-colors"
-                >
-                  <Plus className="w-4 h-4" />
-                  Post Free Ad
-                </button>
-                <button
-                  onClick={() => document.getElementById("product-grid")?.scrollIntoView({ behavior: "smooth" })}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-full border-2 border-white/30 text-white/90 text-sm font-semibold hover:bg-white/10 transition-colors"
-                >
-                  <Zap className="w-4 h-4" />
-                  Browse Deals
-                </button>
-              </div>
-
-              {/* Stats row */}
-              <div className="flex items-center gap-6 md:gap-8 pt-2">
-                {[
-                  { value: "2.5M+", label: "Listings", icon: <TrendingUp className="w-4 h-4" /> },
-                  { value: "850K+", label: "Sellers", icon: <Store className="w-4 h-4" /> },
-                  { value: "4.8★", label: "Rating", icon: <Star className="w-4 h-4 fill-current" /> },
-                ].map((s) => (
-                  <div key={s.label} className="flex flex-col">
-                    <span className="text-2xl md:text-3xl font-display font-bold text-white tracking-tight">{s.value}</span>
-                    <span className="text-xs text-blue-200/70 font-medium uppercase tracking-wide">{s.label}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Right: Featured listing card */}
-            <div className="hidden md:flex flex-col gap-3 shrink-0 w-[340px] z-10">
-              <div
-                className="rounded-2xl overflow-hidden shadow-2xl border border-white/10"
-                style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.04) 100%)" }}
-              >
-                {/* Card image placeholder */}
-                <div className="relative h-48 overflow-hidden" style={{ background: "linear-gradient(135deg, #1e3a5f 0%, #2d5a8e 100%)" }}>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-center text-blue-200/40">
-                      <Store className="w-16 h-16 mx-auto mb-2" />
-                      <p className="text-xs font-medium">Featured Listings</p>
-                    </div>
-                  </div>
-                  {/* Carousel arrows */}
-                  <button className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm flex items-center justify-center transition-colors">
-                    <ChevronLeft className="w-4 h-4 text-white" />
-                  </button>
-                  <button className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm flex items-center justify-center transition-colors">
-                    <ChevronRight className="w-4 h-4 text-white" />
-                  </button>
-                  {/* Badges */}
-                  <div className="absolute bottom-3 left-3 flex gap-2">
-                    <span className="px-2.5 py-1 rounded-full text-xs font-semibold text-white" style={{ background: "#f97316" }}>
-                      Featured
-                    </span>
-                    <span className="px-2.5 py-1 rounded-full text-xs font-semibold text-white bg-primary">
-                      Top Seller
-                    </span>
-                  </div>
-                </div>
-                {/* Card info */}
-                <div className="p-4" style={{ background: "rgba(15, 30, 80, 0.85)", backdropFilter: "blur(12px)" }}>
-                  <h3 className="text-white font-display font-bold text-lg leading-tight mb-1">
-                    Premium Marketplace Deals
-                  </h3>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5 text-blue-200/60">
-                      <MapPin className="w-3.5 h-3.5" />
-                      <span className="text-xs">Coastaq Global</span>
-                    </div>
-                    <span className="text-white font-bold text-lg" style={{ color: "#60a5fa" }}>Explore →</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Live indicator */}
-              <div className="flex items-center justify-center gap-2 text-blue-200/60 text-xs">
-                <Users className="w-3.5 h-3.5" />
-                <span>Thousands of buyers active right now</span>
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
-
       {/* Mobile category chips */}
       <div className="md:hidden border-b border-border/20 bg-background">
         <div className="flex gap-2 overflow-x-auto px-4 py-2 scrollbar-hide" style={{ WebkitOverflowScrolling: "touch" }}>
@@ -231,21 +93,21 @@ export default function Home() {
         </div>
       </div>
 
-      <main className="flex-1 container mx-auto px-4 py-6 md:py-8 flex flex-col md:flex-row gap-8">
+      <main className="flex-1 flex flex-col md:flex-row">
         {/* Sidebar — desktop only */}
-        <aside className="hidden md:block w-64 shrink-0">
-          <div className="sticky top-28 glass-panel p-6 rounded-2xl">
-            <div className="flex items-center gap-2 mb-6 text-foreground font-display font-semibold text-lg">
-              <Filter className="w-5 h-5 text-primary" />
-              Categories
+        <aside className="hidden md:flex flex-col w-60 shrink-0 border-r border-border bg-white">
+          <div className="sticky top-16 overflow-y-auto" style={{ maxHeight: "calc(100vh - 64px)" }}>
+            <div className="px-5 pt-6 pb-3">
+              <p className="font-display font-bold text-base text-foreground">Browse Categories</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Find what you need</p>
             </div>
-            
+
             {loadingCats ? (
-              <div className="space-y-3">
-                {[1,2,3,4,5,6].map(i => <Skeleton key={i} className="h-6 w-3/4 rounded-md" />)}
+              <div className="px-4 space-y-2 pb-4">
+                {[1,2,3,4,5,6].map(i => <Skeleton key={i} className="h-10 w-full rounded-xl" />)}
               </div>
             ) : (
-              <ul className="space-y-0.5">
+              <ul className="px-3 pb-6 space-y-0.5">
                 <li>
                   <button
                     onClick={() => {
@@ -253,9 +115,15 @@ export default function Home() {
                       if (searchQuery) next.set("search", searchQuery);
                       setLocation(`/${next.toString() ? `?${next}` : ""}`);
                     }}
-                    className={`w-full text-left block px-3 py-2 rounded-xl text-sm font-medium transition-colors ${!categoryId ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'}`}
+                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-colors group ${!categoryId ? 'bg-primary/10 text-primary' : 'text-foreground hover:bg-gray-50'}`}
                   >
-                    All Products
+                    <div className="flex items-center gap-3">
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold ${!categoryId ? 'bg-primary text-white' : 'bg-gray-100 text-gray-500'}`}>
+                        <Filter className="w-3.5 h-3.5" />
+                      </div>
+                      <span>All Products</span>
+                    </div>
+                    <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50 group-hover:text-muted-foreground transition-colors" />
                   </button>
                 </li>
                 {categories?.map((cat) => {
@@ -273,36 +141,39 @@ export default function Home() {
 
                   return (
                     <li key={cat.id}>
-                      {/* Parent row */}
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => navToCategory(cat.id)}
-                          className={`flex-1 text-left block px-3 py-2 rounded-xl text-sm font-medium transition-colors ${isParentActive || isChildActive ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'}`}
+                          className={`flex-1 flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-colors group ${isParentActive || isChildActive ? 'bg-primary/10 text-primary' : 'text-foreground hover:bg-gray-50'}`}
                         >
-                          {cat.name}
+                          <div className="flex items-center gap-3">
+                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 ${isParentActive || isChildActive ? 'bg-primary text-white' : 'bg-primary/10 text-primary'}`}>
+                              {cat.name.charAt(0)}
+                            </div>
+                            <span className="truncate">{cat.name}</span>
+                          </div>
+                          {children.length === 0 && (
+                            <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50 group-hover:text-muted-foreground transition-colors shrink-0" />
+                          )}
                         </button>
                         {children.length > 0 && (
                           <button
                             onClick={() => toggleExpand(cat.id)}
-                            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors shrink-0"
+                            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-gray-50 transition-colors shrink-0"
                             aria-label={isOpen ? "Collapse" : "Expand"}
                           >
-                            {isOpen
-                              ? <ChevronDown className="w-3.5 h-3.5" />
-                              : <ChevronRight className="w-3.5 h-3.5" />
-                            }
+                            {isOpen ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
                           </button>
                         )}
                       </div>
 
-                      {/* Subcategories */}
                       {children.length > 0 && isOpen && (
                         <ul className="ml-3 mt-0.5 mb-1 pl-3 border-l border-border space-y-0.5">
                           {children.map((child: any) => (
                             <li key={child.id}>
                               <button
                                 onClick={() => navToCategory(child.id)}
-                                className={`w-full text-left block px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${categoryId === child.id ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'}`}
+                                className={`w-full text-left block px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${categoryId === child.id ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-gray-50 hover:text-foreground'}`}
                               >
                                 {child.name}
                               </button>
@@ -318,8 +189,132 @@ export default function Home() {
           </div>
         </aside>
 
-        {/* Product Grid */}
-        <div id="product-grid" className="flex-1 min-w-0">
+        {/* Right column: hero (home only) + product grid */}
+        <div className="flex-1 min-w-0 flex flex-col">
+
+          {/* Hero Banner — only on home (no search/category filter) */}
+          {!searchQuery && !categoryId && (
+            <section
+              className="relative overflow-hidden"
+              style={{
+                background: "linear-gradient(135deg, #0f2d6e 0%, #1a4a9e 30%, #1e5cbf 55%, #1a4a9e 80%, #0d2558 100%)",
+                minHeight: 460,
+              }}
+            >
+              <div className="absolute -top-20 -right-20 w-96 h-96 rounded-full opacity-10" style={{ background: "radial-gradient(circle, #60a5fa, transparent)" }} />
+              <div className="absolute -bottom-16 -left-16 w-72 h-72 rounded-full opacity-10" style={{ background: "radial-gradient(circle, #93c5fd, transparent)" }} />
+
+              <div className="relative px-8 py-10 md:py-14 flex flex-col md:flex-row items-center gap-8 md:gap-10 h-full" style={{ minHeight: 460 }}>
+                {/* Left: Hero content */}
+                <div className="flex-1 flex flex-col gap-6 z-10">
+                  <div>
+                    <h1 className="text-4xl md:text-5xl font-display font-bold text-white leading-[1.1] tracking-tight mb-4">
+                      Where Every<br />
+                      Transaction Builds<br />
+                      <span style={{ color: "#60a5fa" }}>Community</span>
+                    </h1>
+                    <p className="text-base text-blue-100/80 max-w-md leading-relaxed">
+                      Discover trusted marketplace connecting coastal commerce globally. Buy, sell, and trade with confidence in our vibrant community.
+                    </p>
+                  </div>
+
+                  {/* Search bar */}
+                  <form onSubmit={handleHeroSearch} className="flex items-center gap-0 max-w-lg">
+                    <div className="flex items-center flex-1 bg-white rounded-l-full px-4 py-3 shadow-lg gap-3">
+                      <Search className="h-4 w-4 text-gray-400 shrink-0" />
+                      <input
+                        type="search"
+                        placeholder="Search for anything..."
+                        className="flex-1 bg-transparent outline-none text-sm text-gray-800 placeholder:text-gray-400 min-w-0"
+                        value={heroSearch}
+                        onChange={(e) => setHeroSearch(e.target.value)}
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      className="rounded-r-full px-6 py-3 text-sm font-semibold text-white shadow-lg transition-opacity hover:opacity-90 shrink-0"
+                      style={{ background: "linear-gradient(135deg, #f97316, #ef4444)" }}
+                    >
+                      Search
+                    </button>
+                  </form>
+
+                  {/* CTA Buttons */}
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <button
+                      onClick={() => setLocation("/auth/register?role=SELLER")}
+                      className="flex items-center gap-2 px-5 py-2.5 rounded-full border-2 border-white/40 text-white text-sm font-semibold hover:bg-white/10 transition-colors"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Post Free Ad
+                    </button>
+                    <button
+                      onClick={() => document.getElementById("product-grid")?.scrollIntoView({ behavior: "smooth" })}
+                      className="flex items-center gap-2 px-5 py-2.5 rounded-full border-2 border-white/30 text-white/90 text-sm font-semibold hover:bg-white/10 transition-colors"
+                    >
+                      <Zap className="w-4 h-4" />
+                      Browse Deals
+                    </button>
+                  </div>
+
+                  {/* Stats row */}
+                  <div className="flex items-center gap-8 pt-2">
+                    {[
+                      { value: "2.5M+", label: "Listings" },
+                      { value: "850K+", label: "Sellers" },
+                      { value: "4.8★", label: "Rating" },
+                    ].map((s) => (
+                      <div key={s.label} className="flex flex-col">
+                        <span className="text-2xl md:text-3xl font-display font-bold text-white tracking-tight">{s.value}</span>
+                        <span className="text-xs text-blue-200/70 font-medium uppercase tracking-wide">{s.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Right: Featured listing card */}
+                <div className="hidden lg:flex flex-col gap-3 shrink-0 w-[320px] z-10">
+                  <div className="rounded-2xl overflow-hidden shadow-2xl border border-white/10">
+                    <div className="relative h-44 overflow-hidden" style={{ background: "linear-gradient(135deg, #1e3a5f 0%, #2d5a8e 100%)" }}>
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="text-center text-blue-200/40">
+                          <Store className="w-14 h-14 mx-auto mb-2" />
+                          <p className="text-xs font-medium">Featured Listings</p>
+                        </div>
+                      </div>
+                      <button className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm flex items-center justify-center transition-colors">
+                        <ChevronLeft className="w-4 h-4 text-white" />
+                      </button>
+                      <button className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm flex items-center justify-center transition-colors">
+                        <ChevronRight className="w-4 h-4 text-white" />
+                      </button>
+                      <div className="absolute bottom-3 left-3 flex gap-2">
+                        <span className="px-2.5 py-1 rounded-full text-xs font-semibold text-white" style={{ background: "#f97316" }}>Featured</span>
+                        <span className="px-2.5 py-1 rounded-full text-xs font-semibold text-white bg-primary">Top Seller</span>
+                      </div>
+                    </div>
+                    <div className="p-4" style={{ background: "rgba(15, 30, 80, 0.85)", backdropFilter: "blur(12px)" }}>
+                      <h3 className="text-white font-display font-bold text-base leading-tight mb-1">Premium Marketplace Deals</h3>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5 text-blue-200/60">
+                          <MapPin className="w-3.5 h-3.5" />
+                          <span className="text-xs">Coastaq Global</span>
+                        </div>
+                        <span className="font-bold text-sm" style={{ color: "#60a5fa" }}>Explore →</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-center gap-2 text-blue-200/60 text-xs">
+                    <Users className="w-3.5 h-3.5" />
+                    <span>Thousands of buyers active right now</span>
+                  </div>
+                </div>
+              </div>
+            </section>
+          )}
+
+          {/* Product Grid */}
+          <div id="product-grid" className="flex-1 px-4 md:px-6 py-6 md:py-8">
           {/* Header: title + count */}
           <div className="flex items-center justify-between mb-5 gap-4 flex-wrap">
             <h2 className="text-xl font-display font-bold text-foreground">
@@ -420,6 +415,7 @@ export default function Home() {
               )}
             </>
           )}
+        </div>
         </div>
       </main>
 
