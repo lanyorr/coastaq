@@ -13,17 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useState, useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-
-function CoastaqLogo() {
-  return (
-    <img
-      src="/logo.png"
-      alt="Coastaq"
-      className="h-9 w-auto object-contain"
-      style={{ maxWidth: 160 }}
-    />
-  );
-}
+import { CoastaqLogo } from "./CoastaqLogo";
 
 export function Navbar() {
   const [_, setLocation] = useLocation();

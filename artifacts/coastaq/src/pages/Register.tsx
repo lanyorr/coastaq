@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { CoastaqLogo } from "@/components/layout/CoastaqLogo";
 import { Link } from "wouter";
 import { useRegister } from "@workspace/api-client-react";
 import { usePaypalConfig } from "@/hooks/use-subscription";
@@ -361,7 +362,7 @@ export default function Register() {
         />
         <div className="relative z-10 w-full max-w-lg p-4">
           <Link href="/" className="flex justify-center w-full mb-6 hover:opacity-90 transition-opacity">
-            <img src="/logo.png" alt="Coastaq" className="h-24 w-auto object-contain drop-shadow-md" />
+            <CoastaqLogo iconSize={56} textSize={30} gap={12} />
           </Link>
 
           {sellerStep === "choice" && (
@@ -395,7 +396,7 @@ export default function Register() {
         />
         <div className="relative z-10 w-full max-w-lg p-4">
           <Link href="/" className="flex justify-center w-full mb-6 hover:opacity-90 transition-opacity">
-            <img src="/logo.png" alt="Coastaq" className="h-24 w-auto object-contain drop-shadow-md" />
+            <CoastaqLogo iconSize={56} textSize={30} gap={12} />
           </Link>
 
           <div className="glass-panel rounded-[2rem] p-10 text-center">
@@ -440,7 +441,7 @@ export default function Register() {
 
       <div className="relative z-10 w-full max-w-lg p-4">
         <Link href="/" className="flex justify-center w-full mb-6 hover:opacity-90 transition-opacity">
-          <img src="/logo.png" alt="Coastaq" className="h-24 w-auto object-contain drop-shadow-md" />
+          <CoastaqLogo iconSize={56} textSize={30} gap={12} />
         </Link>
 
         <div className="glass-panel rounded-[2rem] p-8">

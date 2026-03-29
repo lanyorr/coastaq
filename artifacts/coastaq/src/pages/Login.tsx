@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { CoastaqLogo } from "@/components/layout/CoastaqLogo";
 import { useLocation, Link } from "wouter";
 import { useLogin } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -57,7 +58,7 @@ export default function Login() {
 
       <div className="relative z-10 w-full max-w-md p-4">
         <Link href="/" className="flex justify-center w-full mb-8 hover:opacity-90 transition-opacity">
-          <img src="/logo.png" alt="Coastaq" className="h-24 w-auto object-contain drop-shadow-md" />
+          <CoastaqLogo iconSize={56} textSize={30} gap={12} />
         </Link>
 
         <div className="glass-panel rounded-[2rem] p-8 md:p-10">
