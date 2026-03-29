@@ -16,57 +16,12 @@ import { useQueryClient } from "@tanstack/react-query";
 
 function CoastaqLogo() {
   return (
-    <div className="flex items-center gap-2">
-      {/* Icon mark: rounded-square with gradient + C-wave mark */}
-      <svg width="38" height="38" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="cq-bg" x1="0" y1="0" x2="38" y2="38" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stopColor="#1e56d4" />
-            <stop offset="100%" stopColor="#0d3b9e" />
-          </linearGradient>
-          <linearGradient id="cq-wave" x1="0" y1="0" x2="38" y2="0" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stopColor="#60a5fa" />
-            <stop offset="100%" stopColor="#ffffff" />
-          </linearGradient>
-        </defs>
-        {/* Background rounded square */}
-        <rect width="38" height="38" rx="10" fill="url(#cq-bg)" />
-        {/* Subtle inner glow ring */}
-        <rect x="1" y="1" width="36" height="36" rx="9.5" stroke="white" strokeOpacity="0.12" strokeWidth="1" fill="none" />
-        {/* Bold "C" arc — opens to the right */}
-        <path
-          d="M26 10.5 A10 10 0 1 0 26 27.5"
-          stroke="white"
-          strokeWidth="3"
-          strokeLinecap="round"
-          fill="none"
-        />
-        {/* Wave line through the C opening — left to right */}
-        <path
-          d="M20 19 Q22.5 15.5 25 19 Q27.5 22.5 30 19"
-          stroke="url(#cq-wave)"
-          strokeWidth="2"
-          strokeLinecap="round"
-          fill="none"
-        />
-      </svg>
-
-      {/* Wordmark */}
-      <div className="flex flex-col leading-none">
-        <span
-          className="font-display font-extrabold tracking-tight"
-          style={{ fontSize: 19, color: "#0f172a", letterSpacing: "-0.5px" }}
-        >
-          Coastaq
-        </span>
-        <span
-          className="font-sans font-medium tracking-widest uppercase"
-          style={{ fontSize: 7.5, color: "#1d4ed8", letterSpacing: "2.5px", marginTop: 1 }}
-        >
-          Marketplace
-        </span>
-      </div>
-    </div>
+    <img
+      src="/logo.png"
+      alt="Coastaq"
+      className="h-9 w-auto object-contain"
+      style={{ maxWidth: 160 }}
+    />
   );
 }
 
