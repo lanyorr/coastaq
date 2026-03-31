@@ -32,3 +32,4 @@ channel = "stable-25_05"
 
 [userenv.shared]
 PAYPAL_MODE = "sandbox"
+SUPABASE_POOLER_URL = "postgresql://postgres.jvimobzplpfdqzxrbuxp:%40Samanya7.0@aws-1-ap-northeast-2.pooler.supabase.com:6543/postgres"
