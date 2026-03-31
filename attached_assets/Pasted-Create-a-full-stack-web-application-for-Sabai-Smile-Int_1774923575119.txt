@@ -1,0 +1,423 @@
+Create a full-stack web application for "Sabai Smile International," a Thailand-based wellness and export company. The application must include ecommerce functionality, a B2B distributor portal, multi-payment gateway integration, and content management for six core service areas.
+
+## PROJECT OVERVIEW
+
+Sabai Smile International is a holistic wellness company offering:
+1. Wellness Export Products (Thai herbal compresses, massage oils, organic supplements, spa equipment)
+2. Traditional Thai Massage Promotion (certification courses, therapist booking)
+3. Medical Devices Export (B2B medical equipment)
+4. Medical Health Tourism (fertility treatments, IVF packages)
+5. Environmental Sustainability (eco-products + eco-tourism training programs)
+6. Business Skills & English Training (corporate training for Thai businesses)
+7. Tour Thailand Packages (curated travel itineraries)
+
+The platform must serve both B2C retail customers and B2B international distributors with tiered pricing and wholesale ordering.
+
+## TECH STACK REQUIREMENTS
+
+- **Backend:** Node.js with Express.js or Python with Django/Flask
+- **Frontend:** React.js or Vue.js with responsive design (mobile-first)
+- **Database:** PostgreSQL (for relational data: users, orders, products) + MongoDB (for content pages, blog)
+- **Authentication:** JWT with role-based access (Admin, Distributor, Agency Partner, Retail Customer)
+- **File Storage:** Cloud storage (AWS S3 or similar) for product images and marketing assets
+- **Payment Integration:** Stripe API, PayPal API, PromptPay (Thai QR code) integration
+- **Email:** Nodemailer or SendGrid for order confirmations and partner notifications
+- **Hosting:** Configured for deployment on Replit or exportable to Vercel/Railway
+
+## DATABASE SCHEMA REQUIREMENTS
+
+Create the following models with appropriate relationships:
+
+### Users Table
+- id (UUID, primary key)
+- email (unique)
+- password_hash
+- full_name
+- company_name (for B2B users)
+- business_license_url (for distributor verification)
+- tax_id
+- country
+- phone
+- role (enum: 'retail', 'wholesale', 'distributor', 'agency', 'admin')
+- tier (enum: 'tier0_retail', 'tier1_wholesale', 'tier2_distributor')
+- approved (boolean, default false for B2B applications)
+- referral_code (unique, for agency partners)
+- created_at
+- updated_at
+
+### Products Table
+- id (UUID, primary key)
+- name (English + Thai fields)
+- description (English + Thai)
+- category (enum: 'wellness', 'medical_device', 'sustainable', 'massage_tools')
+- sku (unique)
+- retail_price (decimal)
+- wholesale_price_tier1 (decimal, for wholesale partners)
+- wholesale_price_tier2 (decimal, for authorized distributors)
+- moq (minimum order quantity, integer)
+- stock_quantity
+- unit (e.g., 'piece', 'box', 'kg', 'set')
+- weight_kg (for shipping calculation)
+- dimensions (JSON: length, width, height)
+- images (array of URLs)
+- certification_urls (array, for medical devices)
+- is_active (boolean)
+- created_at
+- updated_at
+
+### Service Categories Table (for bookable services)
+- id (UUID, primary key)
+- name (English + Thai)
+- type (enum: 'massage_course', 'fertility_package', 'eco_tourism', 'business_training', 'tour_package')
+- description
+- duration_days (for courses/tours)
+- price_retail
+- price_b2b (for corporate bookings)
+- includes (JSON array of inclusions)
+- itinerary (JSON for tours)
+- max_participants
+- is_active
+
+### Orders Table
+- id (UUID, primary key)
+- user_id (foreign key to Users)
+- order_type (enum: 'retail', 'wholesale', 'distributor')
+- status (enum: 'pending', 'processing', 'shipped', 'delivered', 'cancelled')
+- items (JSON array: product_id, quantity, unit_price, total)
+- subtotal
+- shipping_cost
+- tax
+- total
+- currency (enum: 'THB', 'USD', 'EUR', 'GBP')
+- payment_method (enum: 'stripe', 'paypal', 'promptpay', 'wire_transfer', 'letter_of_credit')
+- payment_status (enum: 'pending', 'paid', 'failed', 'refunded')
+- payment_intent_id (for Stripe/PayPal reference)
+- shipping_address (JSON)
+- shipping_method (enum: 'air_freight', 'sea_freight', 'express_courier')
+- tracking_number
+- commercial_invoice_url
+- packing_list_url
+- created_at
+
+### Distributor Applications Table
+- id (UUID, primary key)
+- user_id (foreign key)
+- business_name
+- business_registration_number
+- business_license_url
+- tax_id_url
+- target_markets (array of countries)
+- intended_product_categories (array)
+- estimated_monthly_order_value (decimal)
+- status (enum: 'pending', 'approved', 'rejected')
+- reviewed_by (admin user id)
+- reviewed_at
+- notes
+
+### Referrals Table (for agency partners)
+- id (UUID, primary key)
+- agency_user_id (foreign key)
+- referred_email
+- referred_user_id (foreign key, nullable until registered)
+- status (enum: 'clicked', 'registered', 'purchased', 'commission_paid')
+- commission_amount (decimal)
+- commission_paid (boolean)
+- created_at
+
+### Blog/Content Table
+- id (UUID, primary key)
+- title (English + Thai)
+- slug (unique)
+- content (English + Thai, rich text)
+- excerpt
+- featured_image
+- author_id
+- category (enum: 'wellness_tips', 'export_news', 'medical_tourism', 'eco_tourism', 'company_news')
+- published_at
+- is_published
+
+### Site Settings Table
+- id (integer, primary key)
+- key (unique, e.g., 'company_name', 'contact_email', 'shipping_policy')
+- value (JSON or text)
+- updated_at
+
+## API ENDPOINTS REQUIRED
+
+### Authentication
+- POST /api/auth/register (retail customer)
+- POST /api/auth/register/b2b (distributor/wholesale application)
+- POST /api/auth/login
+- POST /api/auth/logout
+- POST /api/auth/refresh-token
+- GET /api/auth/me
+- POST /api/auth/forgot-password
+- POST /api/auth/reset-password
+
+### Products
+- GET /api/products (with pagination, filters by category, price range)
+- GET /api/products/:id
+- GET /api/products/b2b (returns tiered pricing based on authenticated user's role)
+- POST /api/products (admin only)
+- PUT /api/products/:id (admin only)
+- DELETE /api/products/:id (admin only)
+
+### Services
+- GET /api/services (with type filter)
+- GET /api/services/:id
+- POST /api/services (admin only)
+- PUT /api/services/:id (admin only)
+
+### Cart & Checkout
+- GET /api/cart
+- POST /api/cart (add item)
+- PUT /api/cart/:item_id (update quantity)
+- DELETE /api/cart/:item_id
+- POST /api/cart/clear
+- POST /api/checkout (creates order, processes payment)
+
+### Orders
+- GET /api/orders (user's own orders)
+- GET /api/orders/:id
+- GET /api/orders/admin (admin only, with filters)
+- PUT /api/orders/:id/status (admin only)
+- POST /api/orders/:id/shipping (admin only, adds tracking)
+- GET /api/orders/:id/invoice (download commercial invoice PDF)
+
+### Distributor Portal
+- GET /api/distributor/dashboard (stats: pending orders, monthly volume, top products)
+- GET /api/distributor/pricing (shows tiered pricing for all products with MOQs)
+- POST /api/distributor/bulk-order (upload CSV for bulk ordering)
+- GET /api/distributor/shipments (tracking dashboard)
+- GET /api/distributor/documents (download certificates, marketing materials)
+- POST /api/distributor/apply (submit distributor application)
+
+### Agency Partner
+- GET /api/agency/dashboard (referral stats, commission earned)
+- GET /api/agency/referral-link (generate unique link)
+- GET /api/agency/commissions (list of paid/unpaid commissions)
+
+### Payments
+- POST /api/payments/create-intent (Stripe)
+- POST /api/payments/confirm
+- POST /api/payments/promptpay/generate (generate QR code for Thai payments)
+- POST /api/payments/webhook (Stripe/PayPal webhook handler)
+
+### Content
+- GET /api/blog (with pagination)
+- GET /api/blog/:slug
+- POST /api/blog (admin only)
+- PUT /api/blog/:id (admin only)
+- GET /api/pages/:slug (for static pages like About, Contact, Shipping Policy)
+
+### Admin
+- GET /api/admin/dashboard (overall stats: revenue, orders, users, pending applications)
+- GET /api/admin/users (with role filters)
+- PUT /api/admin/users/:id/role (update user role/tier)
+- PUT /api/admin/users/:id/approve (approve distributor application)
+- GET /api/admin/applications (pending distributor applications)
+- GET /api/admin/reports/sales (export CSV)
+- GET /api/admin/reports/distributors
+
+## FRONTEND PAGES REQUIRED
+
+### Public Pages
+1. **Homepage** - Hero section with 6 service area icons, featured products, call-to-action for distributors
+2. **Products Page** - Filterable grid with category tabs (Wellness, Medical Devices, Sustainable), product cards with price and MOQ for B2B users
+3. **Product Detail Page** - Images, description, certifications, quantity selector, tiered pricing table for logged-in distributors, "Request Bulk Quote" button
+4. **Services Page** - Cards for each service type (Massage, Fertility, Eco-Tourism, Training, Tours) with booking options
+5. **Service Detail Page** - Description, itinerary/inclusions, pricing, booking form
+6. **Tour Packages Page** - Curated travel itineraries with maps, day-by-day breakdown, booking
+7. **Become a Partner Page** - Form for distributor/agency applications, explains benefits by tier
+8. **Blog/Resources Page** - Wellness articles, export news, industry insights
+9. **About Us** - Company story, team, certifications
+10. **Contact** - Form, map, contact details
+11. **Cart** - List of items, quantity adjustment, shipping estimate, tax calculation
+12. **Checkout** - Address collection, shipping method selection, payment gateway selection (Stripe/PayPal/PromptPay)
+13. **Language Switcher** - Toggle between Thai and English (all content must support bilingual display)
+
+### Authenticated User Pages (Retail)
+1. **Account Dashboard** - Order history, profile management, saved addresses
+2. **Order Detail** - Tracking, invoice download
+
+### Distributor Portal Pages (Role: wholesale/distributor)
+1. **Distributor Dashboard** - Welcome message, recent orders, MOQ reminders, shipment tracking widget
+2. **Wholesale Catalog** - Products with tiered pricing visible, MOQ displayed, CSV bulk order upload
+3. **Order History** - All past orders with export documents
+4. **Shipment Tracking** - Real-time tracking status for active shipments
+5. **Documents Library** - Certificates (FDA, ISO), marketing materials, product spec sheets
+6. **Profile** - Company details, banking information for wire transfers
+
+### Agency Partner Pages (Role: agency)
+1. **Agency Dashboard** - Referral link, clicks, conversions, commission earned
+2. **Commission History** - Paid and pending commissions
+3. **Marketing Assets** - Banners, brochures for promoting Sabai Smile services
+
+### Admin Pages
+1. **Admin Dashboard** - Revenue charts, recent orders, pending applications alerts
+2. **User Management** - Approve/reject distributor applications, assign roles
+3. **Product Management** - CRUD for products, bulk import via CSV
+4. **Service Management** - CRUD for services/tours
+5. **Order Management** - View all orders, update status, add tracking, generate export docs
+6. **Content Management** - Blog posts, static pages, site settings
+7. **Reports** - Export sales reports, distributor performance reports
+8. **Payment Logs** - View transaction history, refund processing
+
+## PAYMENT INTEGRATION DETAILS
+
+### Stripe Integration
+- Implement Stripe Elements for credit card collection
+- Create PaymentIntent on backend with amount and currency
+- Handle webhook for payment confirmation, refunds, and failed payments
+- Support multi-currency: USD, EUR, GBP, THB
+
+### PayPal Integration
+- Implement PayPal SDK for smart buttons
+- Support PayPal wallet and credit card payments
+- Handle webhook for order confirmation
+
+### PromptPay (Thailand)
+- Generate QR code for Thai Baht payments
+- Implement webhook to confirm payment via bank callback or polling
+- Display QR code on order confirmation page for manual payment
+- Expiry time: 24 hours for QR codes
+
+### Wire Transfer & Letter of Credit
+- For high-value distributor orders (>$5,000)
+- Display bank account details for wire transfer
+- Mark order as pending until payment confirmation
+- Admin can manually confirm payment
+
+## SHIPPING & LOGISTICS INTEGRATION
+
+### Shipping Methods
+- **Air Freight:** For urgent, small-volume orders
+- **Sea Freight (LCL):** For medium-volume orders
+- **Sea Freight (FCL):** For full container loads
+- **Express Courier:** DHL/FedEx for samples and small packages
+
+### Shipping Logic
+- Calculate shipping cost based on:
+  - Total weight of items
+  - Destination country
+  - Selected shipping method
+- Integrate with a shipping API (e.g., Shippo, EasyShip) or use pre-configured rates
+- For sea freight, provide estimated cost based on volume (CBM) with a note that final quote will be provided
+
+### Documentation Generation
+- Auto-generate Commercial Invoice (PDF) with:
+  - Shipper details (Sabai Smile)
+  - Consignee details (distributor)
+  - Product descriptions, HS codes, quantities, unit values
+  - Total value, freight terms (FOB Bangkok)
+- Auto-generate Packing List (PDF)
+- Generate Certificate of Origin for ASEAN shipments
+
+## BULK ORDER SYSTEM
+
+For distributors, implement CSV bulk upload:
+1. Template download with SKU and quantity columns
+2. Upload validation:
+   - Check SKU exists
+   - Check quantity meets MOQ
+   - Check stock availability
+3. Display validation errors with line numbers
+4. Create cart with all valid items for checkout
+5. Store rejected items for user to correct
+
+## REFERRAL SYSTEM
+
+For agency partners:
+1. Generate unique referral link (e.g., sabaismile.com/?ref=AGENCY123)
+2. Track clicks and store in Referrals table
+3. When referred user registers, associate with referring agency
+4. When referred user makes first purchase, calculate commission (percentage configurable in settings)
+5. Mark commission as pending, then paid when order is completed
+
+## CONTENT LOCALIZATION
+
+- All static content must support both Thai and English
+- Database fields should have separate columns for Thai and English where applicable
+- Frontend must display content based on selected language (stored in localStorage or URL parameter)
+- Dates and numbers should format according to locale
+
+## SECURITY REQUIREMENTS
+
+- Hash passwords using bcrypt
+- JWT tokens with short expiry (15 minutes) and refresh tokens (7 days)
+- Rate limiting on authentication endpoints (5 attempts per 15 minutes)
+- Input sanitization for all user inputs
+- CSRF protection
+- HTTPS enforcement
+- Role-based middleware for protected routes
+
+## UI/DESIGN REQUIREMENTS
+
+- Color palette: Earthy greens (#2C5F2D), Gold (#D4AF37), Cream (#FDF5E6), White (#FFFFFF)
+- Typography: Sans-serif for body (Inter, Roboto), optional Thai script for accents
+- Mobile-first responsive design
+- Use a component library (Material-UI, Ant Design, or Tailwind CSS with custom components)
+- Thai script must render correctly on all devices
+- Loading states and skeleton screens for async operations
+- Toast notifications for user feedback (success, error, info)
+
+## ADDITIONAL FEATURES
+
+1. **Email Notifications:**
+   - Welcome email after registration
+   - Order confirmation
+   - Shipping confirmation with tracking link
+   - Distributor approval/rejection email
+   - Payment receipt
+
+2. **SEO Optimization:**
+   - Dynamic meta tags for each product/service/blog
+   - Sitemap.xml generation
+   - robots.txt
+   - Schema.org markup for products and services
+
+3. **Analytics:**
+   - Google Analytics or Plausible integration
+   - Admin dashboard with revenue charts, user growth
+
+4. **PDF Generation:**
+   - Commercial invoices
+   - Packing lists
+   - Certificates of origin
+   - Order summaries for customers
+
+## DELIVERABLES
+
+Generate a fully functional application with:
+1. Complete backend API with all endpoints listed
+2. Frontend with all pages listed
+3. Database migrations for all tables
+4. README with setup instructions, environment variables, and deployment guide
+5. Sample data (products, services, users) for testing
+
+## ENVIRONMENT VARIABLES
+
+Create a .env.example file with:
+- DATABASE_URL
+- JWT_SECRET
+- STRIPE_SECRET_KEY
+- STRIPE_WEBHOOK_SECRET
+- PAYPAL_CLIENT_ID
+- PAYPAL_CLIENT_SECRET
+- PROMPTPAY_API_KEY (if available)
+- SENDGRID_API_KEY (or SMTP settings)
+- AWS_ACCESS_KEY_ID (for S3)
+- AWS_SECRET_ACCESS_KEY
+- AWS_BUCKET_NAME
+- FRONTEND_URL
+
+## TESTING REQUIREMENTS
+
+Include basic test cases for:
+- User registration and login
+- Product listing with tiered pricing based on role
+- Cart add/remove
+- Checkout with Stripe
+- Distributor application flow
+- Bulk order upload validation
+- Referral link tracking
