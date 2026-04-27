@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Filter, Search, ChevronDown, ChevronRight, ChevronLeft,
-  Store, MapPin, Plus, Zap, Users,
+  Store, MapPin, Plus, Zap, Users, Shield, Lock, CheckCircle2,
   Laptop, Car, Building2, Shirt, Sofa, Heart, Trophy,
   Briefcase, Wrench, PawPrint, Leaf, ShoppingBag, Package,
   Camera, Cpu, Bike, Hammer, Apple, Music, BookOpen,
@@ -306,7 +306,7 @@ export default function Home() {
                       <span style={{ color: "#ffffff", textShadow: "0 0 32px rgba(255,255,255,0.35)" }}>Community</span>
                     </h1>
                     <p className="text-base text-white/95 max-w-md leading-relaxed font-medium">
-                      Discover trusted marketplace connecting coastal commerce globally. Buy, sell, and trade with confidence in our vibrant community.
+                      Discover trusted marketplace connecting coastal commerce globally. Every order is <strong>escrow-protected</strong> — your payment is held securely until you confirm receipt.
                     </p>
                   </div>
 
@@ -354,13 +354,19 @@ export default function Home() {
                     {[
                       { value: "2.5M+", label: "Listings" },
                       { value: "850K+", label: "Sellers" },
-                      { value: "4.8★", label: "Rating" },
+                      { value: "100%", label: "Escrow Safe" },
                     ].map((s) => (
                       <div key={s.label} className="flex flex-col">
                         <span className="text-2xl md:text-3xl font-display font-bold text-white tracking-tight">{s.value}</span>
                         <span className="text-xs text-blue-200/70 font-medium uppercase tracking-wide">{s.label}</span>
                       </div>
                     ))}
+                  </div>
+
+                  {/* Escrow trust pill */}
+                  <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full px-4 py-2 w-fit">
+                    <Shield className="w-4 h-4 text-white" />
+                    <span className="text-white text-xs font-semibold tracking-wide">All payments held in escrow until delivery is confirmed</span>
                   </div>
                 </div>
 
@@ -451,6 +457,46 @@ export default function Home() {
               </div>
             </section>
           )}
+
+          {/* Escrow Trust Strip — always visible */}
+          <div className="px-4 md:px-6 py-4 border-b border-border/50" style={{ background: "linear-gradient(90deg, #eff6ff 0%, #f0f9ff 100%)" }}>
+            <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-0 justify-between max-w-4xl mx-auto">
+              <div className="flex items-center gap-2 text-blue-700">
+                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+                  <Lock className="w-4 h-4 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-blue-800 leading-none">Payment in Escrow</p>
+                  <p className="text-[11px] text-blue-600/80 mt-0.5">Funds held until you confirm receipt</p>
+                </div>
+              </div>
+              <div className="hidden sm:block w-px h-8 bg-blue-200/60" />
+              <div className="flex items-center gap-2 text-blue-700">
+                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+                  <Shield className="w-4 h-4 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-blue-800 leading-none">Dispute Protection</p>
+                  <p className="text-[11px] text-blue-600/80 mt-0.5">Open a dispute if anything goes wrong</p>
+                </div>
+              </div>
+              <div className="hidden sm:block w-px h-8 bg-blue-200/60" />
+              <div className="flex items-center gap-2 text-blue-700">
+                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+                  <CheckCircle2 className="w-4 h-4 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-blue-800 leading-none">Auto-Release in 7 Days</p>
+                  <p className="text-[11px] text-blue-600/80 mt-0.5">Seller paid automatically post-delivery</p>
+                </div>
+              </div>
+              <div className="hidden sm:block w-px h-8 bg-blue-200/60" />
+              <div className="flex items-center gap-2">
+                <Shield className="w-4 h-4 text-blue-600 shrink-0" />
+                <span className="text-xs font-bold text-blue-700 uppercase tracking-wide">Every Order · Escrow Protected</span>
+              </div>
+            </div>
+          </div>
 
           {/* Product Grid */}
           <div id="product-grid" className="flex-1 px-4 md:px-6 py-6 md:py-8">
