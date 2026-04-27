@@ -309,81 +309,130 @@ function SellerOrders() {
             const cfg = STATUS_CONFIG[order.status] ?? STATUS_CONFIG.PENDING;
             const item = order.items?.[0];
             return (
-              <div key={order.id} className="border border-border/50 rounded-2xl p-4 space-y-3">
-                {/* Top row */}
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-xs text-muted-foreground font-mono">#{order.id.slice(-8)}</span>
-                      <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full border ${cfg.className}`}>
-                        {cfg.icon}{cfg.label}
-                      </span>
-                    </div>
-                    <p className="font-semibold text-foreground text-sm mt-1 truncate">
-                      {item?.product?.title ?? "Unknown Product"}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Qty: {item?.quantity ?? 1} · Total: ${Number(order.total).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </p>
-                    {order.buyerNote && (
-                      <p className="text-xs text-muted-foreground mt-1 italic">"{order.buyerNote}"</p>
+              <div
+                key={order.id}
+                className={`rounded-2xl overflow-hidden border ${order.paymentStatus === "escrowed" ? "border-blue-200" : order.paymentStatus === "released" ? "border-green-200" : order.paymentStatus === "disputed" ? "border-red-200" : "border-border/50"}`}
+              >
+                {/* Escrow status stripe */}
+                {order.paymentStatus === "escrowed" && (
+                  <div className="bg-blue-600 text-white px-4 py-2 flex items-center gap-2 text-xs font-semibold">
+                    <Shield className="w-3.5 h-3.5 shrink-0" />
+                    Payment in escrow · Awaiting buyer confirmation
+                    {order.sellerAmount != null && (
+                      <span className="ml-auto text-blue-200">${Number(order.sellerAmount).toFixed(2)} pending</span>
                     )}
                   </div>
-                  <div className="text-right shrink-0">
-                    <p className="text-sm font-bold text-primary">${Number(order.total).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-                    <p className="text-[11px] text-muted-foreground mt-0.5">
-                      {new Date(order.createdAt).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}
-                    </p>
+                )}
+                {order.paymentStatus === "released" && (
+                  <div className="bg-green-600 text-white px-4 py-2 flex items-center gap-2 text-xs font-semibold">
+                    <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                    Funds released to you
+                    {order.sellerAmount != null && (
+                      <span className="ml-auto text-green-200">${Number(order.sellerAmount).toFixed(2)} earned</span>
+                    )}
                   </div>
-                </div>
-
-                {/* Buyer info */}
-                {order.buyer && (
-                  <div className="text-xs text-muted-foreground bg-secondary/60 rounded-xl px-3 py-2">
-                    Buyer: <span className="font-medium text-foreground">{order.buyer.name}</span> · {order.buyer.email}
+                )}
+                {order.paymentStatus === "disputed" && (
+                  <div className="bg-red-600 text-white px-4 py-2 flex items-center gap-2 text-xs font-semibold">
+                    <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                    Dispute open · Funds frozen while under review
+                  </div>
+                )}
+                {order.paymentStatus === "refunded" && (
+                  <div className="bg-orange-500 text-white px-4 py-2 flex items-center gap-2 text-xs font-semibold">
+                    <XCircle className="w-3.5 h-3.5 shrink-0" />
+                    Order refunded · Buyer received refund
                   </div>
                 )}
 
-                {/* Status actions */}
-                {order.status === "PENDING" && (
-                  <div className="flex gap-2 pt-1">
+                <div className="p-4 space-y-3">
+                  {/* Top row */}
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs text-muted-foreground font-mono">#{order.id.slice(-8)}</span>
+                        <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full border ${cfg.className}`}>
+                          {cfg.icon}{cfg.label}
+                        </span>
+                      </div>
+                      <p className="font-semibold text-foreground text-sm mt-1 truncate">
+                        {item?.product?.title ?? "Unknown Product"}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Qty: {item?.quantity ?? 1}
+                      </p>
+                      {order.buyerNote && (
+                        <p className="text-xs text-muted-foreground mt-1 italic">"{order.buyerNote}"</p>
+                      )}
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-sm font-bold text-primary">${Number(order.total).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                      {order.sellerAmount != null && order.paymentStatus && order.paymentStatus !== "pending" && (
+                        <p className="text-xs text-green-700 font-semibold mt-0.5">
+                          You get: ${Number(order.sellerAmount).toFixed(2)}
+                        </p>
+                      )}
+                      <p className="text-[11px] text-muted-foreground mt-0.5">
+                        {new Date(order.createdAt).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Buyer info */}
+                  {order.buyer && (
+                    <div className="text-xs text-muted-foreground bg-secondary/60 rounded-xl px-3 py-2">
+                      Buyer: <span className="font-medium text-foreground">{order.buyer.name}</span> · {order.buyer.email}
+                    </div>
+                  )}
+
+                  {/* Escrowed notice for seller */}
+                  {order.paymentStatus === "escrowed" && (
+                    <div className="bg-blue-50 border border-blue-100 rounded-xl px-3 py-2.5 text-xs text-blue-800">
+                      <strong>Payment secured.</strong> Funds will be released automatically 7 days after delivery, or sooner when the buyer confirms receipt.
+                    </div>
+                  )}
+
+                  {/* Status actions */}
+                  {order.status === "PENDING" && (
+                    <div className="flex gap-2 pt-1">
+                      <button
+                        onClick={() => updateStatus(order.id, "CONFIRMED")}
+                        disabled={updatingId === order.id}
+                        className="flex-1 py-2 rounded-xl bg-primary text-white text-xs font-semibold hover:bg-primary/90 transition-colors disabled:opacity-60 flex items-center justify-center gap-1.5"
+                      >
+                        {updatingId === order.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle2 className="w-3 h-3" />}
+                        Confirm Order
+                      </button>
+                      <button
+                        onClick={() => updateStatus(order.id, "CANCELLED")}
+                        disabled={updatingId === order.id}
+                        className="flex-1 py-2 rounded-xl border border-red-200 text-red-600 text-xs font-semibold hover:bg-red-50 transition-colors disabled:opacity-60 flex items-center justify-center gap-1.5"
+                      >
+                        <XCircle className="w-3 h-3" /> Decline
+                      </button>
+                    </div>
+                  )}
+                  {order.status === "CONFIRMED" && (
                     <button
-                      onClick={() => updateStatus(order.id, "CONFIRMED")}
+                      onClick={() => updateStatus(order.id, "SHIPPED")}
                       disabled={updatingId === order.id}
-                      className="flex-1 py-2 rounded-xl bg-primary text-white text-xs font-semibold hover:bg-primary/90 transition-colors disabled:opacity-60 flex items-center justify-center gap-1.5"
+                      className="w-full py-2 rounded-xl bg-purple-600 text-white text-xs font-semibold hover:bg-purple-700 transition-colors disabled:opacity-60 flex items-center justify-center gap-1.5"
+                    >
+                      {updatingId === order.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Truck className="w-3 h-3" />}
+                      Mark as Shipped
+                    </button>
+                  )}
+                  {order.status === "SHIPPED" && (
+                    <button
+                      onClick={() => updateStatus(order.id, "DELIVERED")}
+                      disabled={updatingId === order.id}
+                      className="w-full py-2 rounded-xl bg-green-600 text-white text-xs font-semibold hover:bg-green-700 transition-colors disabled:opacity-60 flex items-center justify-center gap-1.5"
                     >
                       {updatingId === order.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle2 className="w-3 h-3" />}
-                      Confirm Order
+                      Mark as Delivered
                     </button>
-                    <button
-                      onClick={() => updateStatus(order.id, "CANCELLED")}
-                      disabled={updatingId === order.id}
-                      className="flex-1 py-2 rounded-xl border border-red-200 text-red-600 text-xs font-semibold hover:bg-red-50 transition-colors disabled:opacity-60 flex items-center justify-center gap-1.5"
-                    >
-                      <XCircle className="w-3 h-3" /> Decline
-                    </button>
-                  </div>
-                )}
-                {order.status === "CONFIRMED" && (
-                  <button
-                    onClick={() => updateStatus(order.id, "SHIPPED")}
-                    disabled={updatingId === order.id}
-                    className="w-full py-2 rounded-xl bg-purple-600 text-white text-xs font-semibold hover:bg-purple-700 transition-colors disabled:opacity-60 flex items-center justify-center gap-1.5"
-                  >
-                    {updatingId === order.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Truck className="w-3 h-3" />}
-                    Mark as Shipped
-                  </button>
-                )}
-                {order.status === "SHIPPED" && (
-                  <button
-                    onClick={() => updateStatus(order.id, "DELIVERED")}
-                    disabled={updatingId === order.id}
-                    className="w-full py-2 rounded-xl bg-green-600 text-white text-xs font-semibold hover:bg-green-700 transition-colors disabled:opacity-60 flex items-center justify-center gap-1.5"
-                  >
-                    {updatingId === order.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle2 className="w-3 h-3" />}
-                    Mark as Delivered
-                  </button>
-                )}
+                  )}
+                </div>
               </div>
             );
           })}

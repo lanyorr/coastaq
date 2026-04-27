@@ -81,7 +81,7 @@ export default function BuyerDashboard() {
   const [, setLocation] = useLocation();
   const { data: user, isLoading } = useGetMe({ query: { retry: false } });
   const { saved, remove: removeSaved } = useSaved();
-  const [tab, setTab] = useState<"messages" | "orders" | "saved" | "account">("messages");
+  const [tab, setTab] = useState<"messages" | "orders" | "saved" | "account">("orders");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [convs, setConvs] = useState<Conversation[]>([]);
   const [convsLoading, setConvsLoading] = useState(true);
@@ -384,7 +384,18 @@ export default function BuyerDashboard() {
 
             {/* Orders Tab */}
             {tab === "orders" && (
-              <div>
+              <div className="space-y-4">
+                {/* Escrow protection banner */}
+                <div className="flex items-center gap-3 bg-gradient-to-r from-blue-50 to-blue-50/50 border border-blue-100 rounded-2xl px-4 py-3">
+                  <div className="bg-blue-600 text-white p-2 rounded-xl shrink-0">
+                    <Shield className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-blue-900">Buyer Protection Active</p>
+                    <p className="text-xs text-blue-700/80">Your payments are held securely in escrow until you confirm receipt or 7 days after delivery.</p>
+                  </div>
+                </div>
+
                 {ordersLoading ? (
                   <div className="space-y-3">
                     {[1, 2, 3].map(i => (
@@ -417,148 +428,200 @@ export default function BuyerDashboard() {
                       const status = order.status as string;
                       const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.PENDING;
                       const StatusIcon = cfg.Icon;
+                      const isEscrowed = order.paymentStatus === "escrowed";
+                      const isDisputed = order.paymentStatus === "disputed";
+                      const isReleased = order.paymentStatus === "released";
+                      const isRefunded = order.paymentStatus === "refunded";
+
                       return (
-                        <div key={order.id} className="bg-card border border-border/50 rounded-2xl p-4 space-y-3">
-                          <div className="flex items-start gap-4">
-                            {/* Product thumbnail */}
-                            <div className="w-14 h-14 rounded-xl overflow-hidden bg-secondary shrink-0">
-                              {image ? (
-                                <img src={image} alt={product?.title} className="w-full h-full object-cover" />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center bg-primary/10">
-                                  <Package className="w-6 h-6 text-primary" />
+                        <div
+                          key={order.id}
+                          className={`bg-card rounded-2xl overflow-hidden shadow-sm border ${isEscrowed ? "border-blue-200" : isDisputed ? "border-red-200" : isReleased ? "border-green-200" : "border-border/50"}`}
+                        >
+                          {/* Escrow status header stripe */}
+                          {isEscrowed && (
+                            <div className="bg-blue-600 text-white px-4 py-2 flex items-center justify-between gap-2">
+                              <div className="flex items-center gap-2 text-xs font-semibold">
+                                <Shield className="w-3.5 h-3.5" />
+                                Payment secured in escrow · Awaiting your confirmation
+                              </div>
+                              <span className="text-[11px] text-blue-200 font-mono">#{order.id.slice(-8)}</span>
+                            </div>
+                          )}
+                          {isDisputed && (
+                            <div className="bg-red-600 text-white px-4 py-2 flex items-center justify-between gap-2">
+                              <div className="flex items-center gap-2 text-xs font-semibold">
+                                <Flag className="w-3.5 h-3.5" />
+                                Dispute open · Admin reviewing your case
+                              </div>
+                              <span className="text-[11px] text-red-200 font-mono">#{order.id.slice(-8)}</span>
+                            </div>
+                          )}
+                          {isReleased && (
+                            <div className="bg-green-600 text-white px-4 py-2 flex items-center justify-between gap-2">
+                              <div className="flex items-center gap-2 text-xs font-semibold">
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                                Funds released to seller · Order complete
+                              </div>
+                              <span className="text-[11px] text-green-200 font-mono">#{order.id.slice(-8)}</span>
+                            </div>
+                          )}
+                          {isRefunded && (
+                            <div className="bg-orange-500 text-white px-4 py-2 flex items-center justify-between gap-2">
+                              <div className="flex items-center gap-2 text-xs font-semibold">
+                                <XCircle className="w-3.5 h-3.5" />
+                                Order refunded · Funds returned to you
+                              </div>
+                              <span className="text-[11px] text-orange-200 font-mono">#{order.id.slice(-8)}</span>
+                            </div>
+                          )}
+
+                          <div className="p-4 space-y-3">
+                            <div className="flex items-start gap-4">
+                              {/* Product thumbnail */}
+                              <div className="w-14 h-14 rounded-xl overflow-hidden bg-secondary shrink-0">
+                                {image ? (
+                                  <img src={image} alt={product?.title} className="w-full h-full object-cover" />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center bg-primary/10">
+                                    <Package className="w-6 h-6 text-primary" />
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Info */}
+                              <div className="flex-1 min-w-0">
+                                <p className="font-semibold text-sm text-foreground truncate">
+                                  {product?.title ?? "Product"}
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-0.5">
+                                  Qty: {item?.quantity ?? 1} · Ordered {timeAgo(order.createdAt)}
+                                </p>
+                                {order.buyerNote && (
+                                  <p className="text-xs text-muted-foreground mt-1 italic line-clamp-1">"{order.buyerNote}"</p>
+                                )}
+                                <div className="flex items-center gap-2 mt-2 flex-wrap">
+                                  <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full ${cfg.color}`}>
+                                    <StatusIcon className="w-3 h-3" />
+                                    {cfg.label}
+                                  </span>
+                                  {product && (
+                                    <button
+                                      onClick={() => setLocation(`/products/${product.id}`)}
+                                      className="text-xs text-primary hover:underline font-medium"
+                                    >
+                                      View listing
+                                    </button>
+                                  )}
                                 </div>
-                              )}
+                              </div>
+
+                              {/* Total */}
+                              <div className="text-right shrink-0">
+                                <p className="font-bold text-primary text-sm">
+                                  ${Number(order.total).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                </p>
+                                <p className="text-[11px] text-muted-foreground mt-0.5">
+                                  {new Date(order.createdAt).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" })}
+                                </p>
+                              </div>
                             </div>
 
-                            {/* Info */}
-                            <div className="flex-1 min-w-0">
-                              <p className="font-semibold text-sm text-foreground truncate">
-                                {product?.title ?? "Product"}
-                              </p>
-                              <p className="text-xs text-muted-foreground mt-0.5">
-                                Qty: {item?.quantity ?? 1} · Ordered {timeAgo(order.createdAt)}
-                              </p>
-                              {order.buyerNote && (
-                                <p className="text-xs text-muted-foreground mt-1 italic line-clamp-1">"{order.buyerNote}"</p>
-                              )}
-                              <div className="flex items-center gap-2 mt-2 flex-wrap">
-                                <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full ${cfg.color}`}>
-                                  <StatusIcon className="w-3 h-3" />
-                                  {cfg.label}
-                                </span>
-                                {/* Escrow payment status badge */}
-                                {order.paymentStatus && order.paymentStatus !== "pending" && (() => {
-                                  const ps = PAYMENT_STATUS_CONFIG[order.paymentStatus];
-                                  if (!ps) return null;
-                                  const PsIcon = ps.Icon;
-                                  return (
-                                    <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full ${ps.color}`}>
-                                      <PsIcon className="w-3 h-3" />
-                                      {ps.label}
-                                    </span>
-                                  );
-                                })()}
-                                {product && (
+                            {/* ── Escrow action panel ── */}
+                            {isEscrowed && disputeOrderId !== order.id && (
+                              <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 space-y-3">
+                                <p className="text-xs text-blue-800">
+                                  <strong>What happens next?</strong> Received your item in good condition? Confirm receipt to release payment to the seller.
+                                  Have a problem? Open a dispute and our team will help resolve it.
+                                </p>
+                                <div className="flex gap-2">
                                   <button
-                                    onClick={() => setLocation(`/products/${product.id}`)}
-                                    className="text-xs text-primary hover:underline font-medium"
+                                    onClick={() => confirmReceipt(order.id)}
+                                    disabled={escrowLoadingId === order.id}
+                                    className="flex-1 inline-flex items-center justify-center gap-2 text-sm font-semibold px-4 py-2.5 bg-green-600 text-white rounded-xl hover:bg-green-700 disabled:opacity-50 transition-colors"
                                   >
-                                    View listing
+                                    <ThumbsUp className="w-4 h-4" />
+                                    {escrowLoadingId === order.id ? "Processing…" : "Confirm Receipt"}
                                   </button>
-                                )}
+                                  <button
+                                    onClick={() => { setDisputeOrderId(order.id); setDisputeReason(""); }}
+                                    disabled={escrowLoadingId === order.id}
+                                    className="inline-flex items-center justify-center gap-2 text-sm font-semibold px-4 py-2.5 bg-white text-red-600 border border-red-200 rounded-xl hover:bg-red-50 disabled:opacity-50 transition-colors"
+                                  >
+                                    <Flag className="w-4 h-4" />
+                                    Dispute
+                                  </button>
+                                </div>
                               </div>
-                            </div>
+                            )}
 
-                            {/* Total */}
-                            <div className="text-right shrink-0">
-                              <p className="font-bold text-primary text-sm">
-                                ${Number(order.total).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                              </p>
-                              <p className="text-[11px] text-muted-foreground mt-0.5">
-                                {new Date(order.createdAt).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" })}
-                              </p>
-                            </div>
-                          </div>
-
-                          {/* Escrow action buttons — shown when funds are held in escrow */}
-                          {order.paymentStatus === "escrowed" && disputeOrderId !== order.id && (
-                            <div className="flex items-center gap-2 pt-1 border-t border-border/30 flex-wrap">
-                              <div className="flex items-center gap-1 text-xs text-blue-700 bg-blue-50 px-2 py-1 rounded-full">
-                                <Shield className="w-3 h-3" />
-                                Funds secured in escrow
+                            {/* Inline dispute form */}
+                            {isEscrowed && disputeOrderId === order.id && (
+                              <div className="bg-red-50 border border-red-100 rounded-xl p-3 space-y-3">
+                                <p className="text-sm font-semibold text-red-800">Open a Dispute</p>
+                                <p className="text-xs text-red-700">Describe what went wrong. Our team will review and resolve within 48 hours.</p>
+                                <textarea
+                                  value={disputeReason}
+                                  onChange={e => setDisputeReason(e.target.value)}
+                                  rows={3}
+                                  placeholder="e.g. Item not received after 2 weeks, item arrived damaged, wrong item sent..."
+                                  className="w-full text-sm border border-red-200 bg-white rounded-xl px-3 py-2 resize-none outline-none focus:ring-2 focus:ring-red-300"
+                                />
+                                <div className="flex gap-2">
+                                  <button
+                                    onClick={() => { setDisputeOrderId(null); setDisputeReason(""); }}
+                                    className="flex-1 text-sm px-4 py-2.5 rounded-xl border border-border text-muted-foreground hover:bg-secondary transition-colors font-medium"
+                                  >
+                                    Cancel
+                                  </button>
+                                  <button
+                                    onClick={submitDispute}
+                                    disabled={disputeReason.trim().length < 10 || escrowLoadingId === order.id}
+                                    className="flex-1 text-sm font-semibold px-4 py-2.5 rounded-xl bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
+                                  >
+                                    {escrowLoadingId === order.id ? "Submitting…" : "Submit Dispute"}
+                                  </button>
+                                </div>
                               </div>
-                              <div className="flex gap-2 ml-auto">
-                                <button
-                                  onClick={() => confirmReceipt(order.id)}
-                                  disabled={escrowLoadingId === order.id}
-                                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 bg-green-600 text-white rounded-full hover:bg-green-700 disabled:opacity-50 transition-colors"
-                                >
-                                  <ThumbsUp className="w-3 h-3" />
-                                  {escrowLoadingId === order.id ? "Processing…" : "Confirm Receipt"}
-                                </button>
-                                <button
-                                  onClick={() => { setDisputeOrderId(order.id); setDisputeReason(""); }}
-                                  disabled={escrowLoadingId === order.id}
-                                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 bg-red-50 text-red-700 border border-red-200 rounded-full hover:bg-red-100 disabled:opacity-50 transition-colors"
-                                >
-                                  <Flag className="w-3 h-3" />
-                                  Open Dispute
-                                </button>
-                              </div>
-                            </div>
-                          )}
+                            )}
 
-                          {/* Inline dispute form */}
-                          {order.paymentStatus === "escrowed" && disputeOrderId === order.id && (
-                            <div className="pt-2 border-t border-border/30 space-y-2">
-                              <p className="text-xs font-semibold text-red-700">Describe your issue:</p>
-                              <textarea
-                                value={disputeReason}
-                                onChange={e => setDisputeReason(e.target.value)}
-                                rows={2}
-                                placeholder="e.g. Item not received, wrong item sent, item damaged..."
-                                className="w-full text-xs border border-border rounded-xl px-3 py-2 resize-none outline-none focus:ring-1 focus:ring-red-300"
-                              />
-                              <div className="flex gap-2 justify-end">
-                                <button
-                                  onClick={() => { setDisputeOrderId(null); setDisputeReason(""); }}
-                                  className="text-xs px-3 py-1.5 rounded-full border border-border text-muted-foreground hover:bg-secondary transition-colors"
-                                >
-                                  Cancel
-                                </button>
-                                <button
-                                  onClick={submitDispute}
-                                  disabled={disputeReason.trim().length < 10 || escrowLoadingId === order.id}
-                                  className="text-xs font-semibold px-3 py-1.5 rounded-full bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
-                                >
-                                  {escrowLoadingId === order.id ? "Submitting…" : "Submit Dispute"}
-                                </button>
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Disputed status notice */}
-                          {order.paymentStatus === "disputed" && (
-                            <div className="flex items-start gap-2 pt-1 border-t border-border/30">
-                              <Flag className="w-3.5 h-3.5 text-red-600 shrink-0 mt-0.5" />
-                              <div>
-                                <p className="text-xs font-semibold text-red-700">Dispute under review</p>
+                            {/* Disputed notice */}
+                            {isDisputed && (
+                              <div className="bg-red-50 border border-red-100 rounded-xl p-3">
+                                <p className="text-sm font-semibold text-red-800 mb-1">Dispute Under Review</p>
+                                <p className="text-xs text-red-700">Our team is reviewing your case. Funds are frozen until resolved.</p>
                                 {order.disputeReason && (
-                                  <p className="text-xs text-muted-foreground mt-0.5">"{order.disputeReason}"</p>
+                                  <p className="text-xs text-muted-foreground mt-2 bg-white border border-red-100 rounded-lg px-2 py-1.5 italic">
+                                    "{order.disputeReason}"
+                                  </p>
                                 )}
                               </div>
-                            </div>
-                          )}
+                            )}
 
-                          {/* Released notice */}
-                          {order.paymentStatus === "released" && (
-                            <div className="flex items-center gap-2 pt-1 border-t border-border/30 text-xs text-green-700">
-                              <CheckCircle2 className="w-3.5 h-3.5" />
-                              Funds released to seller
-                              {order.releasedAt && <span className="text-muted-foreground">· {timeAgo(order.releasedAt)}</span>}
-                            </div>
-                          )}
+                            {/* Released notice */}
+                            {isReleased && (
+                              <div className="bg-green-50 border border-green-100 rounded-xl px-3 py-2.5 flex items-center gap-2">
+                                <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
+                                <div>
+                                  <p className="text-xs font-semibold text-green-800">Order Complete</p>
+                                  <p className="text-xs text-green-700">
+                                    Payment released to seller{order.releasedAt ? ` · ${timeAgo(order.releasedAt)}` : ""}
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Refunded notice */}
+                            {isRefunded && (
+                              <div className="bg-orange-50 border border-orange-100 rounded-xl px-3 py-2.5 flex items-center gap-2">
+                                <XCircle className="w-4 h-4 text-orange-600 shrink-0" />
+                                <div>
+                                  <p className="text-xs font-semibold text-orange-800">Refunded</p>
+                                  <p className="text-xs text-orange-700">Your payment has been refunded.</p>
+                                </div>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       );
                     })}

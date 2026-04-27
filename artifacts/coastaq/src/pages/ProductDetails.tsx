@@ -6,7 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import {
   MapPin, Store, ShieldCheck, MessageCircle,
   ChevronRight, Flag, AlertCircle, CheckCircle2, Clock,
-  Heart, Loader2, ShoppingBag, X, Minus, Plus,
+  Heart, Loader2, ShoppingBag, X, Minus, Plus, Shield, Lock,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
@@ -314,13 +314,28 @@ export default function ProductDetails() {
               </button>
             </div>
 
-            {/* Safety tip */}
-            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
-              <div className="flex items-start gap-2">
-                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                <p className="text-xs text-amber-700 leading-relaxed">
-                  <strong>Safety tip:</strong> Meet seller in a safe, public place. Inspect item before payment. Never pay in advance.
-                </p>
+            {/* Escrow Protection Badge */}
+            <div className="bg-blue-600 rounded-2xl p-4 text-white space-y-3">
+              <div className="flex items-center gap-2">
+                <div className="bg-white/20 p-2 rounded-xl">
+                  <Shield className="w-4 h-4" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold">Escrow Protected</p>
+                  <p className="text-[11px] text-blue-200">Buyer protection guaranteed</p>
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                {[
+                  { icon: Lock, text: "Payment held securely until you confirm receipt" },
+                  { icon: ShieldCheck, text: "Open a dispute if anything goes wrong" },
+                  { icon: CheckCircle2, text: "Auto-released 7 days after delivery" },
+                ].map(({ icon: Icon, text }) => (
+                  <div key={text} className="flex items-center gap-2 text-xs text-blue-100">
+                    <Icon className="w-3.5 h-3.5 shrink-0 text-blue-300" />
+                    {text}
+                  </div>
+                ))}
               </div>
             </div>
 
