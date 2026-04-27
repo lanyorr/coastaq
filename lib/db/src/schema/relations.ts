@@ -4,6 +4,7 @@ import { shopsTable } from "./shops";
 import { productsTable } from "./products";
 import { categoriesTable } from "./categories";
 import { ordersTable, orderItemsTable } from "./orders";
+import { escrowTransactionsTable } from "./escrow";
 import { conversationsTable, messagesTable } from "./messages";
 import { reportsTable } from "./reports";
 import { adminActionsTable } from "./admin-actions";
@@ -50,7 +51,13 @@ export const ordersRelations = relations(ordersTable, ({ one, many }) => ({
     fields: [ordersTable.userId],
     references: [usersTable.id],
   }),
+  seller: one(usersTable, {
+    fields: [ordersTable.sellerId],
+    references: [usersTable.id],
+    relationName: "sellerOrders",
+  }),
   items: many(orderItemsTable),
+  escrowTransactions: many(escrowTransactionsTable),
 }));
 
 export const orderItemsRelations = relations(orderItemsTable, ({ one }) => ({
@@ -61,6 +68,23 @@ export const orderItemsRelations = relations(orderItemsTable, ({ one }) => ({
   product: one(productsTable, {
     fields: [orderItemsTable.productId],
     references: [productsTable.id],
+  }),
+}));
+
+export const escrowTransactionsRelations = relations(escrowTransactionsTable, ({ one }) => ({
+  order: one(ordersTable, {
+    fields: [escrowTransactionsTable.orderId],
+    references: [ordersTable.id],
+  }),
+  buyer: one(usersTable, {
+    fields: [escrowTransactionsTable.buyerId],
+    references: [usersTable.id],
+    relationName: "buyerEscrowTransactions",
+  }),
+  seller: one(usersTable, {
+    fields: [escrowTransactionsTable.sellerId],
+    references: [usersTable.id],
+    relationName: "sellerEscrowTransactions",
   }),
 }));
 

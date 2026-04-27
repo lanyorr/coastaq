@@ -127,8 +127,13 @@ router.patch("/:id/status", requireAuth, requireRole("SELLER", "ADMIN"), async (
       res.status(403).json({ error: "Forbidden" });
       return;
     }
+    const setFields: Record<string, any> = { status, updatedAt: new Date() };
+    // Track delivery timestamp for escrow auto-release countdown
+    if (status === "DELIVERED") {
+      setFields.deliveredAt = new Date();
+    }
     const [updated] = await db.update(ordersTable)
-      .set({ status, updatedAt: new Date() })
+      .set(setFields)
       .where(eq(ordersTable.id, req.params.id))
       .returning();
     res.json({ ...updated, total: parseFloat(updated.total) });

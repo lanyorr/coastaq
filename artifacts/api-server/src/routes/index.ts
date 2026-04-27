@@ -11,6 +11,7 @@ import uploadRouter from "./upload.js";
 import subscriptionRouter from "./subscription.js";
 import messagesRouter from "./messages.js";
 import shopRouter from "./shop.js";
+import escrowRouter from "./escrow.js";
 
 const router: IRouter = Router();
 
@@ -26,5 +27,6 @@ router.use("/upload", uploadRouter);
 router.use("/subscription", subscriptionRouter);
 router.use("/messages", messagesRouter);
 router.use("/shop", shopRouter);
+router.use("/escrow", escrowRouter);
 
 export default router;

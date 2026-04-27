@@ -13,7 +13,7 @@ import {
   Store, Package, Settings, Plus, Trash2, Loader2, Home,
   ImageIcon, AlertCircle, CreditCard, MessageCircle, ChevronRight, Inbox,
   ShoppingBag, CheckCircle2, XCircle, Truck, Clock as ClockIcon, AlertTriangle,
-  Pencil,
+  Pencil, Shield, TrendingUp, DollarSign, Lock,
 } from "lucide-react";
 import { DeleteAccountDialog } from "@/components/account/DeleteAccountDialog";
 import { useToast } from "@/hooks/use-toast";
@@ -34,6 +34,125 @@ function timeAgo(date: string | Date): string {
   const h = Math.floor(m / 60);
   if (h < 24) return `${h}h ago`;
   return `${Math.floor(h / 24)}d ago`;
+}
+
+function SellerEarnings() {
+  const [summary, setSummary] = useState<any>(null);
+  const [orders, setOrders] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    Promise.all([
+      fetch("/api/escrow/seller/summary").then(r => r.json()),
+      fetch("/api/escrow/seller/orders").then(r => r.json()),
+    ])
+      .then(([s, o]) => {
+        setSummary(s);
+        setOrders(Array.isArray(o) ? o : []);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
+
+  const PSMAP: Record<string, { label: string; color: string }> = {
+    escrowed: { label: "In Escrow",       color: "bg-blue-100 text-blue-700" },
+    released: { label: "Released",         color: "bg-green-100 text-green-700" },
+    refunded: { label: "Refunded",         color: "bg-orange-100 text-orange-700" },
+    disputed: { label: "Disputed",         color: "bg-red-100 text-red-700" },
+    pending:  { label: "Pending Payment",  color: "bg-gray-100 text-gray-600" },
+  };
+
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        {[1,2,3].map(i => <div key={i} className="animate-pulse bg-secondary/50 rounded-2xl h-20" />)}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Summary cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-card border border-border/50 rounded-2xl p-5 shadow-sm flex items-center gap-4">
+          <div className="bg-blue-100 text-blue-600 p-3.5 rounded-xl"><Lock className="w-5 h-5" /></div>
+          <div>
+            <p className="text-xs text-muted-foreground font-medium">Held in Escrow</p>
+            <p className="text-xl font-bold">${Number(summary?.totalEscrowed ?? 0).toFixed(2)}</p>
+          </div>
+        </div>
+        <div className="bg-card border border-border/50 rounded-2xl p-5 shadow-sm flex items-center gap-4">
+          <div className="bg-green-100 text-green-600 p-3.5 rounded-xl"><DollarSign className="w-5 h-5" /></div>
+          <div>
+            <p className="text-xs text-muted-foreground font-medium">Total Released</p>
+            <p className="text-xl font-bold">${Number(summary?.totalReleased ?? 0).toFixed(2)}</p>
+          </div>
+        </div>
+        <div className="bg-card border border-border/50 rounded-2xl p-5 shadow-sm flex items-center gap-4">
+          <div className="bg-purple-100 text-purple-600 p-3.5 rounded-xl"><TrendingUp className="w-5 h-5" /></div>
+          <div>
+            <p className="text-xs text-muted-foreground font-medium">Total Orders</p>
+            <p className="text-xl font-bold">{summary?.orderCount ?? 0}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Escrow info banner */}
+      <div className="flex items-start gap-3 bg-blue-50 border border-blue-100 rounded-2xl p-4 text-sm text-blue-800">
+        <Shield className="w-5 h-5 shrink-0 mt-0.5 text-blue-600" />
+        <div>
+          <p className="font-semibold">How escrow protects your earnings</p>
+          <p className="text-xs mt-1 text-blue-700/80">
+            Buyer payments are held securely in escrow when orders are placed. Funds are released to you automatically 7 days after delivery,
+            or immediately when the buyer confirms receipt. A 5% platform fee applies to each transaction.
+          </p>
+        </div>
+      </div>
+
+      {/* Order breakdown */}
+      <div className="bg-card border border-border/50 rounded-3xl p-6 shadow-sm">
+        <h3 className="font-semibold text-lg mb-4">Earnings Breakdown</h3>
+        {orders.length === 0 ? (
+          <div className="text-center py-10">
+            <DollarSign className="w-10 h-10 mx-auto mb-2 text-muted-foreground/30" />
+            <p className="text-sm text-muted-foreground">No orders with escrow payments yet.</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="text-xs text-muted-foreground">
+                <tr>
+                  <th className="text-left py-2 px-3">Order</th>
+                  <th className="text-left py-2 px-3">Buyer Amount</th>
+                  <th className="text-left py-2 px-3">Platform Fee</th>
+                  <th className="text-left py-2 px-3">Your Share</th>
+                  <th className="text-left py-2 px-3">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {orders.map((o: any) => {
+                  const ps = PSMAP[o.paymentStatus] ?? PSMAP.pending;
+                  return (
+                    <tr key={o.id} className="border-t border-border/30">
+                      <td className="py-3 px-3 font-mono text-xs text-muted-foreground">#{o.id.slice(-8)}</td>
+                      <td className="py-3 px-3 font-medium">${Number(o.escrowAmount ?? o.total ?? 0).toFixed(2)}</td>
+                      <td className="py-3 px-3 text-muted-foreground">${Number(o.platformFee ?? 0).toFixed(2)}</td>
+                      <td className="py-3 px-3 font-semibold text-green-700">${Number(o.sellerAmount ?? 0).toFixed(2)}</td>
+                      <td className="py-3 px-3">
+                        <span className={`inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full ${ps.color}`}>
+                          {ps.label}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
 function SellerInbox() {
@@ -582,6 +701,9 @@ export default function SellerDashboard() {
             <TabsTrigger value="subscription" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm px-4 whitespace-nowrap">
               <CreditCard className="w-4 h-4 mr-1.5" /> Subscription
             </TabsTrigger>
+            <TabsTrigger value="earnings" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm px-4 whitespace-nowrap">
+              <Shield className="w-4 h-4 mr-1.5" /> Earnings
+            </TabsTrigger>
             <TabsTrigger value="settings" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm px-4 whitespace-nowrap">
               <Settings className="w-4 h-4 mr-1.5" /> Settings
             </TabsTrigger>
@@ -1023,6 +1145,11 @@ export default function SellerDashboard() {
           {/* Subscription Tab */}
           <TabsContent value="subscription">
             <SubscriptionPanel />
+          </TabsContent>
+
+          {/* Earnings Tab */}
+          <TabsContent value="earnings">
+            <SellerEarnings />
           </TabsContent>
 
           {/* Settings Tab */}

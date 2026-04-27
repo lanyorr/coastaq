@@ -3,6 +3,7 @@ export * from "./shops";
 export * from "./categories";
 export * from "./products";
 export * from "./orders";
+export * from "./escrow";
 export * from "./messages";
 export * from "./reports";
 export * from "./admin-actions";

@@ -1,8 +1,9 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { ordersTable, orderItemsTable, productsTable } from "@workspace/db";
+import { ordersTable, orderItemsTable, productsTable, shopsTable, usersTable, escrowTransactionsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { requireAuth } from "../lib/auth.js";
+import { computeEscrowAmounts } from "../lib/escrow-auto-release.js";
 
 const router = Router();
 
@@ -41,9 +42,9 @@ function getBaseUrl(): string {
   return domain ? `https://${domain}` : "https://coastaq.replit.app";
 }
 
-// ── DB order helper ─────────────────────────────────────────────────────────────
+// ── DB order helper (with escrow) ──────────────────────────────────────────────
 
-async function createDbOrder(
+async function createDbOrderWithEscrow(
   userId: string,
   items: Array<{ productId: string; quantity: number; price: number; title: string; shopId: string }>,
   shipping: { name: string; address: string; city: string; state: string; zip: string; country: string },
@@ -51,10 +52,30 @@ async function createDbOrder(
   paymentId?: string,
 ) {
   const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const { escrowAmount, sellerAmount, platformFee } = computeEscrowAmounts(total);
+
+  // Resolve the seller (shop owner) from first item's shop
+  let sellerId: string | null = null;
+  if (items.length > 0) {
+    const shop = await db.query.shopsTable.findFirst({
+      where: eq(shopsTable.id, items[0].shopId),
+    });
+    if (shop) {
+      sellerId = shop.userId;
+    }
+  }
+
   const [order] = await db.insert(ordersTable).values({
     userId,
+    sellerId,
     total: String(total.toFixed(2)),
-    status: "PAID",
+    status: "CONFIRMED",
+    // Escrow fields — funds are held on payment capture
+    paymentStatus: "escrowed",
+    escrowAmount: String(escrowAmount.toFixed(2)),
+    sellerAmount: String(sellerAmount.toFixed(2)),
+    platformFee: String(platformFee.toFixed(2)),
+    escrowStartedAt: new Date(),
     shippingName: shipping.name,
     shippingAddress: shipping.address,
     shippingCity: shipping.city,
@@ -73,6 +94,20 @@ async function createDbOrder(
       price: String(item.price.toFixed(2)),
     }))
   );
+
+  // Record the escrow deposit transaction for audit trail
+  if (sellerId) {
+    await db.insert(escrowTransactionsTable).values({
+      orderId: order.id,
+      buyerId: userId,
+      sellerId,
+      type: "deposit",
+      amount: String(escrowAmount.toFixed(2)),
+      status: "completed",
+      note: `Payment captured via ${paymentMethod} — funds held in escrow`,
+    });
+  }
+
   return order;
 }
 
@@ -149,7 +184,6 @@ router.post("/paypal", requireAuth, async (req, res) => {
 
 // ── GET /api/checkout/paypal/callback ──────────────────────────────────────────
 // PayPal redirects here after user approves/cancels payment
-// Redirects back to the mobile app via deep link
 router.get("/paypal/callback", (req, res) => {
   const { status, token } = req.query;
   const scheme = "coastaq-mobile";
@@ -207,7 +241,7 @@ router.post("/paypal/capture", requireAuth, async (req, res) => {
       country: "NG",
     };
 
-    const order = await createDbOrder(
+    const order = await createDbOrderWithEscrow(
       req.userId!,
       [{
         productId: product.id,
@@ -222,12 +256,14 @@ router.post("/paypal/capture", requireAuth, async (req, res) => {
     );
 
     const capturedAmount = captureData.purchase_units?.[0]?.payments?.captures?.[0]?.amount?.value;
-    req.log.info({ userId: req.userId, orderId: order.id, paypalOrderId }, "Product order captured via PayPal");
+    req.log.info({ userId: req.userId, orderId: order.id, paypalOrderId }, "Product order captured via PayPal — funds in escrow");
 
     res.json({
       success: true,
       orderId: order.id,
       amount: capturedAmount,
+      paymentStatus: "escrowed",
+      message: "Payment captured. Funds are held in escrow until you confirm receipt.",
     });
   } catch (err) {
     req.log.error({ err }, "Capture PayPal error");
@@ -243,15 +279,15 @@ router.post("/manual", requireAuth, async (req, res) => {
       res.status(400).json({ error: "Items and shipping are required" });
       return;
     }
-    const order = await createDbOrder(req.userId!, items, shipping, "MANUAL");
+    const order = await createDbOrderWithEscrow(req.userId!, items, shipping, "MANUAL");
     const full = await db.query.ordersTable.findFirst({
       where: eq(ordersTable.id, order.id),
       with: { items: { with: { product: true } } },
     });
     res.json({
       ...full!,
-      total: parseFloat(full!.total),
-      items: full!.items.map((i) => ({ ...i, price: parseFloat(i.price) })),
+      total: parseFloat(full!.total as string),
+      items: full!.items.map((i) => ({ ...i, price: parseFloat(i.price as string) })),
     });
   } catch (err) {
     req.log.error({ err }, "Manual checkout error");

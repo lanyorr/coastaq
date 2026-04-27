@@ -1,0 +1,126 @@
+Upgrade my existing marketplace project into a full escrow-enabled multi-vendor marketplace. Do NOT rebuild from scratch. Modify the current system only.
+
+Project URL:
+https://vendor-marketplace--samanyahonor.replit.app/
+
+GOAL:
+Add a secure escrow payment system between buyers and sellers.
+
+CORE ESCROW FLOW:
+
+1. Buyer places order and pays.
+2. Payment is captured by platform account.
+3. Order status becomes "escrowed".
+4. Seller is notified to fulfill order.
+5. Seller marks item as shipped/delivered.
+6. Buyer clicks "Confirm Receipt".
+7. Funds are released to seller minus marketplace commission.
+8. If buyer opens dispute, hold funds until admin resolves.
+
+AUTO RELEASE:
+If buyer does not confirm within 7 days after delivery, automatically release funds unless dispute exists.
+
+COMMISSION:
+Add configurable marketplace fee (example 10%).
+
+TECH REQUIREMENTS:
+
+* Keep all existing pages, products, seller accounts, login system, and marketplace features.
+* Integrate into current checkout flow.
+* Add clean modular code.
+* Keep responsive mobile UI.
+* Maintain current branding.
+
+DATABASE CHANGES:
+Update orders table / schema with:
+
+payment_status:
+pending
+escrowed
+released
+refunded
+disputed
+
+Additional fields:
+escrow_amount
+seller_amount
+platform_fee
+escrow_started_at
+delivered_at
+released_at
+dispute_reason
+
+Create transactions table:
+id
+order_id
+buyer_id
+seller_id
+type (deposit/release/refund/fee)
+amount
+status
+created_at
+
+BUYER DASHBOARD:
+
+* View escrow status
+* Confirm Receipt button
+* Open Dispute button
+* Refund history
+* Order timeline
+
+SELLER DASHBOARD:
+
+* Pending Escrow funds
+* Released earnings
+* Withdrawable balance
+* Order fulfillment controls
+
+ADMIN DASHBOARD:
+
+* View all escrow orders
+* Resolve disputes
+* Manually release/refund
+* View commissions earned
+* Fraud/risk logs
+
+ORDER STATUS FLOW:
+created → paid → escrowed → shipped → delivered → released
+
+DISPUTE FLOW:
+escrowed/delivered → disputed → refunded OR released
+
+UI FEATURES:
+
+* Show “Protected by Escrow” badge on checkout page
+* Order timeline tracker
+* Clear payout summaries
+* Notifications for buyer/seller/admin
+
+SECURITY:
+
+* Prevent duplicate payout releases
+* Audit logs for every payout/refund
+* Validate user permissions
+* Secure server-side release logic only
+* Webhook-safe payment processing
+
+IF PAYMENT GATEWAY EXISTS:
+Reuse current gateway and adapt it for escrow logic.
+If no gateway exists, implement Stripe Connect first.
+
+DELIVERABLES:
+
+1. Update existing codebase
+2. Add new backend routes/controllers/models
+3. Add migration scripts
+4. Update frontend dashboards
+5. Seed test data
+6. Include comments in code
+7. Provide setup instructions
+
+IMPORTANT:
+Do not remove any current features.
+Do not overwrite working marketplace logic.
+Only enhance existing system professionally.
+
+After implementation, run tests and fix errors automatically.

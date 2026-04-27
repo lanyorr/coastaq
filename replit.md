@@ -47,8 +47,9 @@ artifacts-monorepo/
 - **shops**: id, name, description, logo, banner, isApproved, userId, subscriptionStatus (TRIAL/ACTIVE/EXPIRED/CANCELLED), trialEndsAt, subscriptionCurrentPeriodEnd
 - **categories**: id, name, parentId (self-referential for hierarchy)
 - **products**: id, title, description, price, stock, condition, location, images[], categoryId, shopId
-- **orders**: id, userId, status, total, shipping fields, paymentMethod, paymentId
+- **orders**: id, userId, status, total, shipping fields, paymentMethod, paymentId, paymentStatus (pending/escrowed/released/refunded/disputed), escrowAmount, sellerAmount (95%), platformFee (5%), sellerId, escrowStartedAt, deliveredAt, releasedAt, disputeReason
 - **order_items**: id, orderId, productId, quantity, price
+- **escrow_transactions**: id, orderId, sellerId, type (deposit/release/refund/dispute), amount, note, createdAt
 - **conversations**: id, productId, buyerId, sellerId, lastMessageAt, createdAt — one conversation per buyer+seller+product
 - **messages**: id, conversationId, senderId, content, readAt, createdAt
 
@@ -81,6 +82,15 @@ All routes under `/api`:
 - `POST /api/admin/sellers/:id/reject` - Reject seller (ADMIN)
 - `GET /api/admin/analytics` - Platform analytics (ADMIN)
 - `POST /api/upload/image` - Upload image (needs CLOUDINARY_* keys)
+- `GET /api/escrow/seller/summary` - Seller escrow earnings summary (SELLER)
+- `GET /api/escrow/seller/orders` - Seller orders with escrow details (SELLER)
+- `GET /api/escrow/seller/transactions` - Seller escrow transaction history (SELLER)
+- `POST /api/escrow/:orderId/confirm-receipt` - Buyer confirms receipt, releases escrow (BUYER)
+- `POST /api/escrow/:orderId/dispute` - Buyer opens dispute, holds escrow (BUYER)
+- `GET /api/escrow/admin/orders` - List all escrow orders with ?status= filter (ADMIN)
+- `GET /api/escrow/admin/stats` - Platform escrow statistics (ADMIN)
+- `POST /api/escrow/admin/:orderId/release` - Admin releases escrow to seller (ADMIN)
+- `POST /api/escrow/admin/:orderId/refund` - Admin refunds escrow to buyer (ADMIN)
 - `GET /api/subscription/status` - Get seller subscription status (SELLER)
 - `POST /api/subscription/activate` - Activate/renew subscription for 30 days (SELLER) — demo stub, no real payment
 - `POST /api/subscription/cancel` - Cancel subscription (SELLER)
