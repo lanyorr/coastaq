@@ -102,10 +102,18 @@ export default function Home() {
   const { data: categories, isLoading: loadingCats } = useListCategories();
 
   // Featured carousel
+  const CAROUSEL_FALLBACK = "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&h=600&fit=crop&auto=format";
   const { data: featuredData } = useListProducts({ limit: 6, page: 1 });
   const featuredProducts = featuredData?.products ?? [];
   const [featuredIdx, setFeaturedIdx] = useState(0);
   const featuredTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const currentFeatured = featuredProducts[featuredIdx] ?? null;
+  const [carouselImgSrc, setCarouselImgSrc] = useState<string>(CAROUSEL_FALLBACK);
+
+  useEffect(() => {
+    const raw = currentFeatured?.images?.[0];
+    setCarouselImgSrc(raw || CAROUSEL_FALLBACK);
+  }, [currentFeatured?.id]);
 
   useEffect(() => {
     if (featuredProducts.length < 2) return;
@@ -123,8 +131,6 @@ export default function Home() {
     if (featuredTimerRef.current) clearInterval(featuredTimerRef.current);
     setFeaturedIdx(i => (i + 1) % featuredProducts.length);
   };
-
-  const currentFeatured = featuredProducts[featuredIdx] ?? null;
 
   function toggleExpand(id: string) {
     setExpanded(prev => {
@@ -375,24 +381,14 @@ export default function Home() {
                   <div className="rounded-2xl overflow-hidden shadow-2xl border border-white/10">
                     {/* Image area */}
                     <div className="relative h-[533px] overflow-hidden" style={{ background: "linear-gradient(135deg, #1e3a5f 0%, #2d5a8e 100%)" }}>
-                      {currentFeatured?.images?.[0] ? (
-                        <img
-                          src={currentFeatured.images[0]}
-                          alt={currentFeatured.title}
-                          className="w-full h-full object-cover transition-opacity duration-500"
-                        />
-                      ) : (
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="text-center text-blue-200/40">
-                            <Store className="w-14 h-14 mx-auto mb-2" />
-                            <p className="text-xs font-medium">Featured Listings</p>
-                          </div>
-                        </div>
-                      )}
+                      <img
+                        src={carouselImgSrc}
+                        alt={currentFeatured?.title ?? "Featured listing"}
+                        className="w-full h-full object-cover transition-opacity duration-500"
+                        onError={() => setCarouselImgSrc(CAROUSEL_FALLBACK)}
+                      />
                       {/* Dark overlay for readability */}
-                      {currentFeatured?.images?.[0] && (
-                        <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 60%)" }} />
-                      )}
+                      <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 60%)" }} />
                       {/* Prev / Next */}
                       <button
                         onClick={goFeaturedPrev}
