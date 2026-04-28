@@ -1,0 +1,280 @@
+Design and implement a complete buyer-to-seller escrow payment workflow for my existing multi-vendor marketplace. Do NOT rebuild the marketplace. Add this payment flow into the current checkout/order system.
+
+GOAL:
+Create a trusted marketplace payment system where buyers pay safely, sellers fulfill confidently, and funds are only released after successful delivery or confirmation.
+
+FULL SYSTEM PAYMENT FLOW
+
+PHASE 1: PRODUCT PURCHASE
+
+1. Buyer browses products.
+2. Buyer adds item(s) to cart.
+3. Buyer proceeds to checkout.
+4. Checkout page must display:
+
+* Product subtotal
+* Shipping fee
+* Taxes (if any)
+* Marketplace escrow protection notice
+* Total amount
+
+Message:
+“Your payment is protected. Seller is paid only after successful delivery.”
+
+5. Buyer selects payment method:
+
+* Card
+* Bank transfer
+* Wallet
+* Mobile money
+* PayPal
+* Stripe
+* Other enabled gateways
+
+6. Buyer clicks PLACE ORDER.
+
+SYSTEM ACTIONS:
+
+* Create order record
+* Generate unique order number
+* Set order_status = pending_payment
+* Reserve inventory stock
+
+PHASE 2: PAYMENT CAPTURE
+
+After successful payment:
+
+SYSTEM ACTIONS:
+
+* Mark payment_status = paid
+* Mark escrow_status = holding
+* Move funds into platform escrow balance
+* Set order_status = processing
+* Notify seller instantly
+* Notify buyer payment secured
+
+Buyer message:
+“Payment received and securely held in escrow.”
+
+Seller message:
+“You have a paid order ready for fulfillment.”
+
+PHASE 3: SELLER FULFILLMENT
+
+Seller dashboard actions:
+
+* Accept order
+* Pack item
+* Upload tracking number
+* Select courier
+* Mark shipped
+
+SYSTEM ACTIONS:
+
+* order_status = shipped
+* Notify buyer with tracking link
+* Start shipment monitoring
+
+PHASE 4: DELIVERY CONFIRMATION
+
+When courier marks delivered OR seller marks delivered:
+
+SYSTEM ACTIONS:
+
+* order_status = delivered
+* delivered_at timestamp saved
+* Notify buyer to confirm receipt
+
+Buyer dashboard buttons:
+
+1. Confirm Received
+2. Open Dispute
+
+Buyer message:
+“Please confirm within 7 days. If no action is taken, payment may auto-release.”
+
+PHASE 5A: SUCCESSFUL COMPLETION
+
+If buyer clicks Confirm Received:
+
+SYSTEM ACTIONS:
+
+* escrow_status = released
+* order_status = completed
+* Deduct marketplace commission
+* Credit seller balance
+* Create payout transaction
+* Email receipts to both parties
+
+Example:
+Order total = $100
+Marketplace fee = $10
+Seller receives = $90
+
+Seller dashboard:
+Available Balance updated
+
+PHASE 5B: AUTO RELEASE
+
+If buyer takes no action for 7 days after delivery and no dispute exists:
+
+SYSTEM ACTIONS:
+
+* Automatically release escrow
+* order_status = completed
+* seller credited
+* notify both users
+
+PHASE 5C: DISPUTE FLOW
+
+If buyer clicks Open Dispute:
+
+Required inputs:
+
+* Reason
+* Description
+* Photos/files optional
+
+SYSTEM ACTIONS:
+
+* escrow_status = disputed
+* order_status = on_hold
+* Freeze funds
+* Notify admin
+* Notify seller
+
+ADMIN PANEL OPTIONS:
+
+1. Refund buyer
+2. Partial refund
+3. Release seller payment
+4. Split settlement
+
+All actions logged.
+
+REFUND FLOW
+
+If seller cannot fulfill before shipping:
+
+* Cancel order
+* Refund buyer fully
+* Restore stock
+
+If admin approves refund after dispute:
+
+* Return funds to buyer
+* order_status = refunded
+
+MULTI-VENDOR LOGIC
+
+If cart contains products from multiple sellers:
+
+SYSTEM MUST:
+
+* Split order into sub-orders by seller
+* Hold all funds in escrow
+* Release each seller separately when their item is completed
+
+BUYER DASHBOARD
+
+Show:
+
+* Order status timeline
+* Payment protected badge
+* Tracking details
+* Confirm Received button
+* Open Dispute button
+* Refund history
+
+SELLER DASHBOARD
+
+Show:
+
+* New paid orders
+* Orders in escrow
+* Shipped orders
+* Released earnings
+* Pending payout totals
+
+ADMIN DASHBOARD
+
+Show:
+
+* Total escrow funds held
+* Released payouts
+* Disputes queue
+* Marketplace fees earned
+* Fraud alerts
+* Refund logs
+
+STATUS ENUMS
+
+order_status:
+pending_payment
+processing
+shipped
+delivered
+completed
+on_hold
+cancelled
+refunded
+
+payment_status:
+unpaid
+paid
+failed
+refunded
+
+escrow_status:
+none
+holding
+released
+disputed
+refunded
+
+DATABASE FIELDS TO ADD
+
+orders:
+payment_status
+escrow_status
+escrow_amount
+seller_amount
+platform_fee
+tracking_number
+courier_name
+delivered_at
+released_at
+dispute_reason
+
+transactions:
+id
+order_id
+user_id
+type
+amount
+status
+reference
+created_at
+
+SECURITY RULES
+
+* Buyer cannot release funds twice
+* Seller cannot self-mark payment released
+* Admin actions require permission
+* All payouts logged
+* Prevent duplicate webhooks
+* Validate ownership of every order action
+
+UI DESIGN NOTES
+
+Checkout badge:
+“Protected by Escrow”
+
+Timeline example:
+Placed → Paid → Escrowed → Shipped → Delivered → Released
+
+IMPORTANT:
+Integrate this into my existing codebase only.
+Preserve all current features.
+Use clean modular code.
+Test all flows and fix errors automatically.

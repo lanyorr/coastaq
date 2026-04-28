@@ -6,7 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import {
   MapPin, Store, ShieldCheck, MessageCircle,
   ChevronRight, Flag, AlertCircle, CheckCircle2, Clock,
-  Heart, Loader2, ShoppingBag, X, Minus, Plus, Shield, Lock,
+  Heart, ShoppingBag, Shield, Lock,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
@@ -27,11 +27,6 @@ export default function ProductDetails() {
   const { toast } = useToast();
   const [activeImage, setActiveImage] = useState(0);
   const [messageSending, setMessageSending] = useState(false);
-  const [orderModalOpen, setOrderModalOpen] = useState(false);
-  const [orderQty, setOrderQty] = useState(1);
-  const [orderNote, setOrderNote] = useState("");
-  const [orderPlacing, setOrderPlacing] = useState(false);
-  const [orderDone, setOrderDone] = useState(false);
   const [saved, setSaved] = useState(() => {
     try {
       const list = JSON.parse(localStorage.getItem("coastaq_saved") || "[]");
@@ -100,27 +95,14 @@ export default function ProductDetails() {
     setMessageSending(false);
   };
 
-  const handlePlaceOrder = async () => {
+  const handlePlaceOrder = () => {
     if (!product) return;
     if (!user) { setLocation("/auth/login"); return; }
     if (user.role === "SELLER" || user.role === "ADMIN") {
       toast({ title: "Buyers only", description: "Only buyers can place orders." });
       return;
     }
-    setOrderPlacing(true);
-    try {
-      const r = await fetch("/api/orders/request", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId: product.id, quantity: orderQty, buyerNote: orderNote }),
-      });
-      const data = await r.json();
-      if (!r.ok) throw new Error(data.error || "Failed");
-      setOrderDone(true);
-    } catch (err: any) {
-      toast({ title: "Error", description: err.message || "Could not place order.", variant: "destructive" });
-    }
-    setOrderPlacing(false);
+    setLocation(`/checkout?productId=${product.id}&qty=1`);
   };
 
   if (isLoading) {
@@ -298,15 +280,9 @@ export default function ProductDetails() {
                 {messageSending ? "Opening chat…" : "Message seller"}
               </button>
 
-              {/* Place Order */}
+              {/* Place Order → checkout */}
               <button
-                onClick={() => {
-                  if (!user) { setLocation("/auth/login"); return; }
-                  setOrderDone(false);
-                  setOrderQty(1);
-                  setOrderNote("");
-                  setOrderModalOpen(true);
-                }}
+                onClick={handlePlaceOrder}
                 className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-primary text-primary font-semibold text-sm hover:bg-primary/5 transition-colors"
               >
                 <ShoppingBag className="w-4 h-4" />
@@ -389,107 +365,6 @@ export default function ProductDetails() {
           </button>
         </div>
       </div>
-
-      {/* Place Order Modal */}
-      {orderModalOpen && product && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-          <div className="bg-card border border-border/60 rounded-3xl shadow-2xl w-full max-w-md">
-            {orderDone ? (
-              <div className="p-8 text-center space-y-4">
-                <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto">
-                  <CheckCircle2 className="w-8 h-8 text-green-600" />
-                </div>
-                <h2 className="text-xl font-display font-bold text-foreground">Order Placed!</h2>
-                <p className="text-muted-foreground text-sm leading-relaxed">
-                  Your order request has been sent to the seller. They'll review it shortly.
-                  You can track your orders in the buyer dashboard.
-                </p>
-                <div className="flex gap-3 pt-2">
-                  <button
-                    onClick={() => setOrderModalOpen(false)}
-                    className="flex-1 py-2.5 rounded-xl border border-border text-sm font-medium text-muted-foreground hover:bg-secondary transition-colors"
-                  >
-                    Close
-                  </button>
-                  <button
-                    onClick={() => { setOrderModalOpen(false); setLocation("/buyer/dashboard"); }}
-                    className="flex-1 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition-colors"
-                  >
-                    View Orders
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="p-6 space-y-5">
-                {/* Header */}
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <h2 className="text-lg font-display font-bold text-foreground">Place Order</h2>
-                    <p className="text-sm text-muted-foreground mt-0.5 line-clamp-1">{product.title}</p>
-                  </div>
-                  <button onClick={() => setOrderModalOpen(false)} className="p-1.5 rounded-lg hover:bg-secondary transition-colors text-muted-foreground">
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-
-                {/* Price summary */}
-                <div className="bg-secondary/60 rounded-2xl p-4">
-                  <div className="flex items-center justify-between text-sm mb-1">
-                    <span className="text-muted-foreground">Unit price</span>
-                    <span className="font-semibold text-foreground">${Number(product.price).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm mb-3">
-                    <span className="text-muted-foreground">Quantity</span>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => setOrderQty(q => Math.max(1, q - 1))}
-                        className="w-7 h-7 rounded-lg bg-background border border-border flex items-center justify-center hover:bg-secondary transition-colors"
-                      >
-                        <Minus className="w-3 h-3" />
-                      </button>
-                      <span className="w-6 text-center font-semibold text-foreground">{orderQty}</span>
-                      <button
-                        onClick={() => setOrderQty(q => Math.min(product.stock || 99, q + 1))}
-                        className="w-7 h-7 rounded-lg bg-background border border-border flex items-center justify-center hover:bg-secondary transition-colors"
-                      >
-                        <Plus className="w-3 h-3" />
-                      </button>
-                    </div>
-                  </div>
-                  <div className="border-t border-border/60 pt-3 flex items-center justify-between">
-                    <span className="font-semibold text-foreground">Total</span>
-                    <span className="text-lg font-bold text-primary">
-                      ${(Number(product.price) * orderQty).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Optional note */}
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-foreground">Note to seller (optional)</label>
-                  <textarea
-                    value={orderNote}
-                    onChange={e => setOrderNote(e.target.value)}
-                    placeholder="Any special instructions or questions for the seller..."
-                    rows={3}
-                    className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring placeholder:text-muted-foreground"
-                  />
-                </div>
-
-                {/* CTA */}
-                <button
-                  onClick={handlePlaceOrder}
-                  disabled={orderPlacing}
-                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-primary text-white font-semibold text-sm hover:bg-primary/90 transition-colors disabled:opacity-60"
-                >
-                  {orderPlacing ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShoppingBag className="w-4 h-4" />}
-                  {orderPlacing ? "Placing order…" : `Place Order · $${(Number(product.price) * orderQty).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
 
       <Footer />
     </div>

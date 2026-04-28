@@ -26,6 +26,8 @@ export const ordersTable = pgTable("orders", {
   releasedAt: timestamp("released_at"),
   disputeReason: text("dispute_reason"),
 
+  trackingNumber: text("tracking_number"),
+  courierName: text("courier_name"),
   shippingName: text("shipping_name"),
   shippingAddress: text("shipping_address"),
   shippingCity: text("shipping_city"),

@@ -248,6 +248,8 @@ function SellerOrders() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [trackingInputs, setTrackingInputs] = useState<Record<string, { num: string; courier: string }>>({});
+  const [showTrackingForm, setShowTrackingForm] = useState<string | null>(null);
   const { toast } = useToast();
 
   const load = () => {
@@ -270,6 +272,35 @@ function SellerOrders() {
       });
       if (!r.ok) throw new Error("Failed");
       toast({ title: "Order updated", description: `Status changed to ${status.toLowerCase()}.` });
+      load();
+    } catch {
+      toast({ title: "Error", description: "Could not update order.", variant: "destructive" });
+    }
+    setUpdatingId(null);
+  };
+
+  const submitTracking = async (orderId: string) => {
+    const t = trackingInputs[orderId];
+    if (!t?.num?.trim()) {
+      toast({ title: "Tracking required", description: "Please enter a tracking number.", variant: "destructive" });
+      return;
+    }
+    setUpdatingId(orderId);
+    try {
+      const r = await fetch(`/api/orders/${orderId}/tracking`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ trackingNumber: t.num.trim(), courierName: t.courier.trim() || null }),
+      });
+      if (!r.ok) throw new Error("Failed");
+      // Now mark as shipped
+      await fetch(`/api/orders/${orderId}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "SHIPPED" }),
+      });
+      toast({ title: "Shipped!", description: "Tracking saved and order marked as shipped." });
+      setShowTrackingForm(null);
       load();
     } catch {
       toast({ title: "Error", description: "Could not update order.", variant: "destructive" });
@@ -385,6 +416,16 @@ function SellerOrders() {
                     </div>
                   )}
 
+                  {/* Tracking display */}
+                  {order.trackingNumber && (
+                    <div className="bg-purple-50 border border-purple-100 rounded-xl px-3 py-2 flex items-center gap-2 text-xs">
+                      <Truck className="w-3.5 h-3.5 text-purple-600 shrink-0" />
+                      <span className="text-purple-800 font-semibold">Tracking:</span>
+                      {order.courierName && <span className="text-purple-700">{order.courierName} ·</span>}
+                      <span className="text-purple-700 font-mono">{order.trackingNumber}</span>
+                    </div>
+                  )}
+
                   {/* Escrowed notice for seller */}
                   {order.paymentStatus === "escrowed" && (
                     <div className="bg-blue-50 border border-blue-100 rounded-xl px-3 py-2.5 text-xs text-blue-800">
@@ -412,15 +453,49 @@ function SellerOrders() {
                       </button>
                     </div>
                   )}
-                  {order.status === "CONFIRMED" && (
+                  {order.status === "CONFIRMED" && showTrackingForm !== order.id && (
                     <button
-                      onClick={() => updateStatus(order.id, "SHIPPED")}
+                      onClick={() => setShowTrackingForm(order.id)}
                       disabled={updatingId === order.id}
                       className="w-full py-2 rounded-xl bg-purple-600 text-white text-xs font-semibold hover:bg-purple-700 transition-colors disabled:opacity-60 flex items-center justify-center gap-1.5"
                     >
-                      {updatingId === order.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Truck className="w-3 h-3" />}
-                      Mark as Shipped
+                      <Truck className="w-3 h-3" /> Add Tracking & Mark Shipped
                     </button>
+                  )}
+                  {order.status === "CONFIRMED" && showTrackingForm === order.id && (
+                    <div className="space-y-2.5 bg-purple-50 border border-purple-100 rounded-xl p-3">
+                      <p className="text-xs font-semibold text-purple-800 flex items-center gap-1.5">
+                        <Truck className="w-3.5 h-3.5" /> Enter Tracking Details
+                      </p>
+                      <input
+                        type="text"
+                        placeholder="Tracking number (required)"
+                        value={trackingInputs[order.id]?.num ?? ""}
+                        onChange={e => setTrackingInputs(p => ({ ...p, [order.id]: { ...p[order.id], num: e.target.value, courier: p[order.id]?.courier ?? "" } }))}
+                        className="w-full rounded-lg border border-purple-200 bg-white px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-purple-300"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Courier / shipping company (optional)"
+                        value={trackingInputs[order.id]?.courier ?? ""}
+                        onChange={e => setTrackingInputs(p => ({ ...p, [order.id]: { ...p[order.id], courier: e.target.value, num: p[order.id]?.num ?? "" } }))}
+                        className="w-full rounded-lg border border-purple-200 bg-white px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-purple-300"
+                      />
+                      <div className="flex gap-2 pt-0.5">
+                        <button
+                          onClick={() => setShowTrackingForm(null)}
+                          className="flex-1 py-1.5 rounded-lg border border-border text-xs text-muted-foreground hover:bg-secondary transition-colors"
+                        >Cancel</button>
+                        <button
+                          onClick={() => submitTracking(order.id)}
+                          disabled={updatingId === order.id || !trackingInputs[order.id]?.num?.trim()}
+                          className="flex-1 py-1.5 rounded-lg bg-purple-600 text-white text-xs font-semibold hover:bg-purple-700 disabled:opacity-60 transition-colors flex items-center justify-center gap-1"
+                        >
+                          {updatingId === order.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Truck className="w-3 h-3" />}
+                          Mark Shipped
+                        </button>
+                      </div>
+                    </div>
                   )}
                   {order.status === "SHIPPED" && (
                     <button

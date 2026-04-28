@@ -2,31 +2,155 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
-import { MessageCircle, Search } from "lucide-react";
+import { useCart } from "@/store/use-cart";
+import { ShoppingCart, Trash2, Plus, Minus, Package, Shield, ArrowRight } from "lucide-react";
+
+const PLATFORM_FEE_RATE = 0.05;
 
 export default function Cart() {
   const [, setLocation] = useLocation();
+  const items = useCart(s => s.items);
+  const removeItem = useCart(s => s.removeItem);
+  const updateQuantity = useCart(s => s.updateQuantity);
+  const getTotal = useCart(s => s.getTotal);
+  const clearCart = useCart(s => s.clearCart);
+
+  const subtotal = getTotal();
+  const total = subtotal;
+
+  if (items.length === 0) {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <Navbar />
+        <main className="flex-1 container mx-auto px-4 py-32 max-w-lg text-center">
+          <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+            <ShoppingCart className="w-10 h-10 text-primary" />
+          </div>
+          <h2 className="text-2xl font-display font-bold mb-3">Your cart is empty</h2>
+          <p className="text-muted-foreground mb-8 leading-relaxed">
+            Browse listings and add items to your cart to get started.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Button className="rounded-xl px-8" onClick={() => setLocation("/")}>
+              Browse listings
+            </Button>
+            <Button variant="outline" className="rounded-xl px-8" onClick={() => setLocation("/buyer/dashboard")}>
+              My Orders
+            </Button>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
-      <main className="flex-1 container mx-auto px-4 py-32 max-w-lg text-center">
-        <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
-          <MessageCircle className="w-10 h-10 text-primary" />
+      <main className="flex-1 container mx-auto px-4 py-8 max-w-4xl">
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-display font-bold text-foreground flex items-center gap-2">
+            <ShoppingCart className="w-6 h-6 text-primary" />
+            Cart
+            <span className="text-sm font-normal text-muted-foreground bg-secondary px-2.5 py-0.5 rounded-full ml-1">
+              {items.reduce((s, i) => s + i.quantity, 0)} item{items.reduce((s, i) => s + i.quantity, 0) !== 1 ? "s" : ""}
+            </span>
+          </h1>
+          <button
+            onClick={() => clearCart()}
+            className="text-xs text-muted-foreground hover:text-red-600 transition-colors flex items-center gap-1"
+          >
+            <Trash2 className="w-3.5 h-3.5" /> Clear all
+          </button>
         </div>
-        <h2 className="text-2xl font-display font-bold mb-3">No cart needed</h2>
-        <p className="text-muted-foreground mb-8 leading-relaxed">
-          On Coastaq, buyers contact sellers directly. Browse a listing, tap
-          <strong> Show contact</strong> or <strong>Start chat</strong> to reach the seller.
-        </p>
-        <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <Button className="rounded-xl px-8" onClick={() => setLocation("/")}>
-            <Search className="w-4 h-4 mr-2" />
-            Browse listings
-          </Button>
-          <Button variant="outline" className="rounded-xl px-8" onClick={() => setLocation("/buyer/dashboard")}>
-            My Dashboard
-          </Button>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Cart items */}
+          <div className="lg:col-span-2 space-y-3">
+            {items.map(item => (
+              <div key={item.productId} className="bg-card border border-border/50 rounded-2xl p-4 flex items-center gap-4">
+                <div className="w-16 h-16 rounded-xl bg-secondary flex items-center justify-center shrink-0">
+                  <Package className="w-6 h-6 text-muted-foreground" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-sm text-foreground line-clamp-2">{item.title}</p>
+                  <p className="text-primary font-bold text-sm mt-0.5">
+                    ${item.price.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} each
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    onClick={() => updateQuantity(item.productId, item.quantity - 1)}
+                    className="w-7 h-7 rounded-lg border border-border flex items-center justify-center hover:bg-secondary transition-colors"
+                  >
+                    <Minus className="w-3 h-3" />
+                  </button>
+                  <span className="w-6 text-center text-sm font-semibold">{item.quantity}</span>
+                  <button
+                    onClick={() => updateQuantity(item.productId, item.quantity + 1)}
+                    className="w-7 h-7 rounded-lg border border-border flex items-center justify-center hover:bg-secondary transition-colors"
+                  >
+                    <Plus className="w-3 h-3" />
+                  </button>
+                </div>
+                <div className="text-right shrink-0 min-w-[60px]">
+                  <p className="font-bold text-primary text-sm">
+                    ${(item.price * item.quantity).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </p>
+                  <button
+                    onClick={() => removeItem(item.productId)}
+                    className="text-[11px] text-muted-foreground hover:text-red-600 transition-colors mt-0.5 flex items-center gap-0.5 ml-auto"
+                  >
+                    <Trash2 className="w-3 h-3" /> Remove
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Order summary */}
+          <div className="space-y-4">
+            <div className="bg-card border border-border/50 rounded-2xl p-5 space-y-3 sticky top-4">
+              <h3 className="font-semibold text-foreground">Order Summary</h3>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Subtotal</span>
+                  <span className="font-medium">${subtotal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Escrow fee (5%)</span>
+                  <span className="text-muted-foreground">Included</span>
+                </div>
+                <div className="border-t border-border/60 pt-2 flex justify-between font-bold text-base">
+                  <span>Total</span>
+                  <span className="text-primary">${total.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                </div>
+              </div>
+              <Button
+                className="w-full rounded-xl py-3 text-sm font-semibold"
+                onClick={() => setLocation("/checkout")}
+              >
+                Proceed to Checkout <ArrowRight className="w-4 h-4 ml-1" />
+              </Button>
+              <button
+                onClick={() => setLocation("/")}
+                className="w-full text-xs text-muted-foreground hover:text-foreground transition-colors py-1"
+              >
+                ← Continue shopping
+              </button>
+            </div>
+
+            {/* Escrow notice */}
+            <div className="rounded-2xl p-4 space-y-2" style={{ background: "linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%)" }}>
+              <div className="flex items-center gap-2">
+                <Shield className="w-4 h-4 text-white" />
+                <p className="text-xs font-bold text-white">Buyer Protection Active</p>
+              </div>
+              <p className="text-[11px] text-blue-100 leading-relaxed">
+                Your payment is protected. Seller is paid only after successful delivery.
+              </p>
+            </div>
+          </div>
         </div>
       </main>
       <Footer />

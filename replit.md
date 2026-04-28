@@ -47,7 +47,7 @@ artifacts-monorepo/
 - **shops**: id, name, description, logo, banner, isApproved, userId, subscriptionStatus (TRIAL/ACTIVE/EXPIRED/CANCELLED), trialEndsAt, subscriptionCurrentPeriodEnd
 - **categories**: id, name, parentId (self-referential for hierarchy)
 - **products**: id, title, description, price, stock, condition, location, images[], categoryId, shopId
-- **orders**: id, userId, status, total, shipping fields, paymentMethod, paymentId, paymentStatus (pending/escrowed/released/refunded/disputed), escrowAmount, sellerAmount (95%), platformFee (5%), sellerId, escrowStartedAt, deliveredAt, releasedAt, disputeReason
+- **orders**: id, userId, status, total, shipping fields, paymentMethod, paymentId, paymentStatus (pending/escrowed/released/refunded/disputed), escrowAmount, sellerAmount (95%), platformFee (5%), sellerId, escrowStartedAt, deliveredAt, releasedAt, disputeReason, trackingNumber, courierName
 - **order_items**: id, orderId, productId, quantity, price
 - **escrow_transactions**: id, orderId, sellerId, type (deposit/release/refund/dispute), amount, note, createdAt
 - **conversations**: id, productId, buyerId, sellerId, lastMessageAt, createdAt — one conversation per buyer+seller+product

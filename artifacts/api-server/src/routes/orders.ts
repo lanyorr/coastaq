@@ -103,6 +103,35 @@ router.get("/seller", requireAuth, requireRole("SELLER", "ADMIN"), async (req, r
   }
 });
 
+// ── Seller: update tracking info ──────────────────────────────────────────────
+router.patch("/:id/tracking", requireAuth, requireRole("SELLER", "ADMIN"), async (req, res) => {
+  const { trackingNumber, courierName } = req.body;
+  if (!trackingNumber) {
+    res.status(400).json({ error: "trackingNumber is required" });
+    return;
+  }
+  try {
+    const order = await db.query.ordersTable.findFirst({
+      where: eq(ordersTable.id, req.params.id),
+      with: { items: { with: { product: { with: { shop: true } } } } },
+    });
+    if (!order) { res.status(404).json({ error: "Order not found" }); return; }
+    const shop = await db.query.shopsTable.findFirst({ where: eq(shopsTable.userId, req.userId!) });
+    const ownsProduct = (order.items as any[]).some((i: any) => i.product?.shopId === shop?.id);
+    if (!ownsProduct && req.userRole !== "ADMIN") {
+      res.status(403).json({ error: "Forbidden" }); return;
+    }
+    const [updated] = await db.update(ordersTable)
+      .set({ trackingNumber, courierName: courierName || null, updatedAt: new Date() })
+      .where(eq(ordersTable.id, req.params.id))
+      .returning();
+    res.json({ ...updated, total: parseFloat(updated.total) });
+  } catch (err) {
+    req.log.error({ err }, "Update tracking error");
+    res.status(500).json({ error: "Failed to update tracking" });
+  }
+});
+
 // ── Seller: update order status ───────────────────────────────────────────────
 router.patch("/:id/status", requireAuth, requireRole("SELLER", "ADMIN"), async (req, res) => {
   const { status } = req.body;

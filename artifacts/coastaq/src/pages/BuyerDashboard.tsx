@@ -8,6 +8,7 @@ import {
   CheckCircle2, XCircle, Truck, Clock, Settings, AlertTriangle, Trash2,
   Shield, ThumbsUp, Flag,
 } from "lucide-react";
+import { OrderTimeline } from "./Checkout";
 import { DeleteAccountDialog } from "@/components/account/DeleteAccountDialog";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
@@ -526,6 +527,25 @@ export default function BuyerDashboard() {
                                 </p>
                               </div>
                             </div>
+
+                            {/* ── Order timeline ── */}
+                            <div className="pt-1">
+                              <OrderTimeline status={order.status} paymentStatus={order.paymentStatus ?? "pending"} />
+                            </div>
+
+                            {/* ── Tracking info (when available) ── */}
+                            {order.trackingNumber && (
+                              <div className="bg-purple-50 border border-purple-100 rounded-xl px-3 py-2.5 flex items-start gap-2">
+                                <Truck className="w-4 h-4 text-purple-600 shrink-0 mt-0.5" />
+                                <div>
+                                  <p className="text-xs font-semibold text-purple-800">Tracking Info</p>
+                                  <p className="text-xs text-purple-700 mt-0.5">
+                                    {order.courierName && <span className="font-medium">{order.courierName} · </span>}
+                                    <span className="font-mono">{order.trackingNumber}</span>
+                                  </p>
+                                </div>
+                              </div>
+                            )}
 
                             {/* ── Escrow action panel ── */}
                             {isEscrowed && disputeOrderId !== order.id && (
