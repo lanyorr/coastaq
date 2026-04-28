@@ -50,16 +50,11 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-background">
-      <img
-        src={`${import.meta.env.BASE_URL}images/auth-bg.png`}
-        alt="Background"
-        className="absolute inset-0 w-full h-full object-cover opacity-60"
-      />
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden" style={{ background: "linear-gradient(135deg, #0c2461 0%, #1a56db 55%, #1e6fd9 100%)" }}>
 
       <div className="relative z-10 w-full max-w-md p-4">
         <Link href="/" className="flex justify-center w-full mb-8 hover:opacity-90 transition-opacity">
-          <CoastaqLogo iconSize={56} textSize={30} gap={12} />
+          <CoastaqLogo iconSize={56} textSize={30} gap={12} textColor="#fff" />
         </Link>
 
         <div className="glass-panel rounded-[2rem] p-8 md:p-10">

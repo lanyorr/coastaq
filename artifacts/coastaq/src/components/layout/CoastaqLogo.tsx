@@ -2,9 +2,10 @@ interface CoastaqLogoProps {
   iconSize?: number;
   textSize?: number;
   gap?: number;
+  textColor?: string;
 }
 
-export function CoastaqLogo({ iconSize = 36, textSize = 20, gap = 10 }: CoastaqLogoProps) {
+export function CoastaqLogo({ iconSize = 36, textSize = 20, gap = 10, textColor = "#1a2332" }: CoastaqLogoProps) {
   const r = iconSize / 2;
   const cx = r;
   const cy = r;
@@ -55,7 +56,7 @@ export function CoastaqLogo({ iconSize = 36, textSize = 20, gap = 10 }: CoastaqL
         style={{
           fontWeight: 700,
           fontSize: textSize,
-          color: "#1a2332",
+          color: textColor,
           letterSpacing: "-0.3px",
           fontFamily: "inherit",
           lineHeight: 1,

@@ -356,15 +356,10 @@ export default function Register() {
   // ── Seller post-registration flow ───────────────────────────────────────────
   if (registered?.role === "SELLER") {
     return (
-      <div className="min-h-screen flex items-center justify-center relative bg-background py-12">
-        <img
-          src={`${import.meta.env.BASE_URL}images/auth-bg.png`}
-          alt="Background"
-          className="fixed inset-0 w-full h-full object-cover opacity-50"
-        />
+      <div className="min-h-screen flex items-center justify-center relative py-12" style={{ background: "linear-gradient(135deg, #0c2461 0%, #1a56db 55%, #1e6fd9 100%)" }}>
         <div className="relative z-10 w-full max-w-lg p-4">
           <Link href="/" className="flex justify-center w-full mb-6 hover:opacity-90 transition-opacity">
-            <CoastaqLogo iconSize={56} textSize={30} gap={12} />
+            <CoastaqLogo iconSize={56} textSize={30} gap={12} textColor="#fff" />
           </Link>
 
           {sellerStep === "choice" && (
@@ -390,15 +385,10 @@ export default function Register() {
   // ── Buyer success screen ────────────────────────────────────────────────────
   if (registered?.role === "BUYER") {
     return (
-      <div className="min-h-screen flex items-center justify-center relative bg-background py-12">
-        <img
-          src={`${import.meta.env.BASE_URL}images/auth-bg.png`}
-          alt="Background"
-          className="fixed inset-0 w-full h-full object-cover opacity-50"
-        />
+      <div className="min-h-screen flex items-center justify-center relative py-12" style={{ background: "linear-gradient(135deg, #0c2461 0%, #1a56db 55%, #1e6fd9 100%)" }}>
         <div className="relative z-10 w-full max-w-lg p-4">
           <Link href="/" className="flex justify-center w-full mb-6 hover:opacity-90 transition-opacity">
-            <CoastaqLogo iconSize={56} textSize={30} gap={12} />
+            <CoastaqLogo iconSize={56} textSize={30} gap={12} textColor="#fff" />
           </Link>
 
           <div className="glass-panel rounded-[2rem] p-10 text-center">
@@ -434,16 +424,10 @@ export default function Register() {
 
   // ── Registration form ───────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen flex items-center justify-center relative bg-background py-12">
-      <img
-        src={`${import.meta.env.BASE_URL}images/auth-bg.png`}
-        alt="Background"
-        className="fixed inset-0 w-full h-full object-cover opacity-50"
-      />
-
+    <div className="min-h-screen flex items-center justify-center relative py-12" style={{ background: "linear-gradient(135deg, #0c2461 0%, #1a56db 55%, #1e6fd9 100%)" }}>
       <div className="relative z-10 w-full max-w-lg p-4">
         <Link href="/" className="flex justify-center w-full mb-6 hover:opacity-90 transition-opacity">
-          <CoastaqLogo iconSize={56} textSize={30} gap={12} />
+          <CoastaqLogo iconSize={56} textSize={30} gap={12} textColor="#fff" />
         </Link>
 
         <div className="glass-panel rounded-[2rem] p-8">

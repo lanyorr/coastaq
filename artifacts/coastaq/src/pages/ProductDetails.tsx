@@ -4,7 +4,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { useToast } from "@/hooks/use-toast";
 import {
-  MapPin, Store, ShieldCheck, MessageCircle,
+  MapPin, Store, ShieldCheck, MessageCircle, Loader2,
   ChevronRight, Flag, AlertCircle, CheckCircle2, Clock,
   Heart, ShoppingBag, Shield, Lock,
 } from "lucide-react";
@@ -162,6 +162,7 @@ export default function ProductDetails() {
                   src={images[activeImage]}
                   alt={product.title}
                   className="w-full h-full object-cover"
+                  onError={(e) => { (e.target as HTMLImageElement).src = defaultImage; }}
                 />
               </div>
               {images.length > 1 && (
@@ -354,10 +355,7 @@ export default function ProductDetails() {
             {messageSending ? "Opening…" : "Message"}
           </button>
           <button
-            onClick={() => {
-              if (!user) { setLocation("/auth/login"); return; }
-              setOrderDone(false); setOrderQty(1); setOrderNote(""); setOrderModalOpen(true);
-            }}
+            onClick={handlePlaceOrder}
             className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border-2 border-primary text-primary font-semibold text-sm hover:bg-primary/5 transition-colors"
           >
             <ShoppingBag className="w-4 h-4" />
