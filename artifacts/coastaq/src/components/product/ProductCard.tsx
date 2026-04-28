@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "wouter";
 import { type Product } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
@@ -24,17 +25,20 @@ export function ProductCard({ product }: { product: Product }) {
     });
   };
 
-  const defaultImage = "https://images.unsplash.com/photo-1616046229478-9901c5536a45?w=500&h=500&fit=crop";
-  const image = product.images?.[0] || defaultImage;
+  const FALLBACK = "https://images.unsplash.com/photo-1614179924047-e1ab49a0a0cf?w=600&h=600&fit=crop&auto=format";
+  const rawImage = product.images?.[0] || FALLBACK;
+  // Use relative upload URLs as-is; only apply fallback on load error
+  const [imgSrc, setImgSrc] = useState(rawImage);
 
   return (
     <Link href={`/products/${product.id}`} className="group block h-full">
       <div className="bg-card rounded-2xl overflow-hidden border border-border/50 hover-lift h-full flex flex-col">
         <div className="relative aspect-square overflow-hidden bg-secondary/30">
           <img
-            src={image}
+            src={imgSrc}
             alt={product.title}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            onError={() => setImgSrc(FALLBACK)}
           />
           {product.condition === "NEW" && (
             <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-md text-[10px] font-bold text-primary shadow-sm">

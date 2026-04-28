@@ -174,7 +174,7 @@ export default function Home() {
 
       <main className="flex-1 flex flex-col md:flex-row">
         {/* Sidebar — desktop only */}
-        <aside className="hidden md:flex flex-col w-60 shrink-0 border-r border-border bg-white">
+        <aside className="hidden md:flex flex-col w-72 shrink-0 border-r border-border bg-white">
           <div className="sticky top-16 overflow-y-auto" style={{ maxHeight: "calc(100vh - 64px)" }}>
             <div className="px-5 pt-6 pb-3">
               <p className="font-display font-bold text-base text-foreground">Browse Categories</p>
@@ -522,7 +522,7 @@ export default function Home() {
           </div>
 
           {loadingProducts ? (
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
               {Array.from({ length: PAGE_SIZE }).map((_, i) => (
                 <div key={i} className="space-y-3">
                   <Skeleton className="aspect-square rounded-2xl" />
@@ -541,7 +541,7 @@ export default function Home() {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
                 {productsData?.products.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}
