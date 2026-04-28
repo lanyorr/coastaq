@@ -112,7 +112,7 @@ async function createDbOrderWithEscrow(
 }
 
 // ── POST /api/checkout/paypal ───────────────────────────────────────────────────
-// Body: { productId, quantity? }
+// Body: { productId, quantity? } OR { items: [{productId, quantity},...] }
 // Returns: { paypalOrderId, approvalUrl }
 router.post("/paypal", requireAuth, async (req, res) => {
   try {
@@ -122,21 +122,36 @@ router.post("/paypal", requireAuth, async (req, res) => {
       return;
     }
 
-    const { productId, quantity = 1 } = req.body;
-    if (!productId) {
-      res.status(400).json({ error: "productId is required" });
+    const { productId, quantity = 1, items: rawItems } = req.body;
+
+    // Normalise to an items array
+    let lineItems: Array<{ productId: string; quantity: number }>;
+    if (rawItems && Array.isArray(rawItems) && rawItems.length > 0) {
+      lineItems = rawItems.map((i: any) => ({ productId: String(i.productId), quantity: Number(i.quantity) || 1 }));
+    } else if (productId) {
+      lineItems = [{ productId: String(productId), quantity: Number(quantity) }];
+    } else {
+      res.status(400).json({ error: "productId or items is required" });
       return;
     }
 
-    const product = await db.query.productsTable.findFirst({
-      where: eq(productsTable.id, String(productId)),
-    });
-    if (!product) {
-      res.status(404).json({ error: "Product not found" });
-      return;
+    // Fetch all products to compute total
+    let totalAmount = 0;
+    const descriptions: string[] = [];
+    for (const li of lineItems) {
+      const product = await db.query.productsTable.findFirst({
+        where: eq(productsTable.id, li.productId),
+      });
+      if (!product) {
+        res.status(404).json({ error: `Product ${li.productId} not found` });
+        return;
+      }
+      totalAmount += parseFloat(String(product.price)) * li.quantity;
+      descriptions.push(`${product.title.slice(0, 60)} x${li.quantity}`);
     }
 
-    const amount = (parseFloat(String(product.price)) * Number(quantity)).toFixed(2);
+    const amount = totalAmount.toFixed(2);
+    const description = descriptions.join(", ").slice(0, 127);
     const accessToken = await getPaypalAccessToken();
     const baseUrl = getBaseUrl();
 
@@ -151,12 +166,12 @@ router.post("/paypal", requireAuth, async (req, res) => {
         intent: "CAPTURE",
         purchase_units: [{
           amount: { currency_code: "USD", value: amount },
-          description: product.title.slice(0, 127),
-          reference_id: `${productId}-${req.userId}`,
+          description,
+          reference_id: `order-${req.userId}-${Date.now()}`,
         }],
         application_context: {
-          return_url: `${baseUrl}/api/checkout/paypal/callback?status=success`,
-          cancel_url: `${baseUrl}/api/checkout/paypal/callback?status=cancel`,
+          return_url: `${baseUrl}/checkout/paypal/return`,
+          cancel_url: `${baseUrl}/checkout`,
           shipping_preference: "NO_SHIPPING",
           user_action: "PAY_NOW",
           brand_name: "Coastaq",
@@ -195,12 +210,12 @@ router.get("/paypal/callback", (req, res) => {
 });
 
 // ── POST /api/checkout/paypal/capture ──────────────────────────────────────────
-// Body: { paypalOrderId, productId, quantity?, shipping? }
+// Body: { paypalOrderId, shipping, productId?, quantity? } OR { paypalOrderId, shipping, items: [{productId,quantity},...] }
 router.post("/paypal/capture", requireAuth, async (req, res) => {
   try {
-    const { paypalOrderId, productId, quantity = 1, shipping } = req.body;
-    if (!paypalOrderId || !productId) {
-      res.status(400).json({ error: "paypalOrderId and productId are required" });
+    const { paypalOrderId, productId, quantity = 1, shipping, items: rawItems } = req.body;
+    if (!paypalOrderId) {
+      res.status(400).json({ error: "paypalOrderId is required" });
       return;
     }
 
@@ -223,15 +238,6 @@ router.post("/paypal/capture", requireAuth, async (req, res) => {
       return;
     }
 
-    const product = await db.query.productsTable.findFirst({
-      where: eq(productsTable.id, String(productId)),
-      with: { shop: true },
-    });
-    if (!product) {
-      res.status(404).json({ error: "Product not found" });
-      return;
-    }
-
     const defaultShipping = {
       name: "Coastaq Customer",
       address: "Online Purchase",
@@ -241,22 +247,59 @@ router.post("/paypal/capture", requireAuth, async (req, res) => {
       country: "NG",
     };
 
-    const order = await createDbOrderWithEscrow(
-      req.userId!,
-      [{
+    // Resolve items list — either cart items array or single product
+    let orderItems: Array<{ productId: string; quantity: number; price: number; title: string; shopId: string }>;
+
+    if (rawItems && Array.isArray(rawItems) && rawItems.length > 0) {
+      orderItems = [];
+      for (const li of rawItems) {
+        const product = await db.query.productsTable.findFirst({
+          where: eq(productsTable.id, String(li.productId)),
+          with: { shop: true },
+        });
+        if (!product) {
+          res.status(404).json({ error: `Product ${li.productId} not found` });
+          return;
+        }
+        orderItems.push({
+          productId: product.id,
+          quantity: Number(li.quantity) || 1,
+          price: parseFloat(String(product.price)),
+          title: product.title,
+          shopId: product.shopId,
+        });
+      }
+    } else if (productId) {
+      const product = await db.query.productsTable.findFirst({
+        where: eq(productsTable.id, String(productId)),
+        with: { shop: true },
+      });
+      if (!product) {
+        res.status(404).json({ error: "Product not found" });
+        return;
+      }
+      orderItems = [{
         productId: product.id,
         quantity: Number(quantity),
         price: parseFloat(String(product.price)),
         title: product.title,
         shopId: product.shopId,
-      }],
+      }];
+    } else {
+      res.status(400).json({ error: "productId or items is required" });
+      return;
+    }
+
+    const order = await createDbOrderWithEscrow(
+      req.userId!,
+      orderItems,
       shipping || defaultShipping,
       "PAYPAL",
       paypalOrderId,
     );
 
     const capturedAmount = captureData.purchase_units?.[0]?.payments?.captures?.[0]?.amount?.value;
-    req.log.info({ userId: req.userId, orderId: order.id, paypalOrderId }, "Product order captured via PayPal — funds in escrow");
+    req.log.info({ userId: req.userId, orderId: order.id, paypalOrderId }, "Order captured via PayPal — funds in escrow");
 
     res.json({
       success: true,

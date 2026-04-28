@@ -10,14 +10,11 @@ import { usePaypalConfig } from "@/hooks/use-subscription";
 import { useToast } from "@/hooks/use-toast";
 import {
   Shield, Lock, CheckCircle2, ArrowLeft, Loader2, ShoppingBag,
-  MapPin, CreditCard, Package, ChevronRight, AlertCircle,
+  MapPin, CreditCard, Package, ChevronRight, AlertCircle, Plus, Minus,
 } from "lucide-react";
-import {
-  PayPalScriptProvider,
-  PayPalButtons,
-} from "@paypal/react-paypal-js";
 
 const PLATFORM_FEE_RATE = 0.05;
+const PAYPAL_PENDING_KEY = "coastaq_paypal_pending";
 
 interface ShippingForm {
   name: string;
@@ -34,20 +31,73 @@ const EMPTY_SHIPPING: ShippingForm = {
 
 type PayMethod = "paypal" | "manual";
 
+// ── PayPal redirect-based payment button ───────────────────────────────────────
+function PayPalRedirectButton({
+  items,
+  shipping,
+  onSuccess,
+}: {
+  items: Array<{ productId: string; quantity: number; price?: number; title?: string; shopId?: string }>;
+  shipping: ShippingForm;
+  onSuccess?: () => void;
+}) {
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+
+  const handlePay = async () => {
+    setLoading(true);
+    try {
+      const r = await fetch("/api/checkout/paypal", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items }),
+      });
+      if (!r.ok) {
+        const err = await r.json().catch(() => ({}));
+        throw new Error((err as any).error || "Failed to create PayPal order");
+      }
+      const { paypalOrderId, approvalUrl } = await r.json();
+      if (!approvalUrl) throw new Error("No PayPal approval URL returned");
+
+      // Save the checkout context so the return page can finalise the order
+      sessionStorage.setItem(PAYPAL_PENDING_KEY, JSON.stringify({ paypalOrderId, items, shipping }));
+
+      // Redirect to PayPal
+      window.location.href = approvalUrl;
+    } catch (e: any) {
+      toast({ variant: "destructive", title: "PayPal error", description: e.message });
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Button
+      className="w-full rounded-xl py-3 text-sm font-semibold bg-[#0070ba] hover:bg-[#003087] text-white"
+      onClick={handlePay}
+      disabled={loading}
+    >
+      {loading ? (
+        <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Connecting to PayPal…</>
+      ) : (
+        <><CreditCard className="w-4 h-4 mr-2" /> Continue to PayPal</>
+      )}
+    </Button>
+  );
+}
+
 // ── Individual product checkout (from ?productId=&qty= query params) ──────────
-function ProductCheckout({ productId, qty }: { productId: string; qty: number }) {
+function ProductCheckout({ productId, initialQty }: { productId: string; initialQty: number }) {
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [qty, setQty] = useState(initialQty);
   const [shipping, setShipping] = useState<ShippingForm>(EMPTY_SHIPPING);
   const [payMethod, setPayMethod] = useState<PayMethod>("paypal");
-  const [orderNote, setOrderNote] = useState("");
   const [placing, setPlacing] = useState(false);
   const [done, setDone] = useState<{ orderId: string; amount: number } | null>(null);
   const [shippingValid, setShippingValid] = useState(false);
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { data: paypalCfg } = usePaypalConfig();
-  const token = localStorage.getItem("coastaq_token");
 
   useEffect(() => {
     fetch(`/api/products/${productId}`)
@@ -57,7 +107,7 @@ function ProductCheckout({ productId, qty }: { productId: string; qty: number })
   }, [productId]);
 
   useEffect(() => {
-    const { name, address, city, state, zip, country } = shipping;
+    const { name, address, city, state, country } = shipping;
     setShippingValid(!!(name && address && city && state && country));
   }, [shipping]);
 
@@ -88,11 +138,10 @@ function ProductCheckout({ productId, qty }: { productId: string; qty: number })
     try {
       const res = await fetch("/api/checkout/manual", {
         method: "POST",
-        headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           items: [{ productId: product.id, quantity: qty, price: unitPrice, title: product.title, shopId: product.shopId }],
           shipping,
-          buyerNote: orderNote,
         }),
       });
       if (!res.ok) {
@@ -116,48 +165,66 @@ function ProductCheckout({ productId, qty }: { productId: string; qty: number })
     <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
       {/* Left: Form */}
       <div className="lg:col-span-3 space-y-6">
+        {/* Quantity stepper */}
+        <div className="bg-card border border-border/50 rounded-2xl p-5">
+          <h3 className="font-semibold text-foreground flex items-center gap-2 mb-4">
+            <Package className="w-4 h-4 text-primary" /> Quantity
+          </h3>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center border border-border rounded-xl overflow-hidden">
+              <button
+                onClick={() => setQty(q => Math.max(1, q - 1))}
+                className="px-3 py-2 text-foreground hover:bg-secondary transition-colors"
+                aria-label="Decrease quantity"
+              >
+                <Minus className="w-4 h-4" />
+              </button>
+              <span className="px-5 py-2 text-sm font-bold text-foreground min-w-[3rem] text-center select-none">
+                {qty}
+              </span>
+              <button
+                onClick={() => setQty(q => q + 1)}
+                className="px-3 py-2 text-foreground hover:bg-secondary transition-colors"
+                aria-label="Increase quantity"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-foreground">{product.title}</p>
+              <p className="text-xs text-muted-foreground">${unitPrice.toFixed(2)} each</p>
+            </div>
+          </div>
+        </div>
+
         <ShippingFormSection shipping={shipping} onChange={setShipping} />
         <PaymentMethodSection
           payMethod={payMethod}
           onSelect={setPayMethod}
           paypalConfigured={!!paypalCfg?.paypalConfigured}
         />
-        {payMethod === "paypal" && paypalCfg?.paypalConfigured && shippingValid && (
-          <PayPalScriptProvider options={{ clientId: paypalCfg.clientId!, currency: "USD", intent: "capture" }}>
-            <div className="bg-card border border-border/50 rounded-2xl p-5">
-              <p className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
-                <CreditCard className="w-4 h-4 text-primary" /> Pay with PayPal
-              </p>
-              <PayPalButtons
-                style={{ layout: "vertical", shape: "rect", color: "blue", label: "pay" }}
-                createOrder={async () => {
-                  const r = await fetch("/api/checkout/paypal", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-                    body: JSON.stringify({ productId: product.id, quantity: qty }),
-                  });
-                  if (!r.ok) throw new Error("Failed to create PayPal order");
-                  const d = await r.json();
-                  return d.paypalOrderId;
-                }}
-                onApprove={async (data) => {
-                  const r = await fetch("/api/checkout/paypal/capture", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-                    body: JSON.stringify({ paypalOrderId: data.orderID, productId: product.id, quantity: qty, shipping }),
-                  });
-                  if (!r.ok) throw new Error("Payment capture failed");
-                  const result = await r.json();
-                  setDone({ orderId: result.orderId, amount: total });
-                }}
-                onError={(err) => {
-                  toast({ variant: "destructive", title: "PayPal error", description: "Payment failed. Please try again." });
-                  console.error(err);
-                }}
+
+        {payMethod === "paypal" && paypalCfg?.paypalConfigured && (
+          <div className="bg-card border border-border/50 rounded-2xl p-5">
+            <p className="text-sm font-semibold text-foreground mb-1 flex items-center gap-2">
+              <CreditCard className="w-4 h-4 text-primary" /> Pay with PayPal
+            </p>
+            <p className="text-xs text-muted-foreground mb-4">
+              You'll be redirected to PayPal to complete your payment securely.
+            </p>
+            {shippingValid ? (
+              <PayPalRedirectButton
+                items={[{ productId: product.id, quantity: qty }]}
+                shipping={shipping}
               />
-            </div>
-          </PayPalScriptProvider>
+            ) : (
+              <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-xl px-4 py-2">
+                Complete your shipping address above to unlock payment.
+              </p>
+            )}
+          </div>
         )}
+
         {payMethod === "manual" && (
           <div className="bg-card border border-border/50 rounded-2xl p-5">
             <p className="text-sm font-semibold text-foreground mb-1 flex items-center gap-2">
@@ -172,11 +239,6 @@ function ProductCheckout({ productId, qty }: { productId: string; qty: number })
               {placing ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Placing Order…</> : <>Place Order · ${total.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</>}
             </Button>
           </div>
-        )}
-        {payMethod === "paypal" && !shippingValid && (
-          <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-xl px-4 py-2">
-            Complete your shipping address above to unlock payment.
-          </p>
         )}
       </div>
 
@@ -207,7 +269,6 @@ function CartCheckout() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { data: paypalCfg } = usePaypalConfig();
-  const token = localStorage.getItem("coastaq_token");
 
   useEffect(() => {
     const { name, address, city, state, country } = shipping;
@@ -235,7 +296,7 @@ function CartCheckout() {
       const apiItems = items.map(i => ({ productId: i.productId, quantity: i.quantity, price: i.price, title: i.title, shopId: i.shopId }));
       const res = await fetch("/api/checkout/manual", {
         method: "POST",
-        headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ items: apiItems, shipping }),
       });
       if (!res.ok) {
@@ -265,6 +326,28 @@ function CartCheckout() {
           onSelect={setPayMethod}
           paypalConfigured={!!paypalCfg?.paypalConfigured}
         />
+
+        {payMethod === "paypal" && paypalCfg?.paypalConfigured && (
+          <div className="bg-card border border-border/50 rounded-2xl p-5">
+            <p className="text-sm font-semibold text-foreground mb-1 flex items-center gap-2">
+              <CreditCard className="w-4 h-4 text-primary" /> Pay with PayPal
+            </p>
+            <p className="text-xs text-muted-foreground mb-4">
+              You'll be redirected to PayPal to complete your payment securely.
+            </p>
+            {shippingValid && items.length > 0 ? (
+              <PayPalRedirectButton
+                items={items.map(i => ({ productId: i.productId, quantity: i.quantity }))}
+                shipping={shipping}
+              />
+            ) : (
+              <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-xl px-4 py-2">
+                Complete your shipping address above to unlock payment.
+              </p>
+            )}
+          </div>
+        )}
+
         {payMethod === "manual" && (
           <div className="bg-card border border-border/50 rounded-2xl p-5">
             <p className="text-sm font-semibold text-foreground mb-1 flex items-center gap-2">
@@ -276,45 +359,6 @@ function CartCheckout() {
             </Button>
           </div>
         )}
-        {payMethod === "paypal" && paypalCfg?.paypalConfigured && shippingValid && items.length > 0 && (
-          <PayPalScriptProvider options={{ clientId: paypalCfg.clientId!, currency: "USD", intent: "capture" }}>
-            <div className="bg-card border border-border/50 rounded-2xl p-5">
-              <p className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
-                <CreditCard className="w-4 h-4 text-primary" /> Pay with PayPal
-              </p>
-              <PayPalButtons
-                style={{ layout: "vertical", shape: "rect", color: "blue", label: "pay" }}
-                createOrder={async () => {
-                  const r = await fetch("/api/checkout/paypal", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-                    body: JSON.stringify({ productId: items[0].productId, quantity: items[0].quantity }),
-                  });
-                  if (!r.ok) throw new Error("Failed to create PayPal order");
-                  const d = await r.json();
-                  return d.paypalOrderId;
-                }}
-                onApprove={async (data) => {
-                  const r = await fetch("/api/checkout/paypal/capture", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-                    body: JSON.stringify({ paypalOrderId: data.orderID, productId: items[0].productId, quantity: items[0].quantity, shipping }),
-                  });
-                  if (!r.ok) throw new Error("Payment capture failed");
-                  const result = await r.json();
-                  clearCart();
-                  setDone({ orderId: result.orderId, amount: total });
-                }}
-                onError={() => toast({ variant: "destructive", title: "PayPal error", description: "Payment failed. Please try again." })}
-              />
-            </div>
-          </PayPalScriptProvider>
-        )}
-        {payMethod === "paypal" && !shippingValid && (
-          <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-xl px-4 py-2">
-            Complete your shipping address above to unlock payment.
-          </p>
-        )}
       </div>
       <div className="lg:col-span-2 space-y-4">
         <OrderSummary
@@ -325,6 +369,121 @@ function CartCheckout() {
         />
         <EscrowNotice />
       </div>
+    </div>
+  );
+}
+
+// ── PayPal Return Handler ───────────────────────────────────────────────────────
+// Mounted at /checkout/paypal/return — PayPal redirects here after approval
+export function PayPalReturnPage() {
+  const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
+  const [orderId, setOrderId] = useState("");
+  const [amount, setAmount] = useState(0);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [, setLocation] = useLocation();
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("token"); // PayPal order ID
+    const payerID = params.get("PayerID");
+
+    if (!token) {
+      setErrorMsg("No PayPal token found. The payment may have been cancelled.");
+      setStatus("error");
+      return;
+    }
+
+    const raw = sessionStorage.getItem(PAYPAL_PENDING_KEY);
+    if (!raw) {
+      setErrorMsg("Checkout session expired. Please start your order again.");
+      setStatus("error");
+      return;
+    }
+
+    const pending = JSON.parse(raw) as {
+      paypalOrderId: string;
+      items: Array<{ productId: string; quantity: number }>;
+      shipping: ShippingForm;
+    };
+
+    sessionStorage.removeItem(PAYPAL_PENDING_KEY);
+
+    fetch("/api/checkout/paypal/capture", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        paypalOrderId: token,
+        items: pending.items,
+        shipping: pending.shipping,
+      }),
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          setOrderId(data.orderId);
+          setAmount(parseFloat(data.amount || "0"));
+          setStatus("success");
+        } else {
+          throw new Error(data.error || "Payment capture failed");
+        }
+      })
+      .catch(e => {
+        setErrorMsg(e.message);
+        setStatus("error");
+      });
+  }, []);
+
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <Navbar />
+        <main className="flex-1 flex items-center justify-center">
+          <div className="text-center space-y-4">
+            <Loader2 className="w-12 h-12 animate-spin text-primary mx-auto" />
+            <p className="text-lg font-semibold text-foreground">Confirming your payment…</p>
+            <p className="text-sm text-muted-foreground">Please wait while we secure your funds in escrow.</p>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (status === "error") {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <Navbar />
+        <main className="flex-1 flex items-center justify-center px-4">
+          <div className="max-w-md w-full text-center space-y-6 py-12">
+            <div className="w-20 h-20 rounded-full bg-red-100 flex items-center justify-center mx-auto">
+              <AlertCircle className="w-10 h-10 text-red-500" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-display font-bold text-foreground mb-2">Payment Failed</h2>
+              <p className="text-sm text-muted-foreground">{errorMsg}</p>
+            </div>
+            <div className="flex flex-col gap-2">
+              <Button className="rounded-xl" onClick={() => setLocation("/checkout")}>Try Again</Button>
+              <Button variant="outline" className="rounded-xl" onClick={() => setLocation("/")}>Back to Shop</Button>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen flex flex-col bg-background">
+      <Navbar />
+      <main className="flex-1 flex items-center justify-center px-4">
+        <OrderSuccess
+          orderId={orderId}
+          amount={amount}
+          onDone={() => setLocation("/buyer/dashboard")}
+        />
+      </main>
+      <Footer />
     </div>
   );
 }
@@ -387,7 +546,7 @@ function PaymentMethodSection({ payMethod, onSelect, paypalConfigured }: {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-foreground">PayPal</p>
-              <p className="text-xs text-muted-foreground">Secure payment via PayPal</p>
+              <p className="text-xs text-muted-foreground">Redirects to PayPal for secure payment</p>
             </div>
             {payMethod === "paypal" && <CheckCircle2 className="w-5 h-5 text-primary shrink-0" />}
           </button>
@@ -589,7 +748,7 @@ export default function Checkout() {
           </div>
         </div>
         {productId ? (
-          <ProductCheckout productId={productId} qty={qty} />
+          <ProductCheckout productId={productId} initialQty={qty} />
         ) : (
           <CartCheckout />
         )}

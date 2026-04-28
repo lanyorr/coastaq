@@ -10,7 +10,7 @@ import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import ProductDetails from "@/pages/ProductDetails";
 import Cart from "@/pages/Cart";
-import Checkout from "@/pages/Checkout";
+import Checkout, { PayPalReturnPage } from "@/pages/Checkout";
 import Orders from "@/pages/Orders";
 import SellerDashboard from "@/pages/SellerDashboard";
 import AdminDashboard from "@/pages/AdminDashboard";
@@ -71,6 +71,7 @@ function Router() {
       <Route path="/products/:id" component={ProductDetails} />
       <Route path="/cart" component={Cart} />
       <Route path="/checkout" component={Checkout} />
+      <Route path="/checkout/paypal/return" component={PayPalReturnPage} />
       <Route path="/orders" component={Orders} />
       <Route path="/buyer/dashboard" component={BuyerDashboard} />
       <Route path="/seller/dashboard" component={SellerDashboard} />
