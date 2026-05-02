@@ -35,6 +35,7 @@ export default function ShopPage() {
   const [, setLocation] = useLocation();
   const slug = params?.slug || "";
   const { data: user } = useGetMe({ query: { retry: false } });
+  const { t } = useLocale();
 
   const { data: shop, isLoading, isError } = useGetShopBySlug(slug) as any;
   const { data: productsData } = useListProducts({ shopId: shop?.id, limit: 48 }, { query: { enabled: !!shop?.id } });
@@ -95,10 +96,10 @@ export default function ShopPage() {
         <main className="flex-1 flex items-center justify-center text-center px-4 py-20">
           <div>
             <Store className="w-16 h-16 text-muted-foreground/40 mx-auto mb-4" />
-            <h2 className="text-2xl font-display font-bold text-foreground mb-2">Shop not found</h2>
-            <p className="text-muted-foreground mb-6">This store doesn't exist or may have been removed.</p>
+            <h2 className="text-2xl font-display font-bold text-foreground mb-2">{t("shop.notFound")}</h2>
+            <p className="text-muted-foreground mb-6">{t("shop.notFoundDesc")}</p>
             <Button onClick={() => setLocation("/")} className="rounded-xl gap-2">
-              <ArrowLeft className="w-4 h-4" /> Browse Marketplace
+              <ArrowLeft className="w-4 h-4" /> {t("shop.browseMarketplace")}
             </Button>
           </div>
         </main>
@@ -132,7 +133,7 @@ export default function ShopPage() {
           onClick={() => setLocation("/")}
           className="absolute top-4 left-4 flex items-center gap-1.5 text-white/90 text-xs font-medium bg-black/25 backdrop-blur-sm px-3 py-1.5 rounded-full hover:bg-black/40 transition-colors"
         >
-          <ArrowLeft className="w-3.5 h-3.5" /> Back to Marketplace
+          <ArrowLeft className="w-3.5 h-3.5" /> {t("shop.backToMarketplace")}
         </button>
       </div>
 
@@ -158,7 +159,7 @@ export default function ShopPage() {
                 <h1 className="text-2xl font-display font-bold text-foreground truncate">{shop.name}</h1>
                 {shop.isApproved && (
                   <span className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 bg-blue-50 border border-blue-100 px-2.5 py-1 rounded-full shrink-0">
-                    <ShieldCheck className="w-3.5 h-3.5" /> Verified
+                    <ShieldCheck className="w-3.5 h-3.5" /> {t("product.verified")}
                   </span>
                 )}
               </div>
@@ -171,11 +172,11 @@ export default function ShopPage() {
                 )}
                 <span className="flex items-center gap-1">
                   <Calendar className="w-3 h-3" />
-                  {monthsAgo(shop.createdAt)} on Coastaq
+                  {monthsAgo(shop.createdAt)} {t("shop.onCoastaq")}
                 </span>
                 <span className="flex items-center gap-1">
                   <Package className="w-3 h-3" />
-                  {(shop as any).productCount ?? products.length} listings
+                  {(shop as any).productCount ?? products.length} {t("common.listings")}
                 </span>
               </div>
             </div>
@@ -187,12 +188,12 @@ export default function ShopPage() {
                 className="rounded-xl gap-2 text-sm h-10"
                 style={{ background: accentColor }}
               >
-                <MessageCircle className="w-4 h-4" /> Message
+                <MessageCircle className="w-4 h-4" /> {t("product.message")}
               </Button>
               {shop.website && (
                 <a href={shop.website} target="_blank" rel="noopener noreferrer">
                   <Button variant="outline" className="rounded-xl gap-2 text-sm h-10">
-                    <Globe className="w-4 h-4" /> Website
+                    <Globe className="w-4 h-4" /> {t("shop.website")}
                   </Button>
                 </a>
               )}
@@ -206,7 +207,7 @@ export default function ShopPage() {
               {/* About */}
               {shop.description && (
                 <div className="bg-card border border-border/50 rounded-2xl p-5">
-                  <h3 className="font-semibold text-sm text-foreground mb-2">About This Shop</h3>
+                  <h3 className="font-semibold text-sm text-foreground mb-2">{t("shop.about")}</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">{shop.description}</p>
                 </div>
               )}
@@ -214,7 +215,7 @@ export default function ShopPage() {
               {/* Contact info */}
               {(shop.phone || shop.whatsapp || shop.email) && (
                 <div className="bg-card border border-border/50 rounded-2xl p-5 space-y-3">
-                  <h3 className="font-semibold text-sm text-foreground">Contact</h3>
+                  <h3 className="font-semibold text-sm text-foreground">{t("shop.contact")}</h3>
                   {shop.phone && (
                     <a href={`tel:${shop.phone}`} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
                       <Phone className="w-4 h-4 shrink-0" />
@@ -240,7 +241,7 @@ export default function ShopPage() {
               {shop.businessHours && (
                 <div className="bg-card border border-border/50 rounded-2xl p-5">
                   <h3 className="font-semibold text-sm text-foreground flex items-center gap-2 mb-2">
-                    <Clock className="w-4 h-4" /> Business Hours
+                    <Clock className="w-4 h-4" /> {t("shop.businessHours")}
                   </h3>
                   <p className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">{shop.businessHours}</p>
                 </div>
@@ -249,7 +250,7 @@ export default function ShopPage() {
               {/* Social links */}
               {socialLinks.length > 0 && (
                 <div className="bg-card border border-border/50 rounded-2xl p-5">
-                  <h3 className="font-semibold text-sm text-foreground mb-3">Follow Us</h3>
+                  <h3 className="font-semibold text-sm text-foreground mb-3">{t("shop.followUs")}</h3>
                   <div className="flex flex-wrap gap-2">
                     {socialLinks.map(s => (
                       <a
@@ -269,8 +270,8 @@ export default function ShopPage() {
 
               {/* Trust badges */}
               <div className="bg-blue-50 border border-blue-100 rounded-2xl p-5 space-y-2">
-                <h3 className="font-semibold text-sm text-blue-800">Buyer Protection</h3>
-                <p className="text-xs text-blue-600 leading-relaxed">All purchases through Coastaq are escrow-protected. Funds are only released to the seller after you confirm receipt.</p>
+                <h3 className="font-semibold text-sm text-blue-800">{t("shop.buyerProtection")}</h3>
+                <p className="text-xs text-blue-600 leading-relaxed">{t("shop.buyerProtectionDesc")}</p>
               </div>
             </div>
 
@@ -278,7 +279,7 @@ export default function ShopPage() {
             <div className="lg:col-span-3">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-display font-bold text-foreground">
-                  All Listings
+                  {t("shop.allListings")}
                   {products.length > 0 && (
                     <span className="text-sm font-normal text-muted-foreground ml-2">({products.length})</span>
                   )}
@@ -288,12 +289,12 @@ export default function ShopPage() {
               {products.length === 0 ? (
                 <div className="text-center py-20 bg-secondary/30 rounded-3xl">
                   <Package className="w-12 h-12 text-muted-foreground/40 mx-auto mb-3" />
-                  <p className="text-muted-foreground font-medium">No listings yet</p>
-                  <p className="text-sm text-muted-foreground/70 mt-1">Check back later for new products.</p>
+                  <p className="text-muted-foreground font-medium">{t("shop.noListings")}</p>
+                  <p className="text-sm text-muted-foreground/70 mt-1">{t("shop.noListingsDesc")}</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-                  {products.map((product) => (
+                  {products.map((product: any) => (
                     <ProductCard key={product.id} product={product} />
                   ))}
                 </div>

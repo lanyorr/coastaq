@@ -49,7 +49,7 @@ export default function ProductDetails() {
           productId: product.id,
           title: product.title,
           price: product.price,
-          shopName: shop?.name || "Unknown Shop",
+          shopName: shop?.name || "",
           image: product.images?.[0] || "",
           location: product.location || "",
           savedAt: new Date().toISOString(),
@@ -72,12 +72,12 @@ export default function ProductDetails() {
     }
 
     if (user.role === "SELLER" || user.role === "ADMIN") {
-      toast({ title: "Buyers only", description: "Only buyers can message sellers." });
+      toast({ title: t("product.messageSeller"), description: t("product.buyersOnly" as any) || "Only buyers can message sellers." });
       return;
     }
 
     if (!sellerId) {
-      toast({ title: "Unable to message", description: "This seller's profile is unavailable.", variant: "destructive" });
+      toast({ title: t("product.messageSeller"), description: "This seller's profile is unavailable.", variant: "destructive" });
       return;
     }
 
@@ -101,7 +101,7 @@ export default function ProductDetails() {
     if (!product) return;
     if (!user) { setLocation("/auth/login"); return; }
     if (user.role === "SELLER" || user.role === "ADMIN") {
-      toast({ title: "Buyers only", description: "Only buyers can place orders." });
+      toast({ title: t("product.placeOrder"), description: "Only buyers can place orders." });
       return;
     }
     setLocation(`/checkout?productId=${product.id}&qty=1`);
@@ -128,7 +128,7 @@ export default function ProductDetails() {
       <div className="min-h-screen flex flex-col bg-background">
         <Navbar />
         <div className="container mx-auto px-4 py-32 text-center">
-          <h2 className="text-3xl font-display font-bold mb-4">Product not found</h2>
+          <h2 className="text-3xl font-display font-bold mb-4">{t("product.notFound")}</h2>
           <p className="text-muted-foreground">The product you're looking for doesn't exist or was removed.</p>
         </div>
       </div>
@@ -141,6 +141,12 @@ export default function ProductDetails() {
   const shopMonths = shop?.createdAt ? monthsAgo(shop.createdAt) : "1 month";
   const isVerified = shop?.isApproved;
 
+  const escrowItems = [
+    { icon: Lock, key: "product.paymentHeld" as const },
+    { icon: ShieldCheck, key: "product.openDispute" as const },
+    { icon: CheckCircle2, key: "product.autoRelease7" as const },
+  ];
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
@@ -148,7 +154,7 @@ export default function ProductDetails() {
       <main className="flex-1 container mx-auto px-4 py-8 md:py-12 pb-24 lg:pb-12">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-1.5 text-sm text-muted-foreground mb-6">
-          <a href="/" className="hover:text-primary transition-colors">Home</a>
+          <a href="/" className="hover:text-primary transition-colors">{t("product.home")}</a>
           <ChevronRight className="w-3.5 h-3.5" />
           <span className="text-foreground font-medium truncate max-w-[200px]">{product.title}</span>
         </nav>
@@ -169,7 +175,7 @@ export default function ProductDetails() {
               </div>
               {images.length > 1 && (
                 <div className="flex gap-3 p-4 overflow-x-auto">
-                  {images.map((img, idx) => (
+                  {images.map((img: string, idx: number) => (
                     <button
                       key={idx}
                       onClick={() => setActiveImage(idx)}
@@ -206,15 +212,15 @@ export default function ProductDetails() {
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <MapPin className="w-4 h-4 shrink-0" />
-                <span>{product.location || "Location not specified"}</span>
+                <span>{product.location || t("product.locationNotSpecified")}</span>
               </div>
             </div>
 
             {/* Description */}
             <div className="bg-card border border-border/50 rounded-2xl p-6">
-              <h2 className="font-display font-semibold text-foreground mb-3 text-base">Description</h2>
+              <h2 className="font-display font-semibold text-foreground mb-3 text-base">{t("product.description")}</h2>
               <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
-                {product.description || "No description provided."}
+                {product.description || t("product.noDescription")}
               </p>
             </div>
           </div>
@@ -229,7 +235,7 @@ export default function ProductDetails() {
               </div>
               <span className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground bg-secondary px-3 py-1 rounded-full">
                 <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
-                Fixed price
+                {t("product.fixedPrice")}
               </span>
             </div>
 
@@ -255,7 +261,7 @@ export default function ProductDetails() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <span className="font-semibold text-foreground text-sm leading-tight block truncate">
-                      {shop?.name || "Unknown Shop"}
+                      {shop?.name || ""}
                     </span>
                     <div className="flex flex-wrap items-center gap-1.5 mt-1">
                       {(shop?.city || shop?.country) && (
@@ -268,12 +274,12 @@ export default function ProductDetails() {
                     <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
                       <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">
                         <Clock className="w-3 h-3" />
-                        {shopMonths} on Coastaq
+                        {shopMonths} {t("product.onCoastaq")}
                       </span>
                       {isVerified && (
                         <span className="inline-flex items-center gap-1 text-[11px] text-blue-600 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded-full">
                           <ShieldCheck className="w-3 h-3" />
-                          Verified
+                          {t("product.verified")}
                         </span>
                       )}
                     </div>
@@ -291,7 +297,7 @@ export default function ProductDetails() {
                     className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-primary/30 text-primary font-semibold text-sm hover:bg-primary/5 transition-colors"
                   >
                     <Store className="w-4 h-4" />
-                    Visit Shop
+                    {t("product.visitShop")}
                   </a>
                 )}
 
@@ -306,7 +312,7 @@ export default function ProductDetails() {
                   ) : (
                     <MessageCircle className="w-4 h-4" />
                   )}
-                  {messageSending ? "Opening chat…" : "Message seller"}
+                  {messageSending ? t("product.openingChat") : t("product.messageSeller")}
                 </button>
 
                 {/* Place Order → checkout */}
@@ -315,7 +321,7 @@ export default function ProductDetails() {
                   className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-primary text-primary font-semibold text-sm hover:bg-primary/5 transition-colors"
                 >
                   <ShoppingBag className="w-4 h-4" />
-                  Place Order
+                  {t("product.placeOrder")}
                 </button>
               </div>
             </div>
@@ -327,19 +333,15 @@ export default function ProductDetails() {
                   <Shield className="w-4 h-4" />
                 </div>
                 <div>
-                  <p className="text-sm font-bold">Escrow Protected</p>
-                  <p className="text-[11px] text-blue-200">Buyer protection guaranteed</p>
+                  <p className="text-sm font-bold">{t("product.escrowProtected")}</p>
+                  <p className="text-[11px] text-blue-200">{t("product.buyerProtectionGuaranteed")}</p>
                 </div>
               </div>
               <div className="space-y-1.5">
-                {[
-                  { icon: Lock, text: "Payment held securely until you confirm receipt" },
-                  { icon: ShieldCheck, text: "Open a dispute if anything goes wrong" },
-                  { icon: CheckCircle2, text: "Auto-released 7 days after delivery" },
-                ].map(({ icon: Icon, text }) => (
-                  <div key={text} className="flex items-center gap-2 text-xs text-blue-100">
+                {escrowItems.map(({ icon: Icon, key }) => (
+                  <div key={key} className="flex items-center gap-2 text-xs text-blue-100">
                     <Icon className="w-3.5 h-3.5 shrink-0 text-blue-300" />
-                    {text}
+                    {t(key)}
                   </div>
                 ))}
               </div>
@@ -348,17 +350,17 @@ export default function ProductDetails() {
             {/* Bottom actions */}
             <div className="flex gap-2">
               <button
-                onClick={() => toast({ title: "Marked unavailable", description: "Thank you for letting us know." })}
+                onClick={() => toast({ title: t("product.markUnavailable"), description: "Thank you for letting us know." })}
                 className="flex-1 py-2.5 rounded-xl border border-border text-muted-foreground text-xs font-medium hover:border-foreground/20 hover:text-foreground transition-colors"
               >
-                Mark unavailable
+                {t("product.markUnavailable")}
               </button>
               <button
-                onClick={() => toast({ title: "Report submitted", description: "We'll review this listing shortly.", variant: "destructive" })}
+                onClick={() => toast({ title: t("product.reportAbuse"), description: "We'll review this listing shortly.", variant: "destructive" })}
                 className="flex-1 py-2.5 rounded-xl border border-red-200 text-red-600 text-xs font-medium hover:bg-red-50 transition-colors flex items-center justify-center gap-1"
               >
                 <Flag className="w-3.5 h-3.5" />
-                Report Abuse
+                {t("product.reportAbuse")}
               </button>
             </div>
           </div>
@@ -370,7 +372,7 @@ export default function ProductDetails() {
       <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-md border-t border-border/40 px-4 py-3 flex items-center gap-3">
         <div className="flex flex-col min-w-0">
           <span className="font-bold text-lg text-foreground leading-none">
-            ${Number(product.price).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            {formatPrice(Number(product.price))}
           </span>
           <span className="text-xs text-muted-foreground truncate">{product.title}</span>
         </div>
@@ -381,14 +383,14 @@ export default function ProductDetails() {
             className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-primary text-white font-semibold text-sm hover:bg-primary/90 transition-colors shadow-sm disabled:opacity-60"
           >
             {messageSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <MessageCircle className="w-4 h-4" />}
-            {messageSending ? "Opening…" : "Message"}
+            {messageSending ? t("product.opening") : t("product.message")}
           </button>
           <button
             onClick={handlePlaceOrder}
             className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border-2 border-primary text-primary font-semibold text-sm hover:bg-primary/5 transition-colors"
           >
             <ShoppingBag className="w-4 h-4" />
-            Order
+            {t("product.order")}
           </button>
         </div>
       </div>
