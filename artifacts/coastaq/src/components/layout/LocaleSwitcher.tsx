@@ -9,7 +9,7 @@ function Dropdown({
   children,
 }: {
   trigger: React.ReactNode;
-  children: React.ReactNode;
+  children: (close: () => void) => React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -22,6 +22,8 @@ function Dropdown({
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
+  const close = () => setOpen(false);
+
   return (
     <div ref={ref} className="relative">
       <button
@@ -33,7 +35,7 @@ function Dropdown({
       </button>
       {open && (
         <div className="absolute right-0 top-full mt-1 z-[200] bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden min-w-[170px] max-h-72 overflow-y-auto">
-          {children}
+          {children(close)}
         </div>
       )}
     </div>
@@ -58,20 +60,22 @@ export function LocaleSwitcher() {
           </>
         }
       >
-        <div className="p-1">
-          <p className="text-[10px] font-semibold text-gray-400 uppercase px-2 py-1 tracking-wide">Language</p>
-          {Object.entries(LANGUAGES).map(([code, info]) => (
-            <button
-              key={code}
-              onClick={() => setLang(code)}
-              className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm hover:bg-gray-50 transition-colors ${lang === code ? "bg-primary/8 text-primary font-semibold" : "text-gray-700"}`}
-            >
-              <span className="text-base leading-none">{info.flag}</span>
-              <span className="flex-1 text-left">{info.nativeName}</span>
-              {lang === code && <span className="w-1.5 h-1.5 rounded-full bg-primary" />}
-            </button>
-          ))}
-        </div>
+        {(close) => (
+          <div className="p-1">
+            <p className="text-[10px] font-semibold text-gray-400 uppercase px-2 py-1 tracking-wide">Language</p>
+            {Object.entries(LANGUAGES).map(([code, info]) => (
+              <button
+                key={code}
+                onClick={() => { setLang(code); close(); }}
+                className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm hover:bg-gray-50 transition-colors ${lang === code ? "bg-primary/8 text-primary font-semibold" : "text-gray-700"}`}
+              >
+                <span className="text-base leading-none">{info.flag}</span>
+                <span className="flex-1 text-left">{info.nativeName}</span>
+                {lang === code && <span className="w-1.5 h-1.5 rounded-full bg-primary" />}
+              </button>
+            ))}
+          </div>
+        )}
       </Dropdown>
 
       {/* Currency picker */}
@@ -83,21 +87,23 @@ export function LocaleSwitcher() {
           </>
         }
       >
-        <div className="p-1">
-          <p className="text-[10px] font-semibold text-gray-400 uppercase px-2 py-1 tracking-wide">Currency</p>
-          {Object.entries(CURRENCIES).map(([code, info]) => (
-            <button
-              key={code}
-              onClick={() => setCurrency(code)}
-              className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm hover:bg-gray-50 transition-colors ${currency === code ? "bg-primary/8 text-primary font-semibold" : "text-gray-700"}`}
-            >
-              <span className="text-base leading-none w-6">{info.flag}</span>
-              <span className="font-medium w-12 shrink-0">{code}</span>
-              <span className="text-gray-400 text-xs truncate">{info.name}</span>
-              {currency === code && <span className="w-1.5 h-1.5 rounded-full bg-primary ml-auto shrink-0" />}
-            </button>
-          ))}
-        </div>
+        {(close) => (
+          <div className="p-1">
+            <p className="text-[10px] font-semibold text-gray-400 uppercase px-2 py-1 tracking-wide">Currency</p>
+            {Object.entries(CURRENCIES).map(([code, info]) => (
+              <button
+                key={code}
+                onClick={() => { setCurrency(code); close(); }}
+                className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm hover:bg-gray-50 transition-colors ${currency === code ? "bg-primary/8 text-primary font-semibold" : "text-gray-700"}`}
+              >
+                <span className="text-base leading-none w-6">{info.flag}</span>
+                <span className="font-medium w-12 shrink-0">{code}</span>
+                <span className="text-gray-400 text-xs truncate">{info.name}</span>
+                {currency === code && <span className="w-1.5 h-1.5 rounded-full bg-primary ml-auto shrink-0" />}
+              </button>
+            ))}
+          </div>
+        )}
       </Dropdown>
     </div>
   );
