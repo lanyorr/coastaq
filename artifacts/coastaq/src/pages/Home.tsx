@@ -14,6 +14,7 @@ import {
   Baby, Gem, Plug
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
+import { useLocale } from "@/lib/locale/context";
 
 // Maps a category name → { icon, bg color }
 function getCategoryMeta(name: string): { icon: React.ReactNode; bg: string; fg: string } {
@@ -73,6 +74,7 @@ export default function Home() {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [page, setPage] = useState(1);
   const [heroSearch, setHeroSearch] = useState("");
+  const { t, formatPrice } = useLocale();
 
   const handleHeroSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -183,8 +185,8 @@ export default function Home() {
         <aside className="hidden md:flex flex-col w-72 shrink-0 border-r border-border bg-white">
           <div className="sticky top-16 overflow-y-auto" style={{ maxHeight: "calc(100vh - 64px)" }}>
             <div className="px-5 pt-6 pb-3">
-              <p className="font-display font-bold text-base text-foreground">Browse Categories</p>
-              <p className="text-xs text-muted-foreground mt-0.5">Find what you need</p>
+              <p className="font-display font-bold text-base text-foreground">{t("browse.categories")}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{t("browse.findWhat")}</p>
             </div>
 
             {loadingCats ? (
@@ -209,7 +211,7 @@ export default function Home() {
                       >
                         <ShoppingBag className="w-4 h-4" />
                       </div>
-                      <span>All Products</span>
+                      <span>{t("browse.allProducts")}</span>
                     </div>
                     <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50 group-hover:text-muted-foreground transition-colors" />
                   </button>
@@ -307,12 +309,10 @@ export default function Home() {
                 <div className="flex-1 flex flex-col gap-6 z-10">
                   <div>
                     <h1 className="text-4xl md:text-5xl font-display font-bold text-white leading-[1.1] tracking-tight mb-4">
-                      Where Every<br />
-                      Transaction Builds<br />
-                      <span style={{ color: "#ffffff", textShadow: "0 0 32px rgba(255,255,255,0.35)" }}>Community</span>
+                      {t("hero.title")}
                     </h1>
                     <p className="text-base text-white/95 max-w-md leading-relaxed font-medium">
-                      Discover trusted marketplace connecting coastal commerce globally. Every order is <strong>escrow-protected</strong> — your payment is held securely until you confirm receipt.
+                      {t("hero.subtitle")}
                     </p>
                   </div>
 
@@ -322,7 +322,7 @@ export default function Home() {
                       <Search className="h-4 w-4 text-gray-400 shrink-0" />
                       <input
                         type="search"
-                        placeholder="Search for anything..."
+                        placeholder={t("hero.searchPlaceholder")}
                         className="flex-1 bg-transparent outline-none text-sm text-gray-800 placeholder:text-gray-400 min-w-0"
                         value={heroSearch}
                         onChange={(e) => setHeroSearch(e.target.value)}
@@ -333,7 +333,7 @@ export default function Home() {
                       className="rounded-r-full px-6 py-3 text-sm font-semibold text-white shadow-lg transition-opacity hover:opacity-90 shrink-0"
                       style={{ background: "linear-gradient(135deg, #f97316, #ef4444)" }}
                     >
-                      Search
+                      {t("common.search")}
                     </button>
                   </form>
 
@@ -344,23 +344,23 @@ export default function Home() {
                       className="flex items-center gap-2 px-5 py-2.5 rounded-full border-2 border-white/40 text-white text-sm font-semibold hover:bg-white/10 transition-colors"
                     >
                       <Plus className="w-4 h-4" />
-                      Post Free Ad
+                      {t("hero.postAd")}
                     </button>
                     <button
                       onClick={() => document.getElementById("product-grid")?.scrollIntoView({ behavior: "smooth" })}
                       className="flex items-center gap-2 px-5 py-2.5 rounded-full border-2 border-white/30 text-white/90 text-sm font-semibold hover:bg-white/10 transition-colors"
                     >
                       <Zap className="w-4 h-4" />
-                      Browse Deals
+                      {t("hero.browseDeals")}
                     </button>
                   </div>
 
                   {/* Stats row */}
                   <div className="flex items-center gap-8 pt-2">
                     {[
-                      { value: "2.5M+", label: "Listings" },
-                      { value: "850K+", label: "Sellers" },
-                      { value: "100%", label: "Escrow Safe" },
+                      { value: "2.5M+", label: t("hero.stats.listings") },
+                      { value: "850K+", label: t("hero.stats.sellers") },
+                      { value: "100%", label: t("hero.stats.escrowSafe") },
                     ].map((s) => (
                       <div key={s.label} className="flex flex-col">
                         <span className="text-2xl md:text-3xl font-display font-bold text-white tracking-tight">{s.value}</span>
@@ -372,7 +372,7 @@ export default function Home() {
                   {/* Escrow trust pill */}
                   <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full px-4 py-2 w-fit">
                     <Shield className="w-4 h-4 text-white" />
-                    <span className="text-white text-xs font-semibold tracking-wide">All payments held in escrow until delivery is confirmed</span>
+                    <span className="text-white text-xs font-semibold tracking-wide">{t("hero.escrowNote")}</span>
                   </div>
                 </div>
 
@@ -440,7 +440,7 @@ export default function Home() {
                           </span>
                         </div>
                         <span className="font-bold text-sm shrink-0" style={{ color: "#60a5fa" }}>
-                          ${currentFeatured?.price?.toLocaleString() ?? "Explore"} →
+                          {currentFeatured?.price != null ? formatPrice(Number(currentFeatured.price)) : "Explore"} →
                         </span>
                       </div>
                     </div>
@@ -462,8 +462,8 @@ export default function Home() {
                   <Lock className="w-4 h-4 text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-blue-800 leading-none">Payment in Escrow</p>
-                  <p className="text-[11px] text-blue-600/80 mt-0.5">Funds held until you confirm receipt</p>
+                  <p className="text-xs font-bold text-blue-800 leading-none">{t("escrow.paymentInEscrow")}</p>
+                  <p className="text-[11px] text-blue-600/80 mt-0.5">{t("escrow.fundsHeld")}</p>
                 </div>
               </div>
               <div className="hidden sm:block w-px h-8 bg-blue-200/60" />
@@ -472,8 +472,8 @@ export default function Home() {
                   <Shield className="w-4 h-4 text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-blue-800 leading-none">Dispute Protection</p>
-                  <p className="text-[11px] text-blue-600/80 mt-0.5">Open a dispute if anything goes wrong</p>
+                  <p className="text-xs font-bold text-blue-800 leading-none">{t("escrow.disputeProtection")}</p>
+                  <p className="text-[11px] text-blue-600/80 mt-0.5">{t("escrow.disputeDesc")}</p>
                 </div>
               </div>
               <div className="hidden sm:block w-px h-8 bg-blue-200/60" />
@@ -482,14 +482,14 @@ export default function Home() {
                   <CheckCircle2 className="w-4 h-4 text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-blue-800 leading-none">Auto-Release in 7 Days</p>
-                  <p className="text-[11px] text-blue-600/80 mt-0.5">Seller paid automatically post-delivery</p>
+                  <p className="text-xs font-bold text-blue-800 leading-none">{t("escrow.autoRelease")}</p>
+                  <p className="text-[11px] text-blue-600/80 mt-0.5">{t("escrow.autoReleaseDesc")}</p>
                 </div>
               </div>
               <div className="hidden sm:block w-px h-8 bg-blue-200/60" />
               <div className="flex items-center gap-2">
                 <Shield className="w-4 h-4 text-blue-600 shrink-0" />
-                <span className="text-xs font-bold text-blue-700 uppercase tracking-wide">Every Order · Escrow Protected</span>
+                <span className="text-xs font-bold text-blue-700 uppercase tracking-wide">{t("escrow.everyOrder")}</span>
               </div>
             </div>
           </div>
@@ -508,11 +508,11 @@ export default function Home() {
                     const found = flat.find((c: any) => c.id === categoryId);
                     return found ? found.name : "Browse Products";
                   })()
-                : "All Products"}
+                : t("browse.allProducts")}
             </h2>
             {!loadingProducts && productsData && productsData.total > 0 && (
               <span className="text-sm text-muted-foreground bg-secondary/60 px-3 py-1 rounded-full">
-                {productsData.total.toLocaleString()} listing{productsData.total !== 1 ? "s" : ""}
+                {productsData.total.toLocaleString()} {t("common.listings")}
               </span>
             )}
           </div>
@@ -532,8 +532,8 @@ export default function Home() {
               <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-secondary text-primary mb-4">
                 <Store className="h-8 w-8" />
               </div>
-              <h3 className="text-xl font-display font-bold text-foreground mb-2">No products found</h3>
-              <p className="text-muted-foreground">Try adjusting your filters or search query.</p>
+              <h3 className="text-xl font-display font-bold text-foreground mb-2">{t("browse.noProducts")}</h3>
+              <p className="text-muted-foreground">{t("browse.noProductsDesc")}</p>
             </div>
           ) : (
             <>

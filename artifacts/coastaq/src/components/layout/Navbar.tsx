@@ -14,6 +14,8 @@ import {
 import { useState, useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { CoastaqLogo } from "./CoastaqLogo";
+import { LocaleSwitcher } from "./LocaleSwitcher";
+import { useLocale } from "@/lib/locale/context";
 
 export function Navbar() {
   const [_, setLocation] = useLocation();
@@ -25,6 +27,7 @@ export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const mobileSearchRef = useRef<HTMLInputElement>(null);
+  const { t } = useLocale();
 
   useEffect(() => {
     if (!user) { setUnread(0); return; }
@@ -34,8 +37,8 @@ export function Navbar() {
         .then(d => setUnread(d.unread ?? 0))
         .catch(() => {});
     fetch_();
-    const t = setInterval(fetch_, 15000);
-    return () => clearInterval(t);
+    const timer = setInterval(fetch_, 15000);
+    return () => clearInterval(timer);
   }, [user]);
 
   useEffect(() => {
@@ -68,7 +71,7 @@ export function Navbar() {
   return (
     <header className="sticky top-0 z-50 w-full bg-white border-b border-gray-200 shadow-sm">
       {/* Main bar */}
-      <div className="container mx-auto px-4 h-16 flex items-center justify-between gap-4">
+      <div className="container mx-auto px-4 h-16 flex items-center justify-between gap-3">
         {/* Logo */}
         <Link href="/" className="flex items-center shrink-0" onClick={() => setMobileOpen(false)}>
           <CoastaqLogo />
@@ -81,7 +84,7 @@ export function Navbar() {
             className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-gradient-to-r from-primary to-blue-600 text-white shadow-md shadow-primary/25 hover:shadow-lg hover:shadow-primary/30 hover:scale-105 transition-all duration-200"
           >
             <ShoppingBag className="w-4 h-4" />
-            Shop
+            {t("nav.shop")}
           </Link>
           <a
             href="https://web.afrigocall.com"
@@ -105,14 +108,19 @@ export function Navbar() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
           <Input
             type="search"
-            placeholder="Search listings..."
+            placeholder={t("nav.searchPlaceholder")}
             className="w-full pl-10 bg-gray-50 border-gray-200 focus-visible:bg-white focus-visible:ring-primary/20 rounded-full transition-all text-sm"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </form>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
+          {/* Locale switcher (desktop) */}
+          <div className="hidden sm:flex">
+            <LocaleSwitcher />
+          </div>
+
           {/* Mobile search icon */}
           <button
             className="md:hidden p-2 rounded-full hover:bg-gray-100 transition-colors"
@@ -128,7 +136,7 @@ export function Navbar() {
               className="hidden sm:flex text-primary hover:text-primary hover:bg-primary/10 rounded-full text-sm font-medium"
               onClick={() => setLocation("/auth/register?role=SELLER")}
             >
-              Sell on Coastaq
+              {t("nav.sell")}
             </Button>
           )}
 
@@ -136,7 +144,7 @@ export function Navbar() {
             <button
               onClick={() => nav("/messages")}
               className="relative p-2 rounded-full hover:bg-gray-100 transition-colors"
-              title="Messages"
+              title={t("nav.messages")}
             >
               <MessageCircle className="h-5 w-5 text-gray-500 hover:text-primary transition-colors" />
               {unread > 0 && (
@@ -168,12 +176,12 @@ export function Navbar() {
                     <DropdownMenuSeparator />
                     {user.role === "BUYER" && (
                       <DropdownMenuItem className="cursor-pointer rounded-xl" onClick={() => setLocation("/buyer/dashboard")}>
-                        <LayoutDashboard className="mr-2 h-4 w-4 text-primary" /> My Dashboard
+                        <LayoutDashboard className="mr-2 h-4 w-4 text-primary" /> {t("nav.dashboard")}
                       </DropdownMenuItem>
                     )}
                     <DropdownMenuItem className="cursor-pointer rounded-xl" onClick={() => setLocation("/messages")}>
                       <MessageCircle className="mr-2 h-4 w-4 text-primary" />
-                      Messages
+                      {t("nav.messages")}
                       {unread > 0 && (
                         <span className="ml-auto bg-primary text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
                           {unread > 9 ? "9+" : unread}
@@ -182,12 +190,12 @@ export function Navbar() {
                     </DropdownMenuItem>
                     {user.role === "SELLER" && (
                       <DropdownMenuItem className="cursor-pointer rounded-xl text-primary" onClick={() => setLocation("/seller/dashboard")}>
-                        <Store className="mr-2 h-4 w-4" /> Seller Dashboard
+                        <Store className="mr-2 h-4 w-4" /> {t("nav.sellerDashboard")}
                       </DropdownMenuItem>
                     )}
                     {user.role === "ADMIN" && (
                       <DropdownMenuItem className="cursor-pointer rounded-xl" onClick={() => setLocation("/admin")}>
-                        <User className="mr-2 h-4 w-4" /> Admin Panel
+                        <User className="mr-2 h-4 w-4" /> {t("nav.adminPanel")}
                       </DropdownMenuItem>
                     )}
                     <DropdownMenuSeparator />
@@ -195,7 +203,7 @@ export function Navbar() {
                       className="cursor-pointer rounded-xl text-destructive focus:text-destructive"
                       onClick={handleLogout}
                     >
-                      Log out
+                      {t("nav.logout")}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -217,14 +225,14 @@ export function Navbar() {
                 className="hidden sm:inline-flex rounded-full text-sm font-medium text-gray-700 hover:text-primary"
                 onClick={() => setLocation("/auth/login")}
               >
-                Login
+                {t("nav.login")}
               </Button>
               <Button
                 className="rounded-full bg-primary hover:bg-primary/90 text-white shadow-md shadow-primary/25 text-sm px-4 font-semibold gap-1.5"
                 onClick={() => setLocation("/auth/register")}
               >
                 <User className="w-4 h-4" />
-                Sign Up
+                {t("nav.signup")}
               </Button>
               {/* Mobile hamburger for guest */}
               <button
@@ -247,7 +255,7 @@ export function Navbar() {
             <Input
               ref={mobileSearchRef}
               type="search"
-              placeholder="Search listings..."
+              placeholder={t("nav.searchPlaceholder")}
               className="w-full pl-10 bg-gray-50 border-gray-200 rounded-full"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -261,7 +269,7 @@ export function Navbar() {
         <div className="md:hidden border-t border-gray-100 bg-white">
           <nav className="container mx-auto px-4 py-4 flex flex-col gap-1">
             <Link href="/shop" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-gradient-to-r from-primary to-blue-600 text-white text-sm font-semibold shadow-md shadow-primary/20">
-              <ShoppingBag className="w-4 h-4" /> Shop
+              <ShoppingBag className="w-4 h-4" /> {t("nav.shop")}
             </Link>
             <a href="https://web.afrigocall.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 text-sm font-medium text-foreground">
               Afrigocall <ExternalLink className="w-3.5 h-3.5 ml-auto text-gray-400" />
@@ -269,7 +277,15 @@ export function Navbar() {
             <Link href="/antiques" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 text-sm font-medium text-foreground">
               Antiques
             </Link>
-            <div className="border-t border-gray-100 my-2" />
+
+            {/* Locale switcher in mobile menu */}
+            <div className="border-t border-gray-100 my-1 pt-2 pb-1 px-1">
+              <p className="text-[10px] font-semibold text-gray-400 uppercase px-2 mb-2 tracking-wide">{t("locale.language")} / {t("locale.currency")}</p>
+              <LocaleSwitcher />
+            </div>
+
+            <div className="border-t border-gray-100 my-1" />
+
             {user ? (
               <>
                 <div className="px-3 py-2 mb-1">
@@ -278,40 +294,40 @@ export function Navbar() {
                 </div>
                 {user.role === "BUYER" && (
                   <button onClick={() => nav("/buyer/dashboard")} className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 text-sm font-medium text-foreground w-full text-left">
-                    <LayoutDashboard className="w-4 h-4 text-primary" /> My Dashboard
+                    <LayoutDashboard className="w-4 h-4 text-primary" /> {t("nav.dashboard")}
                   </button>
                 )}
                 {user.role === "SELLER" && (
                   <button onClick={() => nav("/seller/dashboard")} className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 text-sm font-medium text-primary w-full text-left">
-                    <Store className="w-4 h-4" /> Seller Dashboard
+                    <Store className="w-4 h-4" /> {t("nav.sellerDashboard")}
                   </button>
                 )}
                 {user.role === "ADMIN" && (
                   <button onClick={() => nav("/admin")} className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 text-sm font-medium text-foreground w-full text-left">
-                    <User className="w-4 h-4 text-primary" /> Admin Panel
+                    <User className="w-4 h-4 text-primary" /> {t("nav.adminPanel")}
                   </button>
                 )}
                 <button onClick={() => nav("/messages")} className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 text-sm font-medium text-foreground w-full text-left">
                   <MessageCircle className="w-4 h-4 text-primary" />
-                  Messages
+                  {t("nav.messages")}
                   {unread > 0 && <span className="ml-auto bg-primary text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center">{unread > 9 ? "9+" : unread}</span>}
                 </button>
                 <div className="border-t border-gray-100 mt-2 pt-2">
                   <button onClick={handleLogout} className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-red-50 text-sm font-medium text-destructive w-full text-left">
-                    Log out
+                    {t("nav.logout")}
                   </button>
                 </div>
               </>
             ) : (
               <>
                 <button onClick={() => nav("/auth/login")} className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 text-sm font-medium text-foreground w-full text-left">
-                  Login
+                  {t("nav.login")}
                 </button>
                 <button onClick={() => nav("/auth/register")} className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-primary/5 hover:bg-primary/10 text-sm font-medium text-primary w-full text-left">
-                  <User className="w-4 h-4" /> Sign Up
+                  <User className="w-4 h-4" /> {t("nav.signup")}
                 </button>
                 <button onClick={() => nav("/auth/register?role=SELLER")} className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 text-sm font-medium text-primary w-full text-left">
-                  <Store className="w-4 h-4" /> Sell on Coastaq
+                  <Store className="w-4 h-4" /> {t("nav.sell")}
                 </button>
               </>
             )}

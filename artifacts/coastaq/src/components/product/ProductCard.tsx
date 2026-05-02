@@ -5,10 +5,12 @@ import { Button } from "@/components/ui/button";
 import { ShoppingCart, MapPin, Shield } from "lucide-react";
 import { useCart } from "@/store/use-cart";
 import { useToast } from "@/hooks/use-toast";
+import { useLocale } from "@/lib/locale/context";
 
 export function ProductCard({ product }: { product: Product }) {
   const addItem = useCart((state) => state.addItem);
   const { toast } = useToast();
+  const { formatPrice, t } = useLocale();
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -42,13 +44,13 @@ export function ProductCard({ product }: { product: Product }) {
           />
           {product.condition === "NEW" && (
             <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-md text-[10px] font-bold text-primary shadow-sm">
-              NEW
+              {t("product.condition.NEW")}
             </div>
           )}
           {/* Escrow badge overlay */}
           <div className="absolute bottom-2 left-2 flex items-center gap-1 bg-blue-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md shadow-sm">
             <Shield className="w-2.5 h-2.5" />
-            ESCROW
+            {t("product.escrow")}
           </div>
         </div>
 
@@ -59,7 +61,7 @@ export function ProductCard({ product }: { product: Product }) {
             </h3>
           </div>
           <span className="font-bold text-sm sm:text-base text-primary mb-1">
-            ${product.price.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            {formatPrice(product.price)}
           </span>
 
           {product.shop && (
@@ -71,7 +73,7 @@ export function ProductCard({ product }: { product: Product }) {
           <div className="mt-auto flex items-center justify-between pt-2 sm:pt-4">
             <div className="flex items-center text-xs text-muted-foreground bg-secondary/50 px-2 py-1 rounded-md min-w-0">
               <MapPin className="w-3 h-3 mr-1 shrink-0" />
-              <span className="truncate max-w-[60px] sm:max-w-[100px]">{product.location || "Anywhere"}</span>
+              <span className="truncate max-w-[60px] sm:max-w-[100px]">{product.location || t("product.placeholderLocation")}</span>
             </div>
 
             <Button
@@ -80,7 +82,7 @@ export function ProductCard({ product }: { product: Product }) {
               onClick={handleAddToCart}
             >
               <ShoppingCart className="w-3.5 h-3.5 sm:mr-1.5" />
-              <span className="hidden sm:inline">Add</span>
+              <span className="hidden sm:inline">{t("product.add")}</span>
             </Button>
           </div>
         </div>

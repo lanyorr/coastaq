@@ -140,3 +140,19 @@ This creates:
 ## Platform Fee
 
 Stripe Connect is set up for 10% platform fee (90% goes to sellers). This requires Stripe API keys and seller Stripe Connect onboarding to function.
+
+## Localization Layer
+
+Full i18n/l10n system in `artifacts/coastaq/src/lib/locale/`:
+
+- **`currencies.ts`** — 45 currencies with symbols, codes, locales; `FALLBACK_RATES` map; `fetchExchangeRates()` fetches live rates from `open.er-api.com/v6/latest/USD` (no API key, CORS-friendly), cached in localStorage `cq_fx_rates` with 24h TTL
+- **`translations.ts`** — 12 languages: English, French, Arabic, Swahili, Spanish, German, Portuguese, Chinese, Hindi, Japanese, Korean, Turkish; ~50 keys each; `LANGUAGES` map with flag emoji + rtl flag; `COUNTRY_DEFAULTS` map for auto-detection; `t()` function with en fallback
+- **`context.tsx`** — `LocaleProvider` + `useLocale()` hook; auto-detects language from `navigator.language` + `Intl.DateTimeFormat().resolvedOptions().timeZone`; RTL support via `document.documentElement.dir`; `formatPrice(usdAmount)` converts and formats to selected currency; persists selections in `cq_lang` and `cq_currency` localStorage keys
+- **`LocaleSwitcher.tsx`** — compact flag+language and currency dropdowns in Navbar (hidden on xs, visible sm+; also in mobile hamburger menu)
+
+### Translated components
+- `Navbar.tsx` — all nav text via `t()`
+- `Home.tsx` — hero title/subtitle/search/buttons/stats, escrow strip, sidebar, product grid header
+- `ProductCard.tsx` — price via `formatPrice()`, condition badge, escrow badge via `t()`
+- `ProductDetails.tsx` — main price via `formatPrice()`
+- `Cart.tsx` — all strings via `t()`, all prices via `formatPrice()`

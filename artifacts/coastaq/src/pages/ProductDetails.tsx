@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
+import { useLocale } from "@/lib/locale/context";
 
 function monthsAgo(date: string | Date): string {
   const then = new Date(date).getTime();
@@ -25,6 +26,7 @@ export default function ProductDetails() {
   const { data: product, isLoading, isError } = useGetProduct(id);
   const { data: user } = useGetMe({ query: { retry: false } });
   const { toast } = useToast();
+  const { formatPrice } = useLocale();
   const [activeImage, setActiveImage] = useState(0);
   const [messageSending, setMessageSending] = useState(false);
   const [saved, setSaved] = useState(() => {
@@ -223,7 +225,7 @@ export default function ProductDetails() {
             {/* Price Card */}
             <div className="bg-card border border-border/50 rounded-2xl p-6">
               <div className="text-3xl font-bold text-foreground mb-2">
-                ${Number(product.price).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                {formatPrice(Number(product.price))}
               </div>
               <span className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground bg-secondary px-3 py-1 rounded-full">
                 <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />

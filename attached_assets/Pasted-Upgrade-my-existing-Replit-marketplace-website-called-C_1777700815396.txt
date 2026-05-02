@@ -1,0 +1,311 @@
+Upgrade my existing Replit marketplace website called **Coastaq** into a true **global marketplace platform** with enterprise-grade **frontend multi-currency conversion** and **worldwide multi-language localization** similar to Amazon, Jumia, Alibaba, and eBay.
+
+The system must be scalable, fast, elegant, mobile responsive, and production-ready.
+
+---
+
+# PRIMARY OBJECTIVE
+
+Build a **global localization layer** on the frontend while keeping the backend simple.
+
+* Keep all product prices stored internally in **USD**
+* Convert prices on frontend into the local currency of every country
+* Translate interface into the local language of every country
+* Auto-detect user location and language
+* Allow manual override via selectors
+
+---
+
+# 1. GLOBAL MULTI-CURRENCY SYSTEM (ALL COUNTRIES)
+
+Implement a frontend currency engine that supports currencies for **every country and territory worldwide**.
+
+Examples:
+
+USD – United States
+KES – Kenya
+UGX – Uganda
+TZS – Tanzania
+NGN – Nigeria
+GHS – Ghana
+ZAR – South Africa
+EGP – Egypt
+MAD – Morocco
+THB – Thailand
+JPY – Japan
+CNY – China
+INR – India
+PKR – Pakistan
+AED – UAE
+SAR – Saudi Arabia
+EUR – Europe
+GBP – United Kingdom
+CAD – Canada
+AUD – Australia
+BRL – Brazil
+MXN – Mexico
+
+And all remaining ISO currencies globally.
+
+## Currency Rules
+
+* All products remain stored in USD in database
+* Convert prices dynamically on frontend
+* Use live exchange rate API
+* Cache rates daily
+* Fallback to last known rate if API fails
+* Smart psychological rounding:
+
+$25 = ฿919
+$25 = KSh 3,290
+$25 = €23.99
+
+* Show proper symbols and formatting per country
+* Add currency selector dropdown in header
+* Save preference in localStorage / cookies
+
+---
+
+# 2. WORLDWIDE MULTI-LANGUAGE SYSTEM (ALL COUNTRIES)
+
+Implement localization covering languages for every country.
+
+Examples:
+
+English
+Swahili
+French
+Arabic
+Thai
+Spanish
+Portuguese
+German
+Italian
+Dutch
+Russian
+Turkish
+Hindi
+Urdu
+Bengali
+Chinese Simplified
+Chinese Traditional
+Japanese
+Korean
+Malay
+Indonesian
+Vietnamese
+Greek
+Hebrew
+Romanian
+Polish
+Czech
+Hungarian
+Zulu
+Amharic
+
+And expandable support for all languages.
+
+## Translation Rules
+
+Use translation JSON files:
+
+/locales/en.json
+/locales/sw.json
+/locales/fr.json
+/locales/ar.json
+/locales/th.json
+/locales/es.json
+etc.
+
+Translate all UI:
+
+Home
+Shop
+Categories
+Cart
+Checkout
+Orders
+Sell
+Messages
+Wishlist
+Profile
+Search placeholder
+Buttons
+Footer
+Errors
+Notifications
+
+## Smart Localization
+
+Auto-detect:
+
+* Browser language
+* IP country
+* Device locale
+
+Examples:
+
+Kenya → English / Swahili
+France → French
+Thailand → Thai
+Japan → Japanese
+Brazil → Portuguese
+Saudi Arabia → Arabic
+Germany → German
+
+Manual language switcher must override auto-detection.
+
+---
+
+# 3. HEADER UX
+
+Top-right global controls:
+
+🌐 Language ▼
+💵 Currency ▼
+📍 Country ▼
+
+Show flag icons.
+
+Examples:
+
+🇰🇪 English | KES
+🇹🇭 ไทย | THB
+🇫🇷 Français | EUR
+
+Modern premium marketplace style.
+
+---
+
+# 4. RTL SUPPORT
+
+Implement automatic RTL layout for:
+
+Arabic
+Hebrew
+Urdu
+
+When RTL selected:
+
+* Align text properly
+* Reverse layout where appropriate
+* Preserve clean responsive design
+
+---
+
+# 5. COUNTRY INTELLIGENCE ENGINE
+
+Detect country and automatically set:
+
+* Language
+* Currency
+* Region-specific formatting
+* Date format
+* Number separators
+
+Examples:
+
+US → English + USD
+Kenya → English/Swahili + KES
+Thailand → Thai + THB
+Germany → German + EUR
+Japan → Japanese + JPY
+
+Fallback:
+
+English + USD
+
+---
+
+# 6. SEO GLOBALIZATION
+
+Implement:
+
+* hreflang tags
+* Canonical tags
+* Language-specific metadata
+* Country-specific URLs if useful:
+
+coastaq.com/en
+coastaq.com/fr
+coastaq.com/ar
+
+---
+
+# 7. TECHNICAL REQUIREMENTS
+
+Use best tools compatible with Replit project.
+
+If React:
+
+* React + TypeScript
+* i18next or equivalent
+
+If plain JS:
+
+* Modular JavaScript architecture
+
+Build reusable files:
+
+currencyService.js
+languageService.js
+geoService.js
+HeaderSwitcher.jsx
+LocaleProvider.jsx
+
+---
+
+# 8. PERFORMANCE RULES
+
+* Fast initial page load
+* Lazy load language packs
+* Cache exchange rates
+* CDN-friendly assets
+* No page flicker on load
+* Smooth switching transitions
+
+---
+
+# 9. IMPORTANT BUSINESS RULES
+
+Do NOT duplicate product database per country.
+Do NOT duplicate product pages per language.
+Use one global product catalog with frontend localization layers.
+
+Existing marketplace functionality must remain intact.
+
+---
+
+# 10. DELIVERABLES
+
+Produce complete production-ready code integrated into my existing Coastaq project for:
+
+* Global currency engine
+* Global language engine
+* Country detection
+* Header selectors
+* Translation files
+* RTL support
+* Exchange rate caching
+* localStorage persistence
+* SEO localization
+* Responsive polished UI
+
+---
+
+# 11. BONUS FEATURES
+
+Add if possible:
+
+* Auto detect returning users
+* Geo-targeted homepage banners
+* Country-specific featured products
+* Shipping estimate by country
+* Tax/VAT display by country
+* Admin panel to manage translations
+
+---
+
+# FINAL GOAL
+
+When any user from any country visits Coastaq, it should feel like a localized native marketplace built specifically for their country.

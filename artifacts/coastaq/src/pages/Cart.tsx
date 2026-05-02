@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
 import { useCart } from "@/store/use-cart";
 import { ShoppingCart, Trash2, Plus, Minus, Package, Shield, ArrowRight } from "lucide-react";
+import { useLocale } from "@/lib/locale/context";
 
 const PLATFORM_FEE_RATE = 0.05;
 
@@ -14,6 +15,7 @@ export default function Cart() {
   const updateQuantity = useCart(s => s.updateQuantity);
   const getTotal = useCart(s => s.getTotal);
   const clearCart = useCart(s => s.clearCart);
+  const { formatPrice, t } = useLocale();
 
   const subtotal = getTotal();
   const total = subtotal;
@@ -26,16 +28,16 @@ export default function Cart() {
           <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
             <ShoppingCart className="w-10 h-10 text-primary" />
           </div>
-          <h2 className="text-2xl font-display font-bold mb-3">Your cart is empty</h2>
+          <h2 className="text-2xl font-display font-bold mb-3">{t("cart.empty")}</h2>
           <p className="text-muted-foreground mb-8 leading-relaxed">
-            Browse listings and add items to your cart to get started.
+            {t("cart.emptyDesc")}
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Button className="rounded-xl px-8" onClick={() => setLocation("/")}>
-              Browse listings
+              {t("cart.browseListing")}
             </Button>
             <Button variant="outline" className="rounded-xl px-8" onClick={() => setLocation("/buyer/dashboard")}>
-              My Orders
+              {t("cart.myOrders")}
             </Button>
           </div>
         </main>
@@ -51,7 +53,7 @@ export default function Cart() {
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-display font-bold text-foreground flex items-center gap-2">
             <ShoppingCart className="w-6 h-6 text-primary" />
-            Cart
+            {t("cart.title")}
             <span className="text-sm font-normal text-muted-foreground bg-secondary px-2.5 py-0.5 rounded-full ml-1">
               {items.reduce((s, i) => s + i.quantity, 0)} item{items.reduce((s, i) => s + i.quantity, 0) !== 1 ? "s" : ""}
             </span>
@@ -60,7 +62,7 @@ export default function Cart() {
             onClick={() => clearCart()}
             className="text-xs text-muted-foreground hover:text-red-600 transition-colors flex items-center gap-1"
           >
-            <Trash2 className="w-3.5 h-3.5" /> Clear all
+            <Trash2 className="w-3.5 h-3.5" /> {t("cart.clearAll")}
           </button>
         </div>
 
@@ -75,7 +77,7 @@ export default function Cart() {
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-sm text-foreground line-clamp-2">{item.title}</p>
                   <p className="text-primary font-bold text-sm mt-0.5">
-                    ${item.price.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} each
+                    {formatPrice(item.price)} each
                   </p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
@@ -95,7 +97,7 @@ export default function Cart() {
                 </div>
                 <div className="text-right shrink-0 min-w-[60px]">
                   <p className="font-bold text-primary text-sm">
-                    ${(item.price * item.quantity).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    {formatPrice(item.price * item.quantity)}
                   </p>
                   <button
                     onClick={() => removeItem(item.productId)}
@@ -111,32 +113,32 @@ export default function Cart() {
           {/* Order summary */}
           <div className="space-y-4">
             <div className="bg-card border border-border/50 rounded-2xl p-5 space-y-3 sticky top-4">
-              <h3 className="font-semibold text-foreground">Order Summary</h3>
+              <h3 className="font-semibold text-foreground">{t("cart.orderSummary")}</h3>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Subtotal</span>
-                  <span className="font-medium">${subtotal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                  <span className="text-muted-foreground">{t("cart.subtotal")}</span>
+                  <span className="font-medium">{formatPrice(subtotal)}</span>
                 </div>
                 <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">Escrow fee (5%)</span>
-                  <span className="text-muted-foreground">Included</span>
+                  <span className="text-muted-foreground">{t("cart.escrowFee")}</span>
+                  <span className="text-muted-foreground">{t("cart.escrowFeeIncluded")}</span>
                 </div>
                 <div className="border-t border-border/60 pt-2 flex justify-between font-bold text-base">
-                  <span>Total</span>
-                  <span className="text-primary">${total.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                  <span>{t("cart.total")}</span>
+                  <span className="text-primary">{formatPrice(total)}</span>
                 </div>
               </div>
               <Button
                 className="w-full rounded-xl py-3 text-sm font-semibold"
                 onClick={() => setLocation("/checkout")}
               >
-                Proceed to Checkout <ArrowRight className="w-4 h-4 ml-1" />
+                {t("cart.checkout")} <ArrowRight className="w-4 h-4 ml-1" />
               </Button>
               <button
                 onClick={() => setLocation("/")}
                 className="w-full text-xs text-muted-foreground hover:text-foreground transition-colors py-1"
               >
-                ← Continue shopping
+                {t("cart.continueShopping")}
               </button>
             </div>
 
@@ -144,10 +146,10 @@ export default function Cart() {
             <div className="rounded-2xl p-4 space-y-2" style={{ background: "linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%)" }}>
               <div className="flex items-center gap-2">
                 <Shield className="w-4 h-4 text-white" />
-                <p className="text-xs font-bold text-white">Buyer Protection Active</p>
+                <p className="text-xs font-bold text-white">{t("cart.buyerProtection")}</p>
               </div>
               <p className="text-[11px] text-blue-100 leading-relaxed">
-                Your payment is protected. Seller is paid only after successful delivery.
+                {t("cart.buyerProtectionDesc")}
               </p>
             </div>
           </div>
