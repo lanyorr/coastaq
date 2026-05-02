@@ -42,9 +42,9 @@ export function ProductCard({ product }: { product: Product }) {
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             onError={() => setImgSrc(FALLBACK)}
           />
-          {product.condition === "NEW" && (
-            <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-md text-[10px] font-bold text-primary shadow-sm">
-              {t("product.condition.NEW")}
+          {(product.condition === "NEW" || product.condition === "REFURBISHED") && (
+            <div className={`absolute top-3 left-3 backdrop-blur-sm px-2 py-1 rounded-md text-[10px] font-bold shadow-sm ${product.condition === "NEW" ? "bg-white/90 text-primary" : "bg-amber-100/90 text-amber-700"}`}>
+              {product.condition === "NEW" ? t("product.condition.NEW") : t("product.condition.REFURBISHED")}
             </div>
           )}
           {/* Escrow badge overlay */}

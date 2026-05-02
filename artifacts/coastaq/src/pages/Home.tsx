@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useLocale } from "@/lib/locale/context";
+import { tCat } from "@/lib/locale/categoryTranslations";
 
 // Maps a category name → { icon, bg color }
 function getCategoryMeta(name: string): { icon: React.ReactNode; bg: string; fg: string } {
@@ -74,7 +75,7 @@ export default function Home() {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [page, setPage] = useState(1);
   const [heroSearch, setHeroSearch] = useState("");
-  const { t, formatPrice } = useLocale();
+  const { t, formatPrice, lang } = useLocale();
 
   const handleHeroSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -173,7 +174,7 @@ export default function Home() {
                 }}
                 className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors border ${isActive ? "bg-primary text-white border-primary" : "bg-background text-muted-foreground border-border hover:border-primary/40 hover:text-foreground"}`}
               >
-                {cat.name}
+                {tCat(cat.name, lang)}
               </button>
             );
           })}
@@ -251,7 +252,7 @@ export default function Home() {
                               </div>
                             );
                           })()}
-                          <span className="truncate">{cat.name}</span>
+                          <span className="truncate">{tCat(cat.name, lang)}</span>
                         </div>
                         {children.length > 0 ? (
                           <ChevronDown
@@ -270,7 +271,7 @@ export default function Home() {
                                 onClick={() => navToCategory(child.id)}
                                 className={`w-full text-left block px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${categoryId === child.id ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-gray-50 hover:text-foreground'}`}
                               >
-                                {child.name}
+                                {tCat(child.name, lang)}
                               </button>
                             </li>
                           ))}

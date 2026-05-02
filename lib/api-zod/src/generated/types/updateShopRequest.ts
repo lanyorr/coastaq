@@ -8,6 +8,7 @@
 
 export interface UpdateShopRequest {
   name?: string;
+  slug?: string;
   description?: string;
   logo?: string;
   banner?: string;

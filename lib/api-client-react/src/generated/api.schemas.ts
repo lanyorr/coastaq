@@ -103,8 +103,14 @@ export interface AuthResponse {
   token: string;
 }
 
+export interface CreateShopRequest {
+  name: string;
+  description?: string;
+}
+
 export interface UpdateShopRequest {
   name?: string;
+  slug?: string;
   description?: string;
   logo?: string;
   banner?: string;

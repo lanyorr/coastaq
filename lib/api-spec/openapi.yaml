@@ -335,12 +335,46 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Shop"
+    post:
+      operationId: createShop
+      tags: [shops]
+      summary: Create a new shop (max 3 per seller)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateShopRequest"
+      responses:
+        "201":
+          description: Shop created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Shop"
+        "400":
+          description: Maximum shop limit reached
+
+  /shops/my/all:
+    get:
+      operationId: listMyShops
+      tags: [shops]
+      summary: Get all shops owned by the current seller
+      responses:
+        "200":
+          description: List of seller's shops
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Shop"
 
   /shops/my:
     get:
       operationId: getMyShop
       tags: [shops]
-      summary: Get current seller's shop
+      summary: Get current seller's first shop (backward compat)
       responses:
         "200":
           description: Shop details
@@ -352,7 +386,7 @@ paths:
     put:
       operationId: updateMyShop
       tags: [shops]
-      summary: Update current seller's shop
+      summary: Update current seller's first shop
       requestBody:
         required: true
         content:
@@ -406,6 +440,44 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Shop"
+    put:
+      operationId: updateShop
+      tags: [shops]
+      summary: Update a specific shop by ID (owner only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateShopRequest"
+      responses:
+        "200":
+          description: Shop updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Shop"
+        "404":
+          description: Shop not found
+    delete:
+      operationId: deleteShop
+      tags: [shops]
+      summary: Delete a specific shop (owner only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Shop deleted
 
   /orders:
     get:
@@ -777,10 +849,21 @@ components:
         - userId
         - createdAt
 
+    CreateShopRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+
     UpdateShopRequest:
       type: object
       properties:
         name:
+          type: string
+        slug:
           type: string
         description:
           type: string

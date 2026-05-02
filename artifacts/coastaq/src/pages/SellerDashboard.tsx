@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import {
-  useGetMe, useListProducts, useGetMyShop, useUpdateMyShop,
+  useGetMe, useListProducts, useListMyShops, useCreateShop, useUpdateShop,
   useCreateProduct, useDeleteProduct, useListCategories,
 } from "@workspace/api-client-react";
 import { Navbar } from "@/components/layout/Navbar";
@@ -528,11 +528,16 @@ const EMPTY_PRODUCT = {
 
 export default function SellerDashboard() {
   const { data: user } = useGetMe();
-  const { data: shop } = useGetMyShop();
-  const { data: productsData } = useListProducts({ shopId: shop?.id, limit: 100 });
+  const { data: shops, refetch: refetchShops } = useListMyShops();
+  const [activeShopId, setActiveShopId] = useState<string>("");
+  const [createShopOpen, setCreateShopOpen] = useState(false);
+  const [newShopName, setNewShopName] = useState("");
+  const [creatingNewShop, setCreatingNewShop] = useState(false);
+  const activeShop = shops?.find(s => s.id === activeShopId) ?? shops?.[0];
+  const { data: productsData } = useListProducts({ shopId: activeShop?.id, limit: 100 });
   const { data: categories } = useListCategories();
   const { data: sub } = useSubscriptionStatus();
-  const { mutate: updateShop, mutateAsync: updateShopAsync, isPending: updatingShop } = useUpdateMyShop();
+  const { mutateAsync: updateShopAsync, isPending: updatingShop } = useUpdateShop();
   const { mutate: createProduct, isPending: creatingProduct } = useCreateProduct();
   const { mutate: deleteProduct } = useDeleteProduct();
 
@@ -547,7 +552,7 @@ export default function SellerDashboard() {
 
   // Shop profile form state
   const [shopForm, setShopForm] = useState({
-    name: "", description: "", phone: "", whatsapp: "", email: "", website: "",
+    name: "", slug: "", description: "", phone: "", whatsapp: "", email: "", website: "",
     address: "", city: "", country: "", businessHours: "", accentColor: "#1d4ed8",
     facebookUrl: "", instagramUrl: "", tiktokUrl: "", twitterUrl: "", youtubeUrl: "",
     logo: "", banner: "",
@@ -670,12 +675,20 @@ export default function SellerDashboard() {
     setNewProduct(p => ({ ...p, categoryId: "" }));
   }, [newProduct.parentCategoryId]);
 
-  // Sync shop data into shopForm when loaded
+  // Sync activeShopId to first shop when shops load
   useEffect(() => {
-    if (shop) {
-      const s = shop as any;
+    if (shops && shops.length > 0 && !activeShopId) {
+      setActiveShopId(shops[0].id);
+    }
+  }, [shops, activeShopId]);
+
+  // Sync shop data into shopForm when active shop changes
+  useEffect(() => {
+    if (activeShop) {
+      const s = activeShop as any;
       setShopForm({
         name: s.name ?? "",
+        slug: s.slug ?? "",
         description: s.description ?? "",
         phone: s.phone ?? "",
         whatsapp: s.whatsapp ?? "",
@@ -695,7 +708,7 @@ export default function SellerDashboard() {
         banner: s.banner ?? "",
       });
     }
-  }, [shop?.id]);
+  }, [activeShop?.id]);
 
   const sf = (key: keyof typeof shopForm) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setShopForm(p => ({ ...p, [key]: e.target.value }));
@@ -744,12 +757,45 @@ export default function SellerDashboard() {
 
   const handleShopUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!activeShop?.id) return;
     try {
-      await updateShopAsync({ data: shopForm as any });
+      await updateShopAsync({ id: activeShop.id, data: shopForm as any });
       toast({ title: "Shop updated", description: "Your profile has been saved." });
+      queryClient.invalidateQueries({ queryKey: ["/api/shops/my/all"] });
       queryClient.invalidateQueries({ queryKey: ["/api/shops/my"] });
     } catch (err: any) {
       toast({ variant: "destructive", title: "Save failed", description: err?.message ?? "Unknown error" });
+    }
+  };
+
+  const handleCreateShop = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newShopName.trim()) return;
+    setCreatingNewShop(true);
+    try {
+      const token = localStorage.getItem("coastaq_token");
+      const res = await fetch("/api/shops", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ name: newShopName.trim() }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: "Failed" }));
+        throw new Error((err as any).error ?? "Failed to create shop");
+      }
+      const created = await res.json() as { id: string };
+      await refetchShops();
+      setActiveShopId(created.id);
+      setCreateShopOpen(false);
+      setNewShopName("");
+      toast({ title: "Shop created!", description: `"${newShopName.trim()}" has been created and is pending approval.` });
+    } catch (err: any) {
+      toast({ variant: "destructive", title: "Failed to create shop", description: err.message });
+    } finally {
+      setCreatingNewShop(false);
     }
   };
 
@@ -829,10 +875,10 @@ export default function SellerDashboard() {
 
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-8 gap-4 flex-wrap">
           <div className="flex items-center gap-4">
-            {shop?.logo ? (
-              <img src={shop.logo} alt={shop.name} className="w-16 h-16 rounded-2xl object-cover" />
+            {activeShop?.logo ? (
+              <img src={activeShop.logo} alt={activeShop.name} className="w-16 h-16 rounded-2xl object-cover" />
             ) : (
               <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
                 <Store className="w-8 h-8" />
@@ -840,18 +886,75 @@ export default function SellerDashboard() {
             )}
             <div>
               <h1 className="text-3xl font-display font-bold">Seller Dashboard</h1>
-              <p className="text-muted-foreground">{shop?.name ?? "Your Shop"}</p>
+              <p className="text-muted-foreground">{activeShop?.name ?? "Your Shop"}</p>
             </div>
           </div>
-          <Link href="/">
-            <Button variant="outline" className="rounded-xl h-10 gap-2">
-              <Home className="w-4 h-4" /> Back to Marketplace
-            </Button>
-          </Link>
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Shop switcher — visible when seller has more than one shop */}
+            {shops && shops.length > 1 && (
+              <select
+                value={activeShopId}
+                onChange={e => setActiveShopId(e.target.value)}
+                className="h-10 px-3 rounded-xl border border-border bg-background text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/40"
+              >
+                {shops.map(s => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
+              </select>
+            )}
+            {/* Create new shop button (disabled at 3) */}
+            {(!shops || shops.length < 3) && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-xl h-10 gap-1.5"
+                onClick={() => setCreateShopOpen(true)}
+              >
+                <Plus className="w-4 h-4" /> New Shop
+              </Button>
+            )}
+            <Link href="/">
+              <Button variant="outline" className="rounded-xl h-10 gap-2">
+                <Home className="w-4 h-4" /> Back to Marketplace
+              </Button>
+            </Link>
+          </div>
         </div>
 
+        {/* Create New Shop Dialog */}
+        <Dialog open={createShopOpen} onOpenChange={setCreateShopOpen}>
+          <DialogContent className="sm:max-w-[420px] rounded-3xl">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-display">Create New Shop</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleCreateShop} className="space-y-4 mt-2">
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold">Shop Name <span className="text-red-500">*</span></Label>
+                <Input
+                  value={newShopName}
+                  onChange={e => setNewShopName(e.target.value)}
+                  placeholder="My Second Shop"
+                  required
+                  className="h-11 rounded-xl"
+                  autoFocus
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">You can have up to 3 shops. Each new shop requires admin approval before going live.</p>
+              <div className="flex gap-3 pt-2">
+                <Button type="submit" disabled={creatingNewShop || !newShopName.trim()} className="rounded-xl gap-2 flex-1">
+                  {creatingNewShop ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                  {creatingNewShop ? "Creating…" : "Create Shop"}
+                </Button>
+                <Button type="button" variant="outline" className="rounded-xl" onClick={() => { setCreateShopOpen(false); setNewShopName(""); }}>
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
+
         {/* Shop not approved warning */}
-        {shop && !shop.isApproved && (
+        {activeShop && !activeShop.isApproved && (
           <div className="mb-6 flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-2xl p-4">
             <AlertCircle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
             <div>
@@ -922,7 +1025,7 @@ export default function SellerDashboard() {
                   <DialogTrigger asChild>
                     <Button
                       className="bg-primary hover:bg-primary/90 text-white rounded-xl shadow-md"
-                      disabled={shop ? !shop.isApproved : false}
+                      disabled={activeShop ? !activeShop.isApproved : false}
                     >
                       <Plus className="w-4 h-4 mr-2" /> Add Product
                     </Button>
@@ -1415,9 +1518,9 @@ export default function SellerDashboard() {
                     </div>
                     <div className="flex-1 pb-1 space-y-1">
                       <p className="text-sm font-semibold text-foreground">{shopForm.name || "Your Shop"}</p>
-                      {(shop as any)?.slug && (
+                      {(activeShop as any)?.slug && (
                         <a
-                          href={`/shop/${(shop as any).slug}`}
+                          href={`/shop/${(activeShop as any).slug}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
@@ -1446,6 +1549,20 @@ export default function SellerDashboard() {
                     <div className="space-y-2 sm:col-span-2">
                       <Label className="text-sm font-semibold">Shop Name <span className="text-red-500">*</span></Label>
                       <Input value={shopForm.name} onChange={sf("name")} required className="h-11 rounded-xl" placeholder="My Awesome Shop" />
+                    </div>
+                    <div className="space-y-2 sm:col-span-2">
+                      <Label className="text-sm font-semibold">Shop URL (Slug)</Label>
+                      <div className="flex items-center h-11 rounded-xl border border-input bg-background overflow-hidden focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+                        <span className="px-3 text-sm text-muted-foreground border-r border-input bg-secondary h-full flex items-center shrink-0">coastaq.com/shop/</span>
+                        <input
+                          type="text"
+                          value={shopForm.slug}
+                          onChange={(e) => setShopForm(p => ({ ...p, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "").replace(/--+/g, "-") }))}
+                          className="flex-1 h-full px-3 text-sm bg-transparent outline-none"
+                          placeholder="my-awesome-shop"
+                        />
+                      </div>
+                      <p className="text-xs text-muted-foreground">Leave blank to auto-generate from your shop name. Only lowercase letters, numbers and hyphens.</p>
                     </div>
                     <div className="space-y-2 sm:col-span-2">
                       <Label className="text-sm font-semibold">Description</Label>

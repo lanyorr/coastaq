@@ -43,6 +43,7 @@ export type TranslationKeys = {
   "product.placeholderLocation": string;
   "product.condition.NEW": string;
   "product.condition.USED": string;
+  "product.condition.REFURBISHED": string;
   "product.escrow": string;
   "product.fixedPrice": string;
   "product.description": string;
@@ -138,6 +139,7 @@ export const translations: Translations = {
     "product.placeholderLocation": "Anywhere",
     "product.condition.NEW": "NEW",
     "product.condition.USED": "USED",
+    "product.condition.REFURBISHED": "REFURBISHED",
     "product.escrow": "ESCROW",
     "product.fixedPrice": "Fixed price",
     "product.description": "Description",
@@ -226,6 +228,7 @@ export const translations: Translations = {
     "product.placeholderLocation": "Partout",
     "product.condition.NEW": "NEUF",
     "product.condition.USED": "USAGÉ",
+    "product.condition.REFURBISHED": "RECONDITIONNÉ",
     "product.escrow": "SÉQUESTRE",
     "product.fixedPrice": "Prix fixe",
     "product.description": "Description",
@@ -314,6 +317,7 @@ export const translations: Translations = {
     "product.placeholderLocation": "في أي مكان",
     "product.condition.NEW": "جديد",
     "product.condition.USED": "مستعمل",
+    "product.condition.REFURBISHED": "مُجَدَّد",
     "product.escrow": "ضمان",
     "product.fixedPrice": "سعر ثابت",
     "product.description": "الوصف",
@@ -402,6 +406,7 @@ export const translations: Translations = {
     "product.placeholderLocation": "Popote",
     "product.condition.NEW": "MPYA",
     "product.condition.USED": "ILIYOTUMIKA",
+    "product.condition.REFURBISHED": "IMEFANYWA UPYA",
     "product.escrow": "AKIBA",
     "product.fixedPrice": "Bei ya kawaida",
     "product.description": "Maelezo",
@@ -490,6 +495,7 @@ export const translations: Translations = {
     "product.placeholderLocation": "En cualquier lugar",
     "product.condition.NEW": "NUEVO",
     "product.condition.USED": "USADO",
+    "product.condition.REFURBISHED": "REACONDICIONADO",
     "product.escrow": "GARANTÍA",
     "product.fixedPrice": "Precio fijo",
     "product.description": "Descripción",
@@ -578,6 +584,7 @@ export const translations: Translations = {
     "product.placeholderLocation": "Überall",
     "product.condition.NEW": "NEU",
     "product.condition.USED": "GEBRAUCHT",
+    "product.condition.REFURBISHED": "GENERALÜBERHOLT",
     "product.escrow": "TREUHAND",
     "product.fixedPrice": "Festpreis",
     "product.description": "Beschreibung",
@@ -666,6 +673,7 @@ export const translations: Translations = {
     "product.placeholderLocation": "Em qualquer lugar",
     "product.condition.NEW": "NOVO",
     "product.condition.USED": "USADO",
+    "product.condition.REFURBISHED": "RECONDICIONADO",
     "product.escrow": "CUSTÓDIA",
     "product.fixedPrice": "Preço fixo",
     "product.description": "Descrição",
@@ -754,6 +762,7 @@ export const translations: Translations = {
     "product.placeholderLocation": "任何地方",
     "product.condition.NEW": "全新",
     "product.condition.USED": "二手",
+    "product.condition.REFURBISHED": "翻新",
     "product.escrow": "托管",
     "product.fixedPrice": "固定价格",
     "product.description": "商品描述",
@@ -842,6 +851,7 @@ export const translations: Translations = {
     "product.placeholderLocation": "कहीं भी",
     "product.condition.NEW": "नया",
     "product.condition.USED": "पुराना",
+    "product.condition.REFURBISHED": "नवीनीकृत",
     "product.escrow": "एस्क्रो",
     "product.fixedPrice": "निश्चित मूल्य",
     "product.description": "विवरण",
@@ -919,6 +929,7 @@ export const translations: Translations = {
     "product.message": "メッセージ",
     "product.condition.NEW": "新品",
     "product.condition.USED": "中古",
+    "product.condition.REFURBISHED": "整備済み",
     "cart.title": "カート",
     "cart.empty": "カートは空です",
     "cart.checkout": "レジに進む",

@@ -594,7 +594,51 @@ export const ListShopsResponseItem = zod.object({
 export const ListShopsResponse = zod.array(ListShopsResponseItem);
 
 /**
- * @summary Get current seller's shop
+ * @summary Create a new shop (max 3 per seller)
+ */
+export const CreateShopBody = zod.object({
+  name: zod.string(),
+  description: zod.string().optional(),
+});
+
+/**
+ * @summary Get all shops owned by the current seller
+ */
+export const ListMyShopsResponseItem = zod.object({
+  id: zod.string(),
+  name: zod.string(),
+  slug: zod.string().optional(),
+  description: zod.string().optional(),
+  logo: zod.string().optional(),
+  banner: zod.string().optional(),
+  phone: zod.string().optional(),
+  whatsapp: zod.string().optional(),
+  email: zod.string().optional(),
+  website: zod.string().optional(),
+  address: zod.string().optional(),
+  city: zod.string().optional(),
+  country: zod.string().optional(),
+  businessHours: zod.string().optional(),
+  accentColor: zod.string().optional(),
+  facebookUrl: zod.string().optional(),
+  instagramUrl: zod.string().optional(),
+  tiktokUrl: zod.string().optional(),
+  twitterUrl: zod.string().optional(),
+  youtubeUrl: zod.string().optional(),
+  isApproved: zod.boolean(),
+  isSuspended: zod.boolean().optional(),
+  userId: zod.string(),
+  subscriptionStatus: zod
+    .enum(["TRIAL", "ACTIVE", "EXPIRED", "CANCELLED"])
+    .optional(),
+  productCount: zod.number().optional(),
+  createdAt: zod.date(),
+  updatedAt: zod.date().optional(),
+});
+export const ListMyShopsResponse = zod.array(ListMyShopsResponseItem);
+
+/**
+ * @summary Get current seller's first shop (backward compat)
  */
 export const GetMyShopResponse = zod.object({
   id: zod.string(),
@@ -629,10 +673,11 @@ export const GetMyShopResponse = zod.object({
 });
 
 /**
- * @summary Update current seller's shop
+ * @summary Update current seller's first shop
  */
 export const UpdateMyShopBody = zod.object({
   name: zod.string().optional(),
+  slug: zod.string().optional(),
   description: zod.string().optional(),
   logo: zod.string().optional(),
   banner: zod.string().optional(),
@@ -760,6 +805,74 @@ export const GetShopResponse = zod.object({
   productCount: zod.number().optional(),
   createdAt: zod.date(),
   updatedAt: zod.date().optional(),
+});
+
+/**
+ * @summary Update a specific shop by ID (owner only)
+ */
+export const UpdateShopParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const UpdateShopBody = zod.object({
+  name: zod.string().optional(),
+  slug: zod.string().optional(),
+  description: zod.string().optional(),
+  logo: zod.string().optional(),
+  banner: zod.string().optional(),
+  phone: zod.string().optional(),
+  whatsapp: zod.string().optional(),
+  email: zod.string().optional(),
+  website: zod.string().optional(),
+  address: zod.string().optional(),
+  city: zod.string().optional(),
+  country: zod.string().optional(),
+  businessHours: zod.string().optional(),
+  accentColor: zod.string().optional(),
+  facebookUrl: zod.string().optional(),
+  instagramUrl: zod.string().optional(),
+  tiktokUrl: zod.string().optional(),
+  twitterUrl: zod.string().optional(),
+  youtubeUrl: zod.string().optional(),
+});
+
+export const UpdateShopResponse = zod.object({
+  id: zod.string(),
+  name: zod.string(),
+  slug: zod.string().optional(),
+  description: zod.string().optional(),
+  logo: zod.string().optional(),
+  banner: zod.string().optional(),
+  phone: zod.string().optional(),
+  whatsapp: zod.string().optional(),
+  email: zod.string().optional(),
+  website: zod.string().optional(),
+  address: zod.string().optional(),
+  city: zod.string().optional(),
+  country: zod.string().optional(),
+  businessHours: zod.string().optional(),
+  accentColor: zod.string().optional(),
+  facebookUrl: zod.string().optional(),
+  instagramUrl: zod.string().optional(),
+  tiktokUrl: zod.string().optional(),
+  twitterUrl: zod.string().optional(),
+  youtubeUrl: zod.string().optional(),
+  isApproved: zod.boolean(),
+  isSuspended: zod.boolean().optional(),
+  userId: zod.string(),
+  subscriptionStatus: zod
+    .enum(["TRIAL", "ACTIVE", "EXPIRED", "CANCELLED"])
+    .optional(),
+  productCount: zod.number().optional(),
+  createdAt: zod.date(),
+  updatedAt: zod.date().optional(),
+});
+
+/**
+ * @summary Delete a specific shop (owner only)
+ */
+export const DeleteShopParams = zod.object({
+  id: zod.coerce.string(),
 });
 
 /**

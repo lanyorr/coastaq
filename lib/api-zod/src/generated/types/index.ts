@@ -16,6 +16,7 @@ export * from "./checkoutRequest";
 export * from "./createCategoryRequest";
 export * from "./createProductRequest";
 export * from "./createProductRequestCondition";
+export * from "./createShopRequest";
 export * from "./errorResponse";
 export * from "./healthStatus";
 export * from "./listProductsParams";

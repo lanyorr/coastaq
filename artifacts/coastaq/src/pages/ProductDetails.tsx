@@ -26,7 +26,7 @@ export default function ProductDetails() {
   const { data: product, isLoading, isError } = useGetProduct(id);
   const { data: user } = useGetMe({ query: { retry: false } });
   const { toast } = useToast();
-  const { formatPrice } = useLocale();
+  const { t, formatPrice } = useLocale();
   const [activeImage, setActiveImage] = useState(0);
   const [messageSending, setMessageSending] = useState(false);
   const [saved, setSaved] = useState(() => {
@@ -186,7 +186,7 @@ export default function ProductDetails() {
             <div className="bg-card border border-border/50 rounded-2xl p-6">
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-xs font-bold tracking-wider px-2.5 py-1 rounded-full bg-secondary text-muted-foreground uppercase">
-                  {product.condition}
+                  {t(`product.condition.${product.condition}` as keyof import("@/lib/locale/translations").TranslationKeys)}
                 </span>
                 {product.category && (
                   <span className="text-xs text-muted-foreground">{product.category.name}</span>

@@ -68,8 +68,11 @@ All routes under `/api`:
 - `GET /api/categories` - List categories (hierarchical)
 - `POST /api/categories` - Create category (ADMIN)
 - `GET /api/shops` - List approved shops
-- `GET /api/shops/my` - Get seller's shop
-- `PUT /api/shops/my` - Update seller's shop
+- `GET /api/shops/my/all` - Get all shops owned by the authenticated seller (multi-shop)
+- `POST /api/shops` - Create a new shop (SELLER)
+- `PUT /api/shops/:id` - Update shop profile (name, slug, description, logo, banner, contact, location, social links, accentColor)
+- `DELETE /api/shops/:id` - Delete a shop (SELLER/ADMIN)
+- `GET /api/shops/slug/:slug` - Get public shop profile + productCount by URL slug
 - `GET /api/shops/:id` - Get shop by ID
 - `GET /api/orders` - List buyer's orders
 - `GET /api/orders/seller` - List seller's orders
@@ -98,7 +101,7 @@ All routes under `/api`:
 ## Demo Accounts
 
 - **Admin**: admin@coastaq.com / admin123
-- **Seller**: seller@coastaq.com / seller123
+- **Seller**: seller@coastaq.com / password123
 - **Buyer**: buyer@coastaq.com / buyer123
 
 ## Environment Variables
