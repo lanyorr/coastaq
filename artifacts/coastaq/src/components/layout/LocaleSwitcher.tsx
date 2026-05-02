@@ -34,7 +34,7 @@ function Dropdown({
         <ChevronDown className={`w-3 h-3 transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
       {open && (
-        <div className="absolute right-0 top-full mt-1 z-[200] bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden min-w-[170px] max-h-72 overflow-y-auto">
+        <div className="absolute left-0 top-full mt-1 z-[200] bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden min-w-[170px] max-h-64 overflow-y-auto">
           {children(close)}
         </div>
       )}

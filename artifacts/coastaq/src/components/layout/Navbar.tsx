@@ -70,8 +70,16 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 w-full bg-white border-b border-gray-200 shadow-sm">
-      {/* Main bar */}
-      <div className="container mx-auto px-4 h-16 flex items-center justify-between gap-3">
+
+      {/* ── Top locale bar (always visible, language + currency pinned left) ── */}
+      <div className="w-full bg-gray-50 border-b border-gray-100">
+        <div className="container mx-auto px-4 h-8 flex items-center">
+          <LocaleSwitcher />
+        </div>
+      </div>
+
+      {/* ── Main nav bar ── */}
+      <div className="container mx-auto px-4 h-14 flex items-center justify-between gap-3">
         {/* Logo */}
         <Link href="/" className="flex items-center shrink-0" onClick={() => setMobileOpen(false)}>
           <CoastaqLogo />
@@ -116,11 +124,6 @@ export function Navbar() {
         </form>
 
         <div className="flex items-center gap-1.5">
-          {/* Locale switcher (desktop) */}
-          <div className="hidden sm:flex">
-            <LocaleSwitcher />
-          </div>
-
           {/* Mobile search icon */}
           <button
             className="md:hidden p-2 rounded-full hover:bg-gray-100 transition-colors"
@@ -277,12 +280,6 @@ export function Navbar() {
             <Link href="/antiques" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 text-sm font-medium text-foreground">
               Antiques
             </Link>
-
-            {/* Locale switcher in mobile menu */}
-            <div className="border-t border-gray-100 my-1 pt-2 pb-1 px-1">
-              <p className="text-[10px] font-semibold text-gray-400 uppercase px-2 mb-2 tracking-wide">{t("locale.language")} / {t("locale.currency")}</p>
-              <LocaleSwitcher />
-            </div>
 
             <div className="border-t border-gray-100 my-1" />
 
