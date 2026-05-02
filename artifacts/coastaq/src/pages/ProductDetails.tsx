@@ -234,63 +234,90 @@ export default function ProductDetails() {
             </div>
 
             {/* Seller Card */}
-            <div className="bg-card border border-border/50 rounded-2xl p-6 space-y-4">
-              {/* Shop Info */}
-              <div className="flex items-start gap-3">
-                <div className="w-12 h-12 rounded-full overflow-hidden bg-secondary border border-border shrink-0">
-                  {shop?.logo ? (
-                    <img src={shop.logo} alt={shop.name} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-primary/10">
-                      <Store className="w-5 h-5 text-primary" />
-                    </div>
-                  )}
+            <div className="bg-card border border-border/50 rounded-2xl overflow-hidden">
+              {/* Banner strip */}
+              {shop?.banner && (
+                <div className="h-16 overflow-hidden">
+                  <img src={shop.banner} alt="" className="w-full h-full object-cover" />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <span className="font-semibold text-foreground text-sm leading-tight block truncate">
-                    {shop?.name || "Unknown Shop"}
-                  </span>
-                  <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
-                    <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">
-                      <Clock className="w-3 h-3" />
-                      {shopMonths} on Coastaq
-                    </span>
-                    {isVerified && (
-                      <span className="inline-flex items-center gap-1 text-[11px] text-blue-600 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded-full">
-                        <ShieldCheck className="w-3 h-3" />
-                        Verified
-                      </span>
+              )}
+              <div className="p-5 space-y-4">
+                {/* Shop Info */}
+                <div className="flex items-start gap-3">
+                  <div className={`w-12 h-12 rounded-xl overflow-hidden bg-secondary border border-border shrink-0 ${shop?.banner ? "-mt-8 ring-2 ring-background" : ""}`}>
+                    {shop?.logo ? (
+                      <img src={shop.logo} alt={shop.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-primary/10">
+                        <Store className="w-5 h-5 text-primary" />
+                      </div>
                     )}
                   </div>
-                  <p className="text-[11px] text-muted-foreground mt-1.5 flex items-center gap-1">
-                    <MessageCircle className="w-3 h-3" />
-                    Typically replies within minutes
-                  </p>
+                  <div className="flex-1 min-w-0">
+                    <span className="font-semibold text-foreground text-sm leading-tight block truncate">
+                      {shop?.name || "Unknown Shop"}
+                    </span>
+                    <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                      {(shop?.city || shop?.country) && (
+                        <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                          <MapPin className="w-3 h-3" />
+                          {[shop.city, shop.country].filter(Boolean).join(", ")}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                      <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">
+                        <Clock className="w-3 h-3" />
+                        {shopMonths} on Coastaq
+                      </span>
+                      {isVerified && (
+                        <span className="inline-flex items-center gap-1 text-[11px] text-blue-600 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded-full">
+                          <ShieldCheck className="w-3 h-3" />
+                          Verified
+                        </span>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </div>
 
-              {/* Message seller */}
-              <button
-                onClick={handleMessageSeller}
-                disabled={messageSending}
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-primary text-white font-semibold text-sm hover:bg-primary/90 transition-colors shadow-sm shadow-primary/20 disabled:opacity-60"
-              >
-                {messageSending ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <MessageCircle className="w-4 h-4" />
+                {shop?.description && (
+                  <p className="text-[12px] text-muted-foreground leading-relaxed line-clamp-2">{shop.description}</p>
                 )}
-                {messageSending ? "Opening chat…" : "Message seller"}
-              </button>
 
-              {/* Place Order → checkout */}
-              <button
-                onClick={handlePlaceOrder}
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-primary text-primary font-semibold text-sm hover:bg-primary/5 transition-colors"
-              >
-                <ShoppingBag className="w-4 h-4" />
-                Place Order
-              </button>
+                {/* Visit Shop */}
+                {shop?.slug && (
+                  <a
+                    href={`/shop/${shop.slug}`}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-primary/30 text-primary font-semibold text-sm hover:bg-primary/5 transition-colors"
+                  >
+                    <Store className="w-4 h-4" />
+                    Visit Shop
+                  </a>
+                )}
+
+                {/* Message seller */}
+                <button
+                  onClick={handleMessageSeller}
+                  disabled={messageSending}
+                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-primary text-white font-semibold text-sm hover:bg-primary/90 transition-colors shadow-sm shadow-primary/20 disabled:opacity-60"
+                >
+                  {messageSending ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <MessageCircle className="w-4 h-4" />
+                  )}
+                  {messageSending ? "Opening chat…" : "Message seller"}
+                </button>
+
+                {/* Place Order → checkout */}
+                <button
+                  onClick={handlePlaceOrder}
+                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-primary text-primary font-semibold text-sm hover:bg-primary/5 transition-colors"
+                >
+                  <ShoppingBag className="w-4 h-4" />
+                  Place Order
+                </button>
+              </div>
             </div>
 
             {/* Escrow Protection Badge */}

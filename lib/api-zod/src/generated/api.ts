@@ -38,17 +38,33 @@ export const RegisterResponse = zod.object({
       .object({
         id: zod.string(),
         name: zod.string(),
+        slug: zod.string().optional(),
         description: zod.string().optional(),
         logo: zod.string().optional(),
         banner: zod.string().optional(),
+        phone: zod.string().optional(),
+        whatsapp: zod.string().optional(),
+        email: zod.string().optional(),
+        website: zod.string().optional(),
+        address: zod.string().optional(),
+        city: zod.string().optional(),
+        country: zod.string().optional(),
+        businessHours: zod.string().optional(),
+        accentColor: zod.string().optional(),
+        facebookUrl: zod.string().optional(),
+        instagramUrl: zod.string().optional(),
+        tiktokUrl: zod.string().optional(),
+        twitterUrl: zod.string().optional(),
+        youtubeUrl: zod.string().optional(),
         isApproved: zod.boolean(),
+        isSuspended: zod.boolean().optional(),
         userId: zod.string(),
-        createdAt: zod.date(),
-        _count: zod
-          .object({
-            products: zod.number().optional(),
-          })
+        subscriptionStatus: zod
+          .enum(["TRIAL", "ACTIVE", "EXPIRED", "CANCELLED"])
           .optional(),
+        productCount: zod.number().optional(),
+        createdAt: zod.date(),
+        updatedAt: zod.date().optional(),
       })
       .optional(),
     createdAt: zod.date(),
@@ -74,17 +90,33 @@ export const LoginResponse = zod.object({
       .object({
         id: zod.string(),
         name: zod.string(),
+        slug: zod.string().optional(),
         description: zod.string().optional(),
         logo: zod.string().optional(),
         banner: zod.string().optional(),
+        phone: zod.string().optional(),
+        whatsapp: zod.string().optional(),
+        email: zod.string().optional(),
+        website: zod.string().optional(),
+        address: zod.string().optional(),
+        city: zod.string().optional(),
+        country: zod.string().optional(),
+        businessHours: zod.string().optional(),
+        accentColor: zod.string().optional(),
+        facebookUrl: zod.string().optional(),
+        instagramUrl: zod.string().optional(),
+        tiktokUrl: zod.string().optional(),
+        twitterUrl: zod.string().optional(),
+        youtubeUrl: zod.string().optional(),
         isApproved: zod.boolean(),
+        isSuspended: zod.boolean().optional(),
         userId: zod.string(),
-        createdAt: zod.date(),
-        _count: zod
-          .object({
-            products: zod.number().optional(),
-          })
+        subscriptionStatus: zod
+          .enum(["TRIAL", "ACTIVE", "EXPIRED", "CANCELLED"])
           .optional(),
+        productCount: zod.number().optional(),
+        createdAt: zod.date(),
+        updatedAt: zod.date().optional(),
       })
       .optional(),
     createdAt: zod.date(),
@@ -111,17 +143,33 @@ export const GetMeResponse = zod.object({
     .object({
       id: zod.string(),
       name: zod.string(),
+      slug: zod.string().optional(),
       description: zod.string().optional(),
       logo: zod.string().optional(),
       banner: zod.string().optional(),
+      phone: zod.string().optional(),
+      whatsapp: zod.string().optional(),
+      email: zod.string().optional(),
+      website: zod.string().optional(),
+      address: zod.string().optional(),
+      city: zod.string().optional(),
+      country: zod.string().optional(),
+      businessHours: zod.string().optional(),
+      accentColor: zod.string().optional(),
+      facebookUrl: zod.string().optional(),
+      instagramUrl: zod.string().optional(),
+      tiktokUrl: zod.string().optional(),
+      twitterUrl: zod.string().optional(),
+      youtubeUrl: zod.string().optional(),
       isApproved: zod.boolean(),
+      isSuspended: zod.boolean().optional(),
       userId: zod.string(),
-      createdAt: zod.date(),
-      _count: zod
-        .object({
-          products: zod.number().optional(),
-        })
+      subscriptionStatus: zod
+        .enum(["TRIAL", "ACTIVE", "EXPIRED", "CANCELLED"])
         .optional(),
+      productCount: zod.number().optional(),
+      createdAt: zod.date(),
+      updatedAt: zod.date().optional(),
     })
     .optional(),
   createdAt: zod.date(),
@@ -158,17 +206,33 @@ export const ListProductsResponse = zod.object({
         .object({
           id: zod.string(),
           name: zod.string(),
+          slug: zod.string().optional(),
           description: zod.string().optional(),
           logo: zod.string().optional(),
           banner: zod.string().optional(),
+          phone: zod.string().optional(),
+          whatsapp: zod.string().optional(),
+          email: zod.string().optional(),
+          website: zod.string().optional(),
+          address: zod.string().optional(),
+          city: zod.string().optional(),
+          country: zod.string().optional(),
+          businessHours: zod.string().optional(),
+          accentColor: zod.string().optional(),
+          facebookUrl: zod.string().optional(),
+          instagramUrl: zod.string().optional(),
+          tiktokUrl: zod.string().optional(),
+          twitterUrl: zod.string().optional(),
+          youtubeUrl: zod.string().optional(),
           isApproved: zod.boolean(),
+          isSuspended: zod.boolean().optional(),
           userId: zod.string(),
-          createdAt: zod.date(),
-          _count: zod
-            .object({
-              products: zod.number().optional(),
-            })
+          subscriptionStatus: zod
+            .enum(["TRIAL", "ACTIVE", "EXPIRED", "CANCELLED"])
             .optional(),
+          productCount: zod.number().optional(),
+          createdAt: zod.date(),
+          updatedAt: zod.date().optional(),
         })
         .optional(),
       category: zod
@@ -221,17 +285,33 @@ export const CreateProductResponse = zod.object({
     .object({
       id: zod.string(),
       name: zod.string(),
+      slug: zod.string().optional(),
       description: zod.string().optional(),
       logo: zod.string().optional(),
       banner: zod.string().optional(),
+      phone: zod.string().optional(),
+      whatsapp: zod.string().optional(),
+      email: zod.string().optional(),
+      website: zod.string().optional(),
+      address: zod.string().optional(),
+      city: zod.string().optional(),
+      country: zod.string().optional(),
+      businessHours: zod.string().optional(),
+      accentColor: zod.string().optional(),
+      facebookUrl: zod.string().optional(),
+      instagramUrl: zod.string().optional(),
+      tiktokUrl: zod.string().optional(),
+      twitterUrl: zod.string().optional(),
+      youtubeUrl: zod.string().optional(),
       isApproved: zod.boolean(),
+      isSuspended: zod.boolean().optional(),
       userId: zod.string(),
-      createdAt: zod.date(),
-      _count: zod
-        .object({
-          products: zod.number().optional(),
-        })
+      subscriptionStatus: zod
+        .enum(["TRIAL", "ACTIVE", "EXPIRED", "CANCELLED"])
         .optional(),
+      productCount: zod.number().optional(),
+      createdAt: zod.date(),
+      updatedAt: zod.date().optional(),
     })
     .optional(),
   category: zod
@@ -272,17 +352,33 @@ export const GetProductResponse = zod.object({
     .object({
       id: zod.string(),
       name: zod.string(),
+      slug: zod.string().optional(),
       description: zod.string().optional(),
       logo: zod.string().optional(),
       banner: zod.string().optional(),
+      phone: zod.string().optional(),
+      whatsapp: zod.string().optional(),
+      email: zod.string().optional(),
+      website: zod.string().optional(),
+      address: zod.string().optional(),
+      city: zod.string().optional(),
+      country: zod.string().optional(),
+      businessHours: zod.string().optional(),
+      accentColor: zod.string().optional(),
+      facebookUrl: zod.string().optional(),
+      instagramUrl: zod.string().optional(),
+      tiktokUrl: zod.string().optional(),
+      twitterUrl: zod.string().optional(),
+      youtubeUrl: zod.string().optional(),
       isApproved: zod.boolean(),
+      isSuspended: zod.boolean().optional(),
       userId: zod.string(),
-      createdAt: zod.date(),
-      _count: zod
-        .object({
-          products: zod.number().optional(),
-        })
+      subscriptionStatus: zod
+        .enum(["TRIAL", "ACTIVE", "EXPIRED", "CANCELLED"])
         .optional(),
+      productCount: zod.number().optional(),
+      createdAt: zod.date(),
+      updatedAt: zod.date().optional(),
     })
     .optional(),
   category: zod
@@ -334,17 +430,33 @@ export const UpdateProductResponse = zod.object({
     .object({
       id: zod.string(),
       name: zod.string(),
+      slug: zod.string().optional(),
       description: zod.string().optional(),
       logo: zod.string().optional(),
       banner: zod.string().optional(),
+      phone: zod.string().optional(),
+      whatsapp: zod.string().optional(),
+      email: zod.string().optional(),
+      website: zod.string().optional(),
+      address: zod.string().optional(),
+      city: zod.string().optional(),
+      country: zod.string().optional(),
+      businessHours: zod.string().optional(),
+      accentColor: zod.string().optional(),
+      facebookUrl: zod.string().optional(),
+      instagramUrl: zod.string().optional(),
+      tiktokUrl: zod.string().optional(),
+      twitterUrl: zod.string().optional(),
+      youtubeUrl: zod.string().optional(),
       isApproved: zod.boolean(),
+      isSuspended: zod.boolean().optional(),
       userId: zod.string(),
-      createdAt: zod.date(),
-      _count: zod
-        .object({
-          products: zod.number().optional(),
-        })
+      subscriptionStatus: zod
+        .enum(["TRIAL", "ACTIVE", "EXPIRED", "CANCELLED"])
         .optional(),
+      productCount: zod.number().optional(),
+      createdAt: zod.date(),
+      updatedAt: zod.date().optional(),
     })
     .optional(),
   category: zod
@@ -451,17 +563,33 @@ export const DeleteCategoryResponse = zod.object({
 export const ListShopsResponseItem = zod.object({
   id: zod.string(),
   name: zod.string(),
+  slug: zod.string().optional(),
   description: zod.string().optional(),
   logo: zod.string().optional(),
   banner: zod.string().optional(),
+  phone: zod.string().optional(),
+  whatsapp: zod.string().optional(),
+  email: zod.string().optional(),
+  website: zod.string().optional(),
+  address: zod.string().optional(),
+  city: zod.string().optional(),
+  country: zod.string().optional(),
+  businessHours: zod.string().optional(),
+  accentColor: zod.string().optional(),
+  facebookUrl: zod.string().optional(),
+  instagramUrl: zod.string().optional(),
+  tiktokUrl: zod.string().optional(),
+  twitterUrl: zod.string().optional(),
+  youtubeUrl: zod.string().optional(),
   isApproved: zod.boolean(),
+  isSuspended: zod.boolean().optional(),
   userId: zod.string(),
-  createdAt: zod.date(),
-  _count: zod
-    .object({
-      products: zod.number().optional(),
-    })
+  subscriptionStatus: zod
+    .enum(["TRIAL", "ACTIVE", "EXPIRED", "CANCELLED"])
     .optional(),
+  productCount: zod.number().optional(),
+  createdAt: zod.date(),
+  updatedAt: zod.date().optional(),
 });
 export const ListShopsResponse = zod.array(ListShopsResponseItem);
 
@@ -471,17 +599,33 @@ export const ListShopsResponse = zod.array(ListShopsResponseItem);
 export const GetMyShopResponse = zod.object({
   id: zod.string(),
   name: zod.string(),
+  slug: zod.string().optional(),
   description: zod.string().optional(),
   logo: zod.string().optional(),
   banner: zod.string().optional(),
+  phone: zod.string().optional(),
+  whatsapp: zod.string().optional(),
+  email: zod.string().optional(),
+  website: zod.string().optional(),
+  address: zod.string().optional(),
+  city: zod.string().optional(),
+  country: zod.string().optional(),
+  businessHours: zod.string().optional(),
+  accentColor: zod.string().optional(),
+  facebookUrl: zod.string().optional(),
+  instagramUrl: zod.string().optional(),
+  tiktokUrl: zod.string().optional(),
+  twitterUrl: zod.string().optional(),
+  youtubeUrl: zod.string().optional(),
   isApproved: zod.boolean(),
+  isSuspended: zod.boolean().optional(),
   userId: zod.string(),
-  createdAt: zod.date(),
-  _count: zod
-    .object({
-      products: zod.number().optional(),
-    })
+  subscriptionStatus: zod
+    .enum(["TRIAL", "ACTIVE", "EXPIRED", "CANCELLED"])
     .optional(),
+  productCount: zod.number().optional(),
+  createdAt: zod.date(),
+  updatedAt: zod.date().optional(),
 });
 
 /**
@@ -492,22 +636,91 @@ export const UpdateMyShopBody = zod.object({
   description: zod.string().optional(),
   logo: zod.string().optional(),
   banner: zod.string().optional(),
+  phone: zod.string().optional(),
+  whatsapp: zod.string().optional(),
+  email: zod.string().optional(),
+  website: zod.string().optional(),
+  address: zod.string().optional(),
+  city: zod.string().optional(),
+  country: zod.string().optional(),
+  businessHours: zod.string().optional(),
+  accentColor: zod.string().optional(),
+  facebookUrl: zod.string().optional(),
+  instagramUrl: zod.string().optional(),
+  tiktokUrl: zod.string().optional(),
+  twitterUrl: zod.string().optional(),
+  youtubeUrl: zod.string().optional(),
 });
 
 export const UpdateMyShopResponse = zod.object({
   id: zod.string(),
   name: zod.string(),
+  slug: zod.string().optional(),
   description: zod.string().optional(),
   logo: zod.string().optional(),
   banner: zod.string().optional(),
+  phone: zod.string().optional(),
+  whatsapp: zod.string().optional(),
+  email: zod.string().optional(),
+  website: zod.string().optional(),
+  address: zod.string().optional(),
+  city: zod.string().optional(),
+  country: zod.string().optional(),
+  businessHours: zod.string().optional(),
+  accentColor: zod.string().optional(),
+  facebookUrl: zod.string().optional(),
+  instagramUrl: zod.string().optional(),
+  tiktokUrl: zod.string().optional(),
+  twitterUrl: zod.string().optional(),
+  youtubeUrl: zod.string().optional(),
   isApproved: zod.boolean(),
+  isSuspended: zod.boolean().optional(),
   userId: zod.string(),
-  createdAt: zod.date(),
-  _count: zod
-    .object({
-      products: zod.number().optional(),
-    })
+  subscriptionStatus: zod
+    .enum(["TRIAL", "ACTIVE", "EXPIRED", "CANCELLED"])
     .optional(),
+  productCount: zod.number().optional(),
+  createdAt: zod.date(),
+  updatedAt: zod.date().optional(),
+});
+
+/**
+ * @summary Get a shop by slug
+ */
+export const GetShopBySlugParams = zod.object({
+  slug: zod.coerce.string(),
+});
+
+export const GetShopBySlugResponse = zod.object({
+  id: zod.string(),
+  name: zod.string(),
+  slug: zod.string().optional(),
+  description: zod.string().optional(),
+  logo: zod.string().optional(),
+  banner: zod.string().optional(),
+  phone: zod.string().optional(),
+  whatsapp: zod.string().optional(),
+  email: zod.string().optional(),
+  website: zod.string().optional(),
+  address: zod.string().optional(),
+  city: zod.string().optional(),
+  country: zod.string().optional(),
+  businessHours: zod.string().optional(),
+  accentColor: zod.string().optional(),
+  facebookUrl: zod.string().optional(),
+  instagramUrl: zod.string().optional(),
+  tiktokUrl: zod.string().optional(),
+  twitterUrl: zod.string().optional(),
+  youtubeUrl: zod.string().optional(),
+  isApproved: zod.boolean(),
+  isSuspended: zod.boolean().optional(),
+  userId: zod.string(),
+  subscriptionStatus: zod
+    .enum(["TRIAL", "ACTIVE", "EXPIRED", "CANCELLED"])
+    .optional(),
+  productCount: zod.number().optional(),
+  createdAt: zod.date(),
+  updatedAt: zod.date().optional(),
 });
 
 /**
@@ -520,17 +733,33 @@ export const GetShopParams = zod.object({
 export const GetShopResponse = zod.object({
   id: zod.string(),
   name: zod.string(),
+  slug: zod.string().optional(),
   description: zod.string().optional(),
   logo: zod.string().optional(),
   banner: zod.string().optional(),
+  phone: zod.string().optional(),
+  whatsapp: zod.string().optional(),
+  email: zod.string().optional(),
+  website: zod.string().optional(),
+  address: zod.string().optional(),
+  city: zod.string().optional(),
+  country: zod.string().optional(),
+  businessHours: zod.string().optional(),
+  accentColor: zod.string().optional(),
+  facebookUrl: zod.string().optional(),
+  instagramUrl: zod.string().optional(),
+  tiktokUrl: zod.string().optional(),
+  twitterUrl: zod.string().optional(),
+  youtubeUrl: zod.string().optional(),
   isApproved: zod.boolean(),
+  isSuspended: zod.boolean().optional(),
   userId: zod.string(),
-  createdAt: zod.date(),
-  _count: zod
-    .object({
-      products: zod.number().optional(),
-    })
+  subscriptionStatus: zod
+    .enum(["TRIAL", "ACTIVE", "EXPIRED", "CANCELLED"])
     .optional(),
+  productCount: zod.number().optional(),
+  createdAt: zod.date(),
+  updatedAt: zod.date().optional(),
 });
 
 /**
@@ -571,17 +800,33 @@ export const ListOrdersResponseItem = zod.object({
               .object({
                 id: zod.string(),
                 name: zod.string(),
+                slug: zod.string().optional(),
                 description: zod.string().optional(),
                 logo: zod.string().optional(),
                 banner: zod.string().optional(),
+                phone: zod.string().optional(),
+                whatsapp: zod.string().optional(),
+                email: zod.string().optional(),
+                website: zod.string().optional(),
+                address: zod.string().optional(),
+                city: zod.string().optional(),
+                country: zod.string().optional(),
+                businessHours: zod.string().optional(),
+                accentColor: zod.string().optional(),
+                facebookUrl: zod.string().optional(),
+                instagramUrl: zod.string().optional(),
+                tiktokUrl: zod.string().optional(),
+                twitterUrl: zod.string().optional(),
+                youtubeUrl: zod.string().optional(),
                 isApproved: zod.boolean(),
+                isSuspended: zod.boolean().optional(),
                 userId: zod.string(),
-                createdAt: zod.date(),
-                _count: zod
-                  .object({
-                    products: zod.number().optional(),
-                  })
+                subscriptionStatus: zod
+                  .enum(["TRIAL", "ACTIVE", "EXPIRED", "CANCELLED"])
                   .optional(),
+                productCount: zod.number().optional(),
+                createdAt: zod.date(),
+                updatedAt: zod.date().optional(),
               })
               .optional(),
             category: zod
@@ -647,17 +892,33 @@ export const ListSellerOrdersResponseItem = zod.object({
               .object({
                 id: zod.string(),
                 name: zod.string(),
+                slug: zod.string().optional(),
                 description: zod.string().optional(),
                 logo: zod.string().optional(),
                 banner: zod.string().optional(),
+                phone: zod.string().optional(),
+                whatsapp: zod.string().optional(),
+                email: zod.string().optional(),
+                website: zod.string().optional(),
+                address: zod.string().optional(),
+                city: zod.string().optional(),
+                country: zod.string().optional(),
+                businessHours: zod.string().optional(),
+                accentColor: zod.string().optional(),
+                facebookUrl: zod.string().optional(),
+                instagramUrl: zod.string().optional(),
+                tiktokUrl: zod.string().optional(),
+                twitterUrl: zod.string().optional(),
+                youtubeUrl: zod.string().optional(),
                 isApproved: zod.boolean(),
+                isSuspended: zod.boolean().optional(),
                 userId: zod.string(),
-                createdAt: zod.date(),
-                _count: zod
-                  .object({
-                    products: zod.number().optional(),
-                  })
+                subscriptionStatus: zod
+                  .enum(["TRIAL", "ACTIVE", "EXPIRED", "CANCELLED"])
                   .optional(),
+                productCount: zod.number().optional(),
+                createdAt: zod.date(),
+                updatedAt: zod.date().optional(),
               })
               .optional(),
             category: zod
@@ -727,17 +988,33 @@ export const GetOrderResponse = zod.object({
               .object({
                 id: zod.string(),
                 name: zod.string(),
+                slug: zod.string().optional(),
                 description: zod.string().optional(),
                 logo: zod.string().optional(),
                 banner: zod.string().optional(),
+                phone: zod.string().optional(),
+                whatsapp: zod.string().optional(),
+                email: zod.string().optional(),
+                website: zod.string().optional(),
+                address: zod.string().optional(),
+                city: zod.string().optional(),
+                country: zod.string().optional(),
+                businessHours: zod.string().optional(),
+                accentColor: zod.string().optional(),
+                facebookUrl: zod.string().optional(),
+                instagramUrl: zod.string().optional(),
+                tiktokUrl: zod.string().optional(),
+                twitterUrl: zod.string().optional(),
+                youtubeUrl: zod.string().optional(),
                 isApproved: zod.boolean(),
+                isSuspended: zod.boolean().optional(),
                 userId: zod.string(),
-                createdAt: zod.date(),
-                _count: zod
-                  .object({
-                    products: zod.number().optional(),
-                  })
+                subscriptionStatus: zod
+                  .enum(["TRIAL", "ACTIVE", "EXPIRED", "CANCELLED"])
                   .optional(),
+                productCount: zod.number().optional(),
+                createdAt: zod.date(),
+                updatedAt: zod.date().optional(),
               })
               .optional(),
             category: zod
@@ -863,17 +1140,33 @@ export const CapturePaypalOrderResponse = zod.object({
               .object({
                 id: zod.string(),
                 name: zod.string(),
+                slug: zod.string().optional(),
                 description: zod.string().optional(),
                 logo: zod.string().optional(),
                 banner: zod.string().optional(),
+                phone: zod.string().optional(),
+                whatsapp: zod.string().optional(),
+                email: zod.string().optional(),
+                website: zod.string().optional(),
+                address: zod.string().optional(),
+                city: zod.string().optional(),
+                country: zod.string().optional(),
+                businessHours: zod.string().optional(),
+                accentColor: zod.string().optional(),
+                facebookUrl: zod.string().optional(),
+                instagramUrl: zod.string().optional(),
+                tiktokUrl: zod.string().optional(),
+                twitterUrl: zod.string().optional(),
+                youtubeUrl: zod.string().optional(),
                 isApproved: zod.boolean(),
+                isSuspended: zod.boolean().optional(),
                 userId: zod.string(),
-                createdAt: zod.date(),
-                _count: zod
-                  .object({
-                    products: zod.number().optional(),
-                  })
+                subscriptionStatus: zod
+                  .enum(["TRIAL", "ACTIVE", "EXPIRED", "CANCELLED"])
                   .optional(),
+                productCount: zod.number().optional(),
+                createdAt: zod.date(),
+                updatedAt: zod.date().optional(),
               })
               .optional(),
             category: zod
@@ -919,17 +1212,33 @@ export const AdminListSellersResponseItem = zod.object({
     .object({
       id: zod.string(),
       name: zod.string(),
+      slug: zod.string().optional(),
       description: zod.string().optional(),
       logo: zod.string().optional(),
       banner: zod.string().optional(),
+      phone: zod.string().optional(),
+      whatsapp: zod.string().optional(),
+      email: zod.string().optional(),
+      website: zod.string().optional(),
+      address: zod.string().optional(),
+      city: zod.string().optional(),
+      country: zod.string().optional(),
+      businessHours: zod.string().optional(),
+      accentColor: zod.string().optional(),
+      facebookUrl: zod.string().optional(),
+      instagramUrl: zod.string().optional(),
+      tiktokUrl: zod.string().optional(),
+      twitterUrl: zod.string().optional(),
+      youtubeUrl: zod.string().optional(),
       isApproved: zod.boolean(),
+      isSuspended: zod.boolean().optional(),
       userId: zod.string(),
-      createdAt: zod.date(),
-      _count: zod
-        .object({
-          products: zod.number().optional(),
-        })
+      subscriptionStatus: zod
+        .enum(["TRIAL", "ACTIVE", "EXPIRED", "CANCELLED"])
         .optional(),
+      productCount: zod.number().optional(),
+      createdAt: zod.date(),
+      updatedAt: zod.date().optional(),
     })
     .optional(),
   createdAt: zod.date(),
@@ -946,17 +1255,33 @@ export const AdminApproveSellerParams = zod.object({
 export const AdminApproveSellerResponse = zod.object({
   id: zod.string(),
   name: zod.string(),
+  slug: zod.string().optional(),
   description: zod.string().optional(),
   logo: zod.string().optional(),
   banner: zod.string().optional(),
+  phone: zod.string().optional(),
+  whatsapp: zod.string().optional(),
+  email: zod.string().optional(),
+  website: zod.string().optional(),
+  address: zod.string().optional(),
+  city: zod.string().optional(),
+  country: zod.string().optional(),
+  businessHours: zod.string().optional(),
+  accentColor: zod.string().optional(),
+  facebookUrl: zod.string().optional(),
+  instagramUrl: zod.string().optional(),
+  tiktokUrl: zod.string().optional(),
+  twitterUrl: zod.string().optional(),
+  youtubeUrl: zod.string().optional(),
   isApproved: zod.boolean(),
+  isSuspended: zod.boolean().optional(),
   userId: zod.string(),
-  createdAt: zod.date(),
-  _count: zod
-    .object({
-      products: zod.number().optional(),
-    })
+  subscriptionStatus: zod
+    .enum(["TRIAL", "ACTIVE", "EXPIRED", "CANCELLED"])
     .optional(),
+  productCount: zod.number().optional(),
+  createdAt: zod.date(),
+  updatedAt: zod.date().optional(),
 });
 
 /**
@@ -969,17 +1294,33 @@ export const AdminRejectSellerParams = zod.object({
 export const AdminRejectSellerResponse = zod.object({
   id: zod.string(),
   name: zod.string(),
+  slug: zod.string().optional(),
   description: zod.string().optional(),
   logo: zod.string().optional(),
   banner: zod.string().optional(),
+  phone: zod.string().optional(),
+  whatsapp: zod.string().optional(),
+  email: zod.string().optional(),
+  website: zod.string().optional(),
+  address: zod.string().optional(),
+  city: zod.string().optional(),
+  country: zod.string().optional(),
+  businessHours: zod.string().optional(),
+  accentColor: zod.string().optional(),
+  facebookUrl: zod.string().optional(),
+  instagramUrl: zod.string().optional(),
+  tiktokUrl: zod.string().optional(),
+  twitterUrl: zod.string().optional(),
+  youtubeUrl: zod.string().optional(),
   isApproved: zod.boolean(),
+  isSuspended: zod.boolean().optional(),
   userId: zod.string(),
-  createdAt: zod.date(),
-  _count: zod
-    .object({
-      products: zod.number().optional(),
-    })
+  subscriptionStatus: zod
+    .enum(["TRIAL", "ACTIVE", "EXPIRED", "CANCELLED"])
     .optional(),
+  productCount: zod.number().optional(),
+  createdAt: zod.date(),
+  updatedAt: zod.date().optional(),
 });
 
 /**

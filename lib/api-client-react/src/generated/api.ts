@@ -1430,6 +1430,93 @@ export const useUpdateMyShop = <
 };
 
 /**
+ * @summary Get a shop by slug
+ */
+export const getGetShopBySlugUrl = (slug: string) => {
+  return `/api/shops/slug/${slug}`;
+};
+
+export const getShopBySlug = async (
+  slug: string,
+  options?: RequestInit,
+): Promise<Shop> => {
+  return customFetch<Shop>(getGetShopBySlugUrl(slug), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetShopBySlugQueryKey = (slug: string) => {
+  return [`/api/shops/slug/${slug}`] as const;
+};
+
+export const getGetShopBySlugQueryOptions = <
+  TData = Awaited<ReturnType<typeof getShopBySlug>>,
+  TError = ErrorType<void>,
+>(
+  slug: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getShopBySlug>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetShopBySlugQueryKey(slug);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getShopBySlug>>> = ({
+    signal,
+  }) => getShopBySlug(slug, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!slug,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getShopBySlug>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetShopBySlugQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getShopBySlug>>
+>;
+export type GetShopBySlugQueryError = ErrorType<void>;
+
+/**
+ * @summary Get a shop by slug
+ */
+
+export function useGetShopBySlug<
+  TData = Awaited<ReturnType<typeof getShopBySlug>>,
+  TError = ErrorType<void>,
+>(
+  slug: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getShopBySlug>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetShopBySlugQueryOptions(slug, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
  * @summary Get a shop by ID
  */
 export const getGetShopUrl = (id: string) => {

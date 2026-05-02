@@ -7,7 +7,6 @@
  */
 
 export * from "./_categoryCount";
-export * from "./_shopCount";
 export * from "./analytics";
 export * from "./authResponse";
 export * from "./capturePaypalRequest";
@@ -33,6 +32,7 @@ export * from "./registerRequest";
 export * from "./registerRequestRole";
 export * from "./shippingAddress";
 export * from "./shop";
+export * from "./shopSubscriptionStatus";
 export * from "./stripeSessionResponse";
 export * from "./updateProductRequest";
 export * from "./updateProductRequestCondition";

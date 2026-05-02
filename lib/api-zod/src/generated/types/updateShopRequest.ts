@@ -11,4 +11,18 @@ export interface UpdateShopRequest {
   description?: string;
   logo?: string;
   banner?: string;
+  phone?: string;
+  whatsapp?: string;
+  email?: string;
+  website?: string;
+  address?: string;
+  city?: string;
+  country?: string;
+  businessHours?: string;
+  accentColor?: string;
+  facebookUrl?: string;
+  instagramUrl?: string;
+  tiktokUrl?: string;
+  twitterUrl?: string;
+  youtubeUrl?: string;
 }

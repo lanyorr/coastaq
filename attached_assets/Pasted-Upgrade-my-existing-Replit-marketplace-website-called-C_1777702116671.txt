@@ -1,0 +1,283 @@
+Upgrade my existing Replit marketplace website called **Coastaq** with a complete **Seller Shop Customization & Store Profile System**.
+
+Build a premium feature that allows every shop owner / seller to fully personalize and manage their own storefront similar to Amazon Marketplace, Etsy, Jumia, Alibaba, and Shopify seller stores.
+
+---
+
+# PRIMARY OBJECTIVE
+
+Allow sellers to edit and customize their own shops professionally so buyers trust them and understand their brand.
+
+Each seller should have a unique branded storefront page.
+
+---
+
+# 1. SELLER SHOP PROFILE MANAGEMENT
+
+Create a Seller Dashboard section called:
+
+## My Shop Settings
+
+Allow sellers to edit:
+
+* Shop Name
+* Shop Logo
+* Cover Banner Image
+* Shop Description / About Us
+* Business Category
+* Contact Phone
+* WhatsApp Number
+* Email
+* Website (optional)
+* Physical Address
+* Country
+* City
+* Business Hours
+* Social Media Links
+
+Examples:
+
+Facebook
+Instagram
+TikTok
+X / Twitter
+YouTube
+
+---
+
+# 2. LOGO UPLOAD SYSTEM
+
+Allow seller to upload their own shop logo.
+
+Requirements:
+
+* Square logo preview
+* Drag and drop upload
+* Crop / resize option
+* Accept PNG / JPG / WEBP
+* Compress images automatically
+* Show placeholder if none uploaded
+
+Display logo on:
+
+* Seller storefront page
+* Product cards
+* Product pages
+* Search results
+* Messages area
+
+---
+
+# 3. SHOP DESCRIPTION AREA
+
+Create rich text section:
+
+## About This Shop
+
+Seller can describe:
+
+* What they sell
+* Brand story
+* Experience
+* Why buy from them
+* Delivery promise
+* Return policy
+* Customer service details
+
+Allow formatting:
+
+* Bold
+* Bullet points
+* Paragraphs
+* Links
+
+Limit to sensible character count.
+
+---
+
+# 4. SELLER STOREFRONT PAGE
+
+Generate unique public shop page:
+
+coastaq.com/shop/shopname
+
+Show:
+
+* Logo
+* Banner image
+* Shop name
+* Verified badge if approved
+* Description
+* Ratings
+* Total products
+* Followers
+* Joined date
+* Country / city
+* Contact button
+* Message seller button
+* All products grid
+
+---
+
+# 5. BRANDING OPTIONS
+
+Allow sellers to customize:
+
+* Accent color
+* Button color
+* Store theme light/dark
+* Banner style
+* Featured products section
+
+Keep design clean and premium.
+
+---
+
+# 6. TRUST FEATURES
+
+Display:
+
+* Seller response time
+* Number of sales
+* Reviews
+* Repeat buyers
+* Verification status
+* Years active
+
+---
+
+# 7. PRODUCT PAGE INTEGRATION
+
+On each product page show seller box:
+
+Seller logo
+Seller name
+Visit Shop
+Message Seller
+Location
+Rating
+
+---
+
+# 8. DASHBOARD UX
+
+Seller dashboard sections:
+
+Profile
+Branding
+Products
+Orders
+Messages
+Analytics
+Settings
+
+Use intuitive clean interface.
+
+---
+
+# 9. DATABASE STRUCTURE
+
+Create / update seller table:
+
+id
+user_id
+shop_name
+slug
+logo_url
+banner_url
+description
+category
+phone
+whatsapp
+email
+website
+address
+city
+country
+business_hours
+facebook_url
+instagram_url
+tiktok_url
+twitter_url
+youtube_url
+theme_color
+verified
+created_at
+
+---
+
+# 10. IMAGE STORAGE
+
+Use best Replit-compatible storage solution.
+
+Requirements:
+
+* Fast loading
+* CDN ready
+* Secure uploads
+* File size limits
+* Delete / replace old images
+
+---
+
+# 11. SEO BENEFITS
+
+Each shop page should have:
+
+* Meta title with shop name
+* Description from shop bio
+* Structured data
+* Search engine friendly URLs
+
+---
+
+# 12. MOBILE RESPONSIVE
+
+Store pages and dashboard must work beautifully on mobile.
+
+Include:
+
+Sticky buttons:
+
+Visit Shop
+Message Seller
+Call Seller
+
+---
+
+# 13. ADMIN TOOLS
+
+Admins can:
+
+* Approve logos
+* Verify stores
+* Remove abusive content
+* Feature top stores
+
+---
+
+# 14. TECH STACK
+
+Use best stack compatible with my current Replit project.
+
+Preferred:
+
+* React / TypeScript
+* Modern component architecture
+* Reusable forms
+* Validation
+* Secure uploads
+
+Files:
+
+SellerProfile.jsx
+ShopEditor.jsx
+LogoUploader.jsx
+StorefrontPage.jsx
+SellerCard.jsx
+
+---
+
+# 15. FINAL GOAL
+
+Every seller on Coastaq should feel like they own a professional branded mini-website inside the marketplace, increasing trust, conversions, and repeat customers.

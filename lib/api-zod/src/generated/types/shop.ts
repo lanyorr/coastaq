@@ -5,16 +5,34 @@
  * Coastaq multi-vendor marketplace API
  * OpenAPI spec version: 0.1.0
  */
-import type { _ShopCount } from "./_shopCount";
+import type { ShopSubscriptionStatus } from "./shopSubscriptionStatus";
 
 export interface Shop {
   id: string;
   name: string;
+  slug?: string;
   description?: string;
   logo?: string;
   banner?: string;
+  phone?: string;
+  whatsapp?: string;
+  email?: string;
+  website?: string;
+  address?: string;
+  city?: string;
+  country?: string;
+  businessHours?: string;
+  accentColor?: string;
+  facebookUrl?: string;
+  instagramUrl?: string;
+  tiktokUrl?: string;
+  twitterUrl?: string;
+  youtubeUrl?: string;
   isApproved: boolean;
+  isSuspended?: boolean;
   userId: string;
+  subscriptionStatus?: ShopSubscriptionStatus;
+  productCount?: number;
   createdAt: Date;
-  _count?: _ShopCount;
+  updatedAt?: Date;
 }

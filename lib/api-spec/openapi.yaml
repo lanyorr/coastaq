@@ -367,6 +367,27 @@ paths:
               schema:
                 $ref: "#/components/schemas/Shop"
 
+  /shops/slug/{slug}:
+    get:
+      operationId: getShopBySlug
+      tags: [shops]
+      summary: Get a shop by slug
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Shop details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Shop"
+        "404":
+          description: Shop not found
+
   /shops/{id}:
     get:
       operationId: getShop
@@ -696,24 +717,59 @@ components:
           type: string
         name:
           type: string
+        slug:
+          type: string
         description:
           type: string
         logo:
           type: string
         banner:
           type: string
+        phone:
+          type: string
+        whatsapp:
+          type: string
+        email:
+          type: string
+        website:
+          type: string
+        address:
+          type: string
+        city:
+          type: string
+        country:
+          type: string
+        businessHours:
+          type: string
+        accentColor:
+          type: string
+        facebookUrl:
+          type: string
+        instagramUrl:
+          type: string
+        tiktokUrl:
+          type: string
+        twitterUrl:
+          type: string
+        youtubeUrl:
+          type: string
         isApproved:
+          type: boolean
+        isSuspended:
           type: boolean
         userId:
           type: string
+        subscriptionStatus:
+          type: string
+          enum: [TRIAL, ACTIVE, EXPIRED, CANCELLED]
+        productCount:
+          type: integer
         createdAt:
           type: string
           format: date-time
-        _count:
-          type: object
-          properties:
-            products:
-              type: integer
+        updatedAt:
+          type: string
+          format: date-time
       required:
         - id
         - name
@@ -731,6 +787,34 @@ components:
         logo:
           type: string
         banner:
+          type: string
+        phone:
+          type: string
+        whatsapp:
+          type: string
+        email:
+          type: string
+        website:
+          type: string
+        address:
+          type: string
+        city:
+          type: string
+        country:
+          type: string
+        businessHours:
+          type: string
+        accentColor:
+          type: string
+        facebookUrl:
+          type: string
+        instagramUrl:
+          type: string
+        tiktokUrl:
+          type: string
+        twitterUrl:
+          type: string
+        youtubeUrl:
           type: string
 
     Product:

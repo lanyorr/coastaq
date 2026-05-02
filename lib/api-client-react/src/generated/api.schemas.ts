@@ -49,20 +49,44 @@ export const UserRole = {
   ADMIN: "ADMIN",
 } as const;
 
-export type _ShopCount = {
-  products?: number;
-};
+export type ShopSubscriptionStatus =
+  (typeof ShopSubscriptionStatus)[keyof typeof ShopSubscriptionStatus];
+
+export const ShopSubscriptionStatus = {
+  TRIAL: "TRIAL",
+  ACTIVE: "ACTIVE",
+  EXPIRED: "EXPIRED",
+  CANCELLED: "CANCELLED",
+} as const;
 
 export interface Shop {
   id: string;
   name: string;
+  slug?: string;
   description?: string;
   logo?: string;
   banner?: string;
+  phone?: string;
+  whatsapp?: string;
+  email?: string;
+  website?: string;
+  address?: string;
+  city?: string;
+  country?: string;
+  businessHours?: string;
+  accentColor?: string;
+  facebookUrl?: string;
+  instagramUrl?: string;
+  tiktokUrl?: string;
+  twitterUrl?: string;
+  youtubeUrl?: string;
   isApproved: boolean;
+  isSuspended?: boolean;
   userId: string;
+  subscriptionStatus?: ShopSubscriptionStatus;
+  productCount?: number;
   createdAt: string;
-  _count?: _ShopCount;
+  updatedAt?: string;
 }
 
 export interface User {
@@ -84,6 +108,20 @@ export interface UpdateShopRequest {
   description?: string;
   logo?: string;
   banner?: string;
+  phone?: string;
+  whatsapp?: string;
+  email?: string;
+  website?: string;
+  address?: string;
+  city?: string;
+  country?: string;
+  businessHours?: string;
+  accentColor?: string;
+  facebookUrl?: string;
+  instagramUrl?: string;
+  tiktokUrl?: string;
+  twitterUrl?: string;
+  youtubeUrl?: string;
 }
 
 export type ProductCondition =

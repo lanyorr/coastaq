@@ -14,6 +14,8 @@ import {
   ImageIcon, AlertCircle, CreditCard, MessageCircle, ChevronRight, Inbox,
   ShoppingBag, CheckCircle2, XCircle, Truck, Clock as ClockIcon, AlertTriangle,
   Pencil, Shield, TrendingUp, DollarSign, Lock,
+  ExternalLink, Phone, Globe, Facebook, Instagram, Twitter, Youtube,
+  MapPin, Upload, X as XIcon,
 } from "lucide-react";
 import { DeleteAccountDialog } from "@/components/account/DeleteAccountDialog";
 import { useToast } from "@/hooks/use-toast";
@@ -530,7 +532,7 @@ export default function SellerDashboard() {
   const { data: productsData } = useListProducts({ shopId: shop?.id, limit: 100 });
   const { data: categories } = useListCategories();
   const { data: sub } = useSubscriptionStatus();
-  const { mutate: updateShop, isPending: updatingShop } = useUpdateMyShop();
+  const { mutate: updateShop, mutateAsync: updateShopAsync, isPending: updatingShop } = useUpdateMyShop();
   const { mutate: createProduct, isPending: creatingProduct } = useCreateProduct();
   const { mutate: deleteProduct } = useDeleteProduct();
 
@@ -542,6 +544,18 @@ export default function SellerDashboard() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [imageUploading, setImageUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Shop profile form state
+  const [shopForm, setShopForm] = useState({
+    name: "", description: "", phone: "", whatsapp: "", email: "", website: "",
+    address: "", city: "", country: "", businessHours: "", accentColor: "#1d4ed8",
+    facebookUrl: "", instagramUrl: "", tiktokUrl: "", twitterUrl: "", youtubeUrl: "",
+    logo: "", banner: "",
+  });
+  const [logoUploading, setLogoUploading] = useState(false);
+  const [bannerUploading, setBannerUploading] = useState(false);
+  const logoInputRef = useRef<HTMLInputElement>(null);
+  const bannerInputRef = useRef<HTMLInputElement>(null);
 
   // Edit product state
   const [editOpen, setEditOpen] = useState(false);
@@ -656,23 +670,87 @@ export default function SellerDashboard() {
     setNewProduct(p => ({ ...p, categoryId: "" }));
   }, [newProduct.parentCategoryId]);
 
-  const handleShopUpdate = (e: React.FormEvent<HTMLFormElement>) => {
+  // Sync shop data into shopForm when loaded
+  useEffect(() => {
+    if (shop) {
+      const s = shop as any;
+      setShopForm({
+        name: s.name ?? "",
+        description: s.description ?? "",
+        phone: s.phone ?? "",
+        whatsapp: s.whatsapp ?? "",
+        email: s.email ?? "",
+        website: s.website ?? "",
+        address: s.address ?? "",
+        city: s.city ?? "",
+        country: s.country ?? "",
+        businessHours: s.businessHours ?? "",
+        accentColor: s.accentColor ?? "#1d4ed8",
+        facebookUrl: s.facebookUrl ?? "",
+        instagramUrl: s.instagramUrl ?? "",
+        tiktokUrl: s.tiktokUrl ?? "",
+        twitterUrl: s.twitterUrl ?? "",
+        youtubeUrl: s.youtubeUrl ?? "",
+        logo: s.logo ?? "",
+        banner: s.banner ?? "",
+      });
+    }
+  }, [shop?.id]);
+
+  const sf = (key: keyof typeof shopForm) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+    setShopForm(p => ({ ...p, [key]: e.target.value }));
+
+  const handleLogoUpload = async (file: File) => {
+    setLogoUploading(true);
+    try {
+      const token = localStorage.getItem("coastaq_token");
+      const form = new FormData();
+      form.append("image", file);
+      const res = await fetch("/api/upload/image", {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: form,
+      });
+      if (!res.ok) throw new Error("Upload failed");
+      const data = await res.json() as { url: string };
+      setShopForm(p => ({ ...p, logo: data.url }));
+    } catch (err: any) {
+      toast({ variant: "destructive", title: "Upload failed", description: err.message });
+    } finally {
+      setLogoUploading(false);
+    }
+  };
+
+  const handleBannerUpload = async (file: File) => {
+    setBannerUploading(true);
+    try {
+      const token = localStorage.getItem("coastaq_token");
+      const form = new FormData();
+      form.append("image", file);
+      const res = await fetch("/api/upload/image", {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: form,
+      });
+      if (!res.ok) throw new Error("Upload failed");
+      const data = await res.json() as { url: string };
+      setShopForm(p => ({ ...p, banner: data.url }));
+    } catch (err: any) {
+      toast({ variant: "destructive", title: "Upload failed", description: err.message });
+    } finally {
+      setBannerUploading(false);
+    }
+  };
+
+  const handleShopUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    updateShop(
-      {
-        data: {
-          name: formData.get("name") as string,
-          description: formData.get("description") as string,
-        },
-      },
-      {
-        onSuccess: () => {
-          toast({ title: "Shop updated successfully" });
-          queryClient.invalidateQueries({ queryKey: ["/api/shops/my"] });
-        },
-      },
-    );
+    try {
+      await updateShopAsync({ data: shopForm as any });
+      toast({ title: "Shop updated", description: "Your profile has been saved." });
+      queryClient.invalidateQueries({ queryKey: ["/api/shops/my"] });
+    } catch (err: any) {
+      toast({ variant: "destructive", title: "Save failed", description: err?.message ?? "Unknown error" });
+    }
   };
 
   const handleAddProduct = (e: React.FormEvent) => {
@@ -1278,37 +1356,187 @@ export default function SellerDashboard() {
 
           {/* Settings Tab */}
           <TabsContent value="settings">
-            <div className="space-y-6 max-w-2xl">
-              {/* Shop Settings */}
+            <form onSubmit={handleShopUpdate} className="space-y-6 max-w-3xl">
+
+              {/* Banner & Logo */}
+              <div className="bg-card border border-border/50 rounded-3xl overflow-hidden shadow-sm">
+                {/* Banner preview */}
+                <div className="relative h-32 bg-secondary overflow-hidden">
+                  {shopForm.banner ? (
+                    <img src={shopForm.banner} alt="Banner" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-muted-foreground/30">
+                      <ImageIcon className="w-10 h-10" />
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                    <button
+                      type="button"
+                      onClick={() => bannerInputRef.current?.click()}
+                      className="bg-white/90 text-foreground text-xs font-semibold px-4 py-2 rounded-xl flex items-center gap-2 hover:bg-white transition-colors"
+                    >
+                      {bannerUploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+                      {bannerUploading ? "Uploading…" : "Change Banner"}
+                    </button>
+                  </div>
+                  {shopForm.banner && (
+                    <button
+                      type="button"
+                      onClick={() => setShopForm(p => ({ ...p, banner: "" }))}
+                      className="absolute top-2 right-2 bg-black/50 text-white rounded-full p-1 hover:bg-black/70 transition-colors"
+                    >
+                      <XIcon className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                  <input ref={bannerInputRef} type="file" accept="image/*" className="hidden"
+                    onChange={e => { const f = e.target.files?.[0]; if (f) handleBannerUpload(f); e.target.value = ""; }} />
+                </div>
+
+                <div className="px-8 pb-8 pt-4 space-y-6">
+                  {/* Logo row */}
+                  <div className="flex items-end gap-4 -mt-10">
+                    <div className="relative w-20 h-20 rounded-2xl overflow-hidden border-4 border-background shadow-lg bg-secondary shrink-0">
+                      {shopForm.logo ? (
+                        <img src={shopForm.logo} alt="Logo" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center" style={{ background: shopForm.accentColor }}>
+                          <Store className="w-8 h-8 text-white" />
+                        </div>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => logoInputRef.current?.click()}
+                        className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity"
+                      >
+                        {logoUploading ? <Loader2 className="w-4 h-4 text-white animate-spin" /> : <Upload className="w-4 h-4 text-white" />}
+                      </button>
+                      <input ref={logoInputRef} type="file" accept="image/*" className="hidden"
+                        onChange={e => { const f = e.target.files?.[0]; if (f) handleLogoUpload(f); e.target.value = ""; }} />
+                    </div>
+                    <div className="flex-1 pb-1 space-y-1">
+                      <p className="text-sm font-semibold text-foreground">{shopForm.name || "Your Shop"}</p>
+                      {(shop as any)?.slug && (
+                        <a
+                          href={`/shop/${(shop as any).slug}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                        >
+                          <ExternalLink className="w-3 h-3" />
+                          View Public Storefront
+                        </a>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3 pb-1">
+                      <div className="flex items-center gap-2">
+                        <label className="text-xs text-muted-foreground font-medium">Accent</label>
+                        <input
+                          type="color"
+                          value={shopForm.accentColor}
+                          onChange={sf("accentColor")}
+                          className="w-8 h-8 rounded-lg border border-border cursor-pointer p-0.5"
+                          title="Accent color"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Basic info */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <div className="space-y-2 sm:col-span-2">
+                      <Label className="text-sm font-semibold">Shop Name <span className="text-red-500">*</span></Label>
+                      <Input value={shopForm.name} onChange={sf("name")} required className="h-11 rounded-xl" placeholder="My Awesome Shop" />
+                    </div>
+                    <div className="space-y-2 sm:col-span-2">
+                      <Label className="text-sm font-semibold">Description</Label>
+                      <Textarea value={shopForm.description} onChange={sf("description")} rows={4} className="rounded-xl resize-none" placeholder="Tell customers what your shop is about…" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Contact Info */}
               <div className="bg-card border border-border/50 rounded-3xl p-8 shadow-sm">
-                <h2 className="text-xl font-bold mb-6">Shop Settings</h2>
-                {shop && (
-                  <form onSubmit={handleShopUpdate} className="space-y-6">
-                    <div className="space-y-2">
-                      <Label>Shop Name</Label>
-                      <Input name="name" defaultValue={shop.name} className="h-12 rounded-xl" />
+                <h3 className="text-base font-bold text-foreground mb-5 flex items-center gap-2">
+                  <Phone className="w-4 h-4 text-primary" /> Contact Information
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <div className="space-y-2">
+                    <Label className="text-sm">Email</Label>
+                    <Input type="email" value={shopForm.email} onChange={sf("email")} className="h-11 rounded-xl" placeholder="shop@example.com" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm">Website</Label>
+                    <Input type="url" value={shopForm.website} onChange={sf("website")} className="h-11 rounded-xl" placeholder="https://yoursite.com" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm">Phone</Label>
+                    <Input type="tel" value={shopForm.phone} onChange={sf("phone")} className="h-11 rounded-xl" placeholder="+1 555 000 0000" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm">WhatsApp Number</Label>
+                    <Input type="tel" value={shopForm.whatsapp} onChange={sf("whatsapp")} className="h-11 rounded-xl" placeholder="+1 555 000 0000" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Location */}
+              <div className="bg-card border border-border/50 rounded-3xl p-8 shadow-sm">
+                <h3 className="text-base font-bold text-foreground mb-5 flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-primary" /> Location
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <div className="space-y-2 sm:col-span-2">
+                    <Label className="text-sm">Street Address</Label>
+                    <Input value={shopForm.address} onChange={sf("address")} className="h-11 rounded-xl" placeholder="123 Market Street" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm">City</Label>
+                    <Input value={shopForm.city} onChange={sf("city")} className="h-11 rounded-xl" placeholder="Miami" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm">Country</Label>
+                    <Input value={shopForm.country} onChange={sf("country")} className="h-11 rounded-xl" placeholder="United States" />
+                  </div>
+                  <div className="space-y-2 sm:col-span-2">
+                    <Label className="text-sm">Business Hours</Label>
+                    <Textarea value={shopForm.businessHours} onChange={sf("businessHours")} rows={3} className="rounded-xl resize-none text-sm" placeholder={"Mon–Fri: 9am – 6pm\nSat: 10am – 4pm\nSun: Closed"} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Social Links */}
+              <div className="bg-card border border-border/50 rounded-3xl p-8 shadow-sm">
+                <h3 className="text-base font-bold text-foreground mb-5 flex items-center gap-2">
+                  <Globe className="w-4 h-4 text-primary" /> Social Links
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  {[
+                    { key: "facebookUrl" as const, label: "Facebook", icon: <Facebook className="w-4 h-4 text-[#1877f2]" />, placeholder: "https://facebook.com/yourpage" },
+                    { key: "instagramUrl" as const, label: "Instagram", icon: <Instagram className="w-4 h-4 text-[#e1306c]" />, placeholder: "https://instagram.com/yourhandle" },
+                    { key: "tiktokUrl" as const, label: "TikTok", icon: <span className="w-4 h-4 text-xs font-black">TT</span>, placeholder: "https://tiktok.com/@yourhandle" },
+                    { key: "twitterUrl" as const, label: "X / Twitter", icon: <Twitter className="w-4 h-4" />, placeholder: "https://x.com/yourhandle" },
+                    { key: "youtubeUrl" as const, label: "YouTube", icon: <Youtube className="w-4 h-4 text-[#ff0000]" />, placeholder: "https://youtube.com/@yourchannel" },
+                  ].map(({ key, label, icon, placeholder }) => (
+                    <div key={key} className="space-y-2">
+                      <Label className="text-sm flex items-center gap-2">{icon} {label}</Label>
+                      <Input type="url" value={shopForm[key]} onChange={sf(key)} className="h-11 rounded-xl text-sm" placeholder={placeholder} />
                     </div>
-                    <div className="space-y-2">
-                      <Label>Description</Label>
-                      <Textarea
-                        name="description"
-                        defaultValue={shop.description ?? ""}
-                        className="rounded-xl"
-                        rows={4}
-                      />
-                    </div>
-                    <div className="flex gap-3">
-                      <Button type="submit" disabled={updatingShop} className="h-12 rounded-xl px-8">
-                        {updatingShop ? <Loader2 className="animate-spin" /> : "Save Changes"}
-                      </Button>
-                      <Link href="/">
-                        <Button type="button" variant="outline" className="h-12 rounded-xl px-8 gap-2">
-                          <Home className="w-4 h-4" /> Back to Marketplace
-                        </Button>
-                      </Link>
-                    </div>
-                  </form>
-                )}
+                  ))}
+                </div>
+              </div>
+
+              {/* Save */}
+              <div className="flex gap-3">
+                <Button type="submit" disabled={updatingShop} className="h-12 rounded-xl px-8 gap-2">
+                  {updatingShop ? <Loader2 className="animate-spin w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
+                  {updatingShop ? "Saving…" : "Save Changes"}
+                </Button>
+                <Link href="/">
+                  <Button type="button" variant="outline" className="h-12 rounded-xl px-8 gap-2">
+                    <Home className="w-4 h-4" /> Back to Marketplace
+                  </Button>
+                </Link>
               </div>
 
               {/* Danger Zone */}
@@ -1329,7 +1557,8 @@ export default function SellerDashboard() {
                   Delete My Account
                 </Button>
               </div>
-            </div>
+
+            </form>
           </TabsContent>
         </Tabs>
       </div>

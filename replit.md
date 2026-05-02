@@ -44,7 +44,7 @@ artifacts-monorepo/
 ## Database Schema
 
 - **users**: id, email, passwordHash, name, role (BUYER/SELLER/ADMIN)
-- **shops**: id, name, description, logo, banner, isApproved, userId, subscriptionStatus (TRIAL/ACTIVE/EXPIRED/CANCELLED), trialEndsAt, subscriptionCurrentPeriodEnd
+- **shops**: id, name, description, logo, banner, isApproved, userId, subscriptionStatus, slug (unique, auto-generated from name), email, website, phone, whatsapp, address, city, country, businessHours, accentColor, facebookUrl, instagramUrl, tiktokUrl, twitterUrl, youtubeUrl
 - **categories**: id, name, parentId (self-referential for hierarchy)
 - **products**: id, title, description, price, stock, condition, location, images[], categoryId, shopId
 - **orders**: id, userId, status, total, shipping fields, paymentMethod, paymentId, paymentStatus (pending/escrowed/released/refunded/disputed), escrowAmount, sellerAmount (95%), platformFee (5%), sellerId, escrowStartedAt, deliveredAt, releasedAt, disputeReason, trackingNumber, courierName
