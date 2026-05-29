@@ -8,12 +8,21 @@ import { escrowTransactionsTable } from "./escrow";
 import { conversationsTable, messagesTable } from "./messages";
 import { reportsTable } from "./reports";
 import { adminActionsTable } from "./admin-actions";
+import { inventoryLogsTable } from "./inventory";
+import { shipmentsTable } from "./shipments";
+import { pageViewsTable } from "./analytics";
+import { affiliatesTable, affiliateLinksTable, affiliateCommissionsTable } from "./affiliates";
 
-export const usersRelations = relations(usersTable, ({ one }) => ({
+export const usersRelations = relations(usersTable, ({ one, many }) => ({
   shop: one(shopsTable, {
     fields: [usersTable.id],
     references: [shopsTable.userId],
   }),
+  affiliate: one(affiliatesTable, {
+    fields: [usersTable.id],
+    references: [affiliatesTable.userId],
+  }),
+  pageViews: many(pageViewsTable),
 }));
 
 export const shopsRelations = relations(shopsTable, ({ one, many }) => ({
@@ -22,6 +31,7 @@ export const shopsRelations = relations(shopsTable, ({ one, many }) => ({
     references: [usersTable.id],
   }),
   products: many(productsTable),
+  pageViews: many(pageViewsTable),
 }));
 
 export const categoriesRelations = relations(categoriesTable, ({ one, many }) => ({
@@ -44,6 +54,9 @@ export const productsRelations = relations(productsTable, ({ one, many }) => ({
     references: [categoriesTable.id],
   }),
   orderItems: many(orderItemsTable),
+  inventoryLogs: many(inventoryLogsTable),
+  pageViews: many(pageViewsTable),
+  affiliateLinks: many(affiliateLinksTable),
 }));
 
 export const ordersRelations = relations(ordersTable, ({ one, many }) => ({
@@ -58,6 +71,9 @@ export const ordersRelations = relations(ordersTable, ({ one, many }) => ({
   }),
   items: many(orderItemsTable),
   escrowTransactions: many(escrowTransactionsTable),
+  shipments: many(shipmentsTable),
+  inventoryLogs: many(inventoryLogsTable),
+  commissions: many(affiliateCommissionsTable),
 }));
 
 export const orderItemsRelations = relations(orderItemsTable, ({ one }) => ({
@@ -106,4 +122,40 @@ export const reportsRelations = relations(reportsTable, ({ one }) => ({
 
 export const adminActionsRelations = relations(adminActionsTable, ({ one }) => ({
   admin: one(usersTable, { fields: [adminActionsTable.adminId], references: [usersTable.id] }),
+}));
+
+export const inventoryLogsRelations = relations(inventoryLogsTable, ({ one }) => ({
+  product: one(productsTable, { fields: [inventoryLogsTable.productId], references: [productsTable.id] }),
+  order: one(ordersTable, { fields: [inventoryLogsTable.orderId], references: [ordersTable.id] }),
+  createdByUser: one(usersTable, { fields: [inventoryLogsTable.createdBy], references: [usersTable.id] }),
+}));
+
+export const shipmentsRelations = relations(shipmentsTable, ({ one }) => ({
+  order: one(ordersTable, { fields: [shipmentsTable.orderId], references: [ordersTable.id] }),
+  createdByUser: one(usersTable, { fields: [shipmentsTable.createdBy], references: [usersTable.id] }),
+}));
+
+export const pageViewsRelations = relations(pageViewsTable, ({ one }) => ({
+  product: one(productsTable, { fields: [pageViewsTable.productId], references: [productsTable.id] }),
+  shop: one(shopsTable, { fields: [pageViewsTable.shopId], references: [shopsTable.id] }),
+  user: one(usersTable, { fields: [pageViewsTable.userId], references: [usersTable.id] }),
+}));
+
+export const affiliatesRelations = relations(affiliatesTable, ({ one, many }) => ({
+  user: one(usersTable, { fields: [affiliatesTable.userId], references: [usersTable.id] }),
+  links: many(affiliateLinksTable),
+  commissions: many(affiliateCommissionsTable),
+}));
+
+export const affiliateLinksRelations = relations(affiliateLinksTable, ({ one, many }) => ({
+  affiliate: one(affiliatesTable, { fields: [affiliateLinksTable.affiliateId], references: [affiliatesTable.id] }),
+  product: one(productsTable, { fields: [affiliateLinksTable.productId], references: [productsTable.id] }),
+  shop: one(shopsTable, { fields: [affiliateLinksTable.shopId], references: [shopsTable.id] }),
+  commissions: many(affiliateCommissionsTable),
+}));
+
+export const affiliateCommissionsRelations = relations(affiliateCommissionsTable, ({ one }) => ({
+  affiliate: one(affiliatesTable, { fields: [affiliateCommissionsTable.affiliateId], references: [affiliatesTable.id] }),
+  order: one(ordersTable, { fields: [affiliateCommissionsTable.orderId], references: [ordersTable.id] }),
+  link: one(affiliateLinksTable, { fields: [affiliateCommissionsTable.linkId], references: [affiliateLinksTable.id] }),
 }));

@@ -2,6 +2,7 @@ import app from "./app";
 import { logger } from "./lib/logger";
 import { bootstrap } from "./lib/bootstrap";
 import { startAutoReleaseScheduler } from "./lib/escrow-auto-release.js";
+import { startScheduler } from "./lib/scheduler.js";
 
 const rawPort = process.env["PORT"];
 
@@ -29,6 +30,8 @@ bootstrap()
 
       // Start escrow auto-release scheduler (checks every hour for overdue escrows)
       startAutoReleaseScheduler();
+      // Start background job scheduler (trial expiry, subscription renewals)
+      startScheduler();
     });
   })
   .catch((err) => {

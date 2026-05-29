@@ -204,6 +204,42 @@ router.post("/conversations/:id/messages", requireAuth, async (req, res) => {
   }
 });
 
+// ── SSE stream — real-time message delivery (Phase 3) ────────────────────────
+// Clients hold this connection open; server pushes events when new messages arrive
+type SseClient = { userId: string; res: import("express").Response };
+const sseClients: SseClient[] = [];
+
+export function pushMessageEvent(userId: string, payload: unknown) {
+  const data = JSON.stringify(payload);
+  for (const client of sseClients) {
+    if (client.userId === userId) {
+      try { client.res.write(`data: ${data}\n\n`); } catch { /* disconnected */ }
+    }
+  }
+}
+
+router.get("/stream", requireAuth, (req, res) => {
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+  res.setHeader("X-Accel-Buffering", "no");
+  res.flushHeaders();
+
+  // Heartbeat every 25 seconds to prevent proxy timeouts
+  const heartbeat = setInterval(() => {
+    try { res.write(": heartbeat\n\n"); } catch { clearInterval(heartbeat); }
+  }, 25000);
+
+  const client: SseClient = { userId: req.userId!, res };
+  sseClients.push(client);
+
+  req.on("close", () => {
+    clearInterval(heartbeat);
+    const idx = sseClients.indexOf(client);
+    if (idx > -1) sseClients.splice(idx, 1);
+  });
+});
+
 // ── Total unread count (for badge) ───────────────────────────────────────────
 router.get("/unread", requireAuth, async (req, res) => {
   try {

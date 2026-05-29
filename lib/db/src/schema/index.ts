@@ -7,4 +7,8 @@ export * from "./escrow";
 export * from "./messages";
 export * from "./reports";
 export * from "./admin-actions";
+export * from "./inventory";
+export * from "./shipments";
+export * from "./analytics";
+export * from "./affiliates";
 export * from "./relations";

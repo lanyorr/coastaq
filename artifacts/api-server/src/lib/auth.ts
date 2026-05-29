@@ -16,8 +16,16 @@ export function signToken(payload: JwtPayload): string {
   return jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
 }
 
+export function signRefreshToken(payload: JwtPayload): string {
+  return jwt.sign(payload, JWT_SECRET + "_refresh", { expiresIn: "30d" });
+}
+
 export function verifyToken(token: string): JwtPayload {
   return jwt.verify(token, JWT_SECRET) as JwtPayload;
+}
+
+export function verifyRefreshToken(token: string): JwtPayload {
+  return jwt.verify(token, JWT_SECRET + "_refresh") as JwtPayload;
 }
 
 export async function hashPassword(password: string): Promise<string> {
@@ -48,7 +56,23 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
     const payload = verifyToken(token);
     req.userId = payload.userId;
     req.userRole = payload.role;
-    next();
+
+    // Async blocked-user check — runs without holding up the request chain
+    // We do a quick DB check and abort if blocked
+    db.select({ isBlocked: usersTable.isBlocked })
+      .from(usersTable)
+      .where(eq(usersTable.id, payload.userId))
+      .limit(1)
+      .then(([user]) => {
+        if (!user || user.isBlocked) {
+          if (!res.headersSent) {
+            res.status(403).json({ error: "Account suspended" });
+          }
+          return;
+        }
+        next();
+      })
+      .catch(() => next());
   } catch {
     res.status(401).json({ error: "Invalid token" });
   }

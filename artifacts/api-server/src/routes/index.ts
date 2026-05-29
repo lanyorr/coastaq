@@ -12,6 +12,11 @@ import subscriptionRouter from "./subscription.js";
 import messagesRouter from "./messages.js";
 import shopRouter from "./shop.js";
 import escrowRouter from "./escrow.js";
+import inventoryRouter from "./inventory.js";
+import shipmentsRouter from "./shipments.js";
+import analyticsRouter from "./analytics.js";
+import affiliatesRouter from "./affiliates.js";
+import aiRouter from "./ai.js";
 
 const router: IRouter = Router();
 
@@ -28,5 +33,10 @@ router.use("/subscription", subscriptionRouter);
 router.use("/messages", messagesRouter);
 router.use("/shop", shopRouter);
 router.use("/escrow", escrowRouter);
+router.use("/inventory", inventoryRouter);
+router.use("/shipments", shipmentsRouter);
+router.use("/analytics", analyticsRouter);
+router.use("/affiliates", affiliatesRouter);
+router.use("/ai", aiRouter);
 
 export default router;

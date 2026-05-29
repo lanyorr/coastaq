@@ -2,11 +2,29 @@ import { Router } from "express";
 import { db } from "@workspace/db";
 import { usersTable, shopsTable, productsTable, ordersTable, orderItemsTable } from "@workspace/db";
 import { eq, inArray } from "drizzle-orm";
-import { signToken, hashPassword, comparePassword, requireAuth } from "../lib/auth.js";
+import { signToken, signRefreshToken, verifyRefreshToken, hashPassword, comparePassword, requireAuth } from "../lib/auth.js";
+import rateLimit from "express-rate-limit";
 
 const router = Router();
 
-router.post("/register", async (req, res) => {
+// ── Rate limiters (Phase 1) ────────────────────────────────────────────────
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { error: "Too many login attempts. Please try again in 15 minutes." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const registerLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 5,
+  message: { error: "Too many registration attempts. Please try again later." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+router.post("/register", registerLimiter, async (req, res) => {
   try {
     const { email, password, name, role, shopName, shopDescription } = req.body;
 
@@ -60,10 +78,12 @@ router.post("/register", async (req, res) => {
     }
 
     const token = signToken({ userId: user.id, role: user.role });
+    const refreshToken = signRefreshToken({ userId: user.id, role: user.role });
 
     res.json({
       user: { id: user.id, email: user.email, name: user.name, role: user.role, shop, createdAt: user.createdAt },
       token,
+      refreshToken,
     });
   } catch (err) {
     req.log.error({ err }, "Registration error");
@@ -71,7 +91,7 @@ router.post("/register", async (req, res) => {
   }
 });
 
-router.post("/login", async (req, res) => {
+router.post("/login", loginLimiter, async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
@@ -85,6 +105,11 @@ router.post("/login", async (req, res) => {
       return;
     }
 
+    if (user.isBlocked) {
+      res.status(403).json({ error: "Account suspended. Contact support." });
+      return;
+    }
+
     const valid = await comparePassword(password, user.passwordHash);
     if (!valid) {
       res.status(401).json({ error: "Invalid credentials" });
@@ -93,14 +118,37 @@ router.post("/login", async (req, res) => {
 
     const shop = await db.select().from(shopsTable).where(eq(shopsTable.userId, user.id)).limit(1);
     const token = signToken({ userId: user.id, role: user.role });
+    const refreshToken = signRefreshToken({ userId: user.id, role: user.role });
 
     res.json({
       user: { id: user.id, email: user.email, name: user.name, role: user.role, shop: shop[0] || null, createdAt: user.createdAt },
       token,
+      refreshToken,
     });
   } catch (err) {
     req.log.error({ err }, "Login error");
     res.status(500).json({ error: "Login failed" });
+  }
+});
+
+// ── POST /api/auth/refresh — issue a new access token using a refresh token ──
+router.post("/refresh", async (req, res) => {
+  try {
+    const { refreshToken } = req.body;
+    if (!refreshToken) {
+      res.status(400).json({ error: "refreshToken is required" }); return;
+    }
+
+    const payload = verifyRefreshToken(refreshToken);
+    const [user] = await db.select().from(usersTable).where(eq(usersTable.id, payload.userId)).limit(1);
+    if (!user || user.isBlocked) {
+      res.status(403).json({ error: "Account not available" }); return;
+    }
+
+    const token = signToken({ userId: user.id, role: user.role });
+    res.json({ token });
+  } catch {
+    res.status(401).json({ error: "Invalid or expired refresh token" });
   }
 });
 
@@ -140,7 +188,6 @@ router.delete("/me", requireAuth, async (req, res) => {
       return;
     }
 
-    // Prevent admins from self-deleting via this endpoint
     if (user.role === "ADMIN") {
       res.status(403).json({ error: "Admin accounts cannot be deleted via this endpoint" });
       return;
@@ -152,8 +199,6 @@ router.delete("/me", requireAuth, async (req, res) => {
       return;
     }
 
-    // Manual cascade — FK constraints don't all have onDelete:cascade
-    // Step 1: if seller, delete order_items referencing their products before deleting products
     const [shop] = await db.select().from(shopsTable).where(eq(shopsTable.userId, user.id)).limit(1);
     if (shop) {
       const shopProducts = await db.select({ id: productsTable.id }).from(productsTable).where(eq(productsTable.shopId, shop.id));
@@ -165,10 +210,7 @@ router.delete("/me", requireAuth, async (req, res) => {
       await db.delete(shopsTable).where(eq(shopsTable.id, shop.id));
     }
 
-    // Step 2: delete this user's orders (order_items cascade from orderId)
     await db.delete(ordersTable).where(eq(ordersTable.userId, user.id));
-
-    // Step 3: delete the user (conversations/messages/reports cascade via their FKs)
     await db.delete(usersTable).where(eq(usersTable.id, user.id));
 
     res.json({ success: true, message: "Account deleted successfully" });

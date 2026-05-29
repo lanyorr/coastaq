@@ -1,9 +1,11 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
 import { ordersTable, orderItemsTable, productsTable, shopsTable, usersTable, escrowTransactionsTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { requireAuth } from "../lib/auth.js";
 import { computeEscrowAmounts } from "../lib/escrow-auto-release.js";
+import { recordInventoryMovement } from "./inventory.js";
+import { resolveAffiliateCommission } from "./affiliates.js";
 
 const router = Router();
 
@@ -42,7 +44,7 @@ function getBaseUrl(): string {
   return domain ? `https://${domain}` : "https://coastaq.replit.app";
 }
 
-// ── DB order helper (with escrow) ──────────────────────────────────────────────
+// ── DB order helper (with escrow + stock decrement + affiliate) ─────────────
 
 async function createDbOrderWithEscrow(
   userId: string,
@@ -50,9 +52,21 @@ async function createDbOrderWithEscrow(
   shipping: { name: string; address: string; city: string; state: string; zip: string; country: string },
   paymentMethod: string,
   paymentId?: string,
+  refCode?: string,
 ) {
   const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const { escrowAmount, sellerAmount, platformFee } = computeEscrowAmounts(total);
+
+  // Validate stock availability before placing order
+  for (const item of items) {
+    const product = await db.query.productsTable.findFirst({
+      where: eq(productsTable.id, item.productId),
+    });
+    if (!product) throw new Error(`Product ${item.productId} not found`);
+    if (product.stock < item.quantity) {
+      throw new Error(`Insufficient stock for "${product.title}". Available: ${product.stock}, requested: ${item.quantity}`);
+    }
+  }
 
   // Resolve the seller (shop owner) from first item's shop
   let sellerId: string | null = null;
@@ -60,9 +74,7 @@ async function createDbOrderWithEscrow(
     const shop = await db.query.shopsTable.findFirst({
       where: eq(shopsTable.id, items[0].shopId),
     });
-    if (shop) {
-      sellerId = shop.userId;
-    }
+    if (shop) sellerId = shop.userId;
   }
 
   const [order] = await db.insert(ordersTable).values({
@@ -70,7 +82,6 @@ async function createDbOrderWithEscrow(
     sellerId,
     total: String(total.toFixed(2)),
     status: "CONFIRMED",
-    // Escrow fields — funds are held on payment capture
     paymentStatus: "escrowed",
     escrowAmount: String(escrowAmount.toFixed(2)),
     sellerAmount: String(sellerAmount.toFixed(2)),
@@ -95,7 +106,7 @@ async function createDbOrderWithEscrow(
     }))
   );
 
-  // Record the escrow deposit transaction for audit trail
+  // Record escrow deposit
   if (sellerId) {
     await db.insert(escrowTransactionsTable).values({
       orderId: order.id,
@@ -108,12 +119,27 @@ async function createDbOrderWithEscrow(
     });
   }
 
+  // ── Phase 1: Decrement stock for each purchased item ──────────────────────
+  for (const item of items) {
+    await recordInventoryMovement(
+      item.productId,
+      "sale",
+      -item.quantity,
+      `Order ${order.id}`,
+      order.id,
+      userId,
+    );
+  }
+
+  // ── Phase 3: Resolve affiliate commission if referral code present ─────────
+  if (refCode) {
+    resolveAffiliateCommission(order.id, total, refCode).catch(() => {});
+  }
+
   return order;
 }
 
 // ── POST /api/checkout/paypal ───────────────────────────────────────────────────
-// Body: { productId, quantity? } OR { items: [{productId, quantity},...] }
-// Returns: { paypalOrderId, approvalUrl }
 router.post("/paypal", requireAuth, async (req, res) => {
   try {
     const paypalId = process.env["PAYPAL_CLIENT_ID"];
@@ -124,7 +150,6 @@ router.post("/paypal", requireAuth, async (req, res) => {
 
     const { productId, quantity = 1, items: rawItems } = req.body;
 
-    // Normalise to an items array
     let lineItems: Array<{ productId: string; quantity: number }>;
     if (rawItems && Array.isArray(rawItems) && rawItems.length > 0) {
       lineItems = rawItems.map((i: any) => ({ productId: String(i.productId), quantity: Number(i.quantity) || 1 }));
@@ -135,7 +160,6 @@ router.post("/paypal", requireAuth, async (req, res) => {
       return;
     }
 
-    // Fetch all products to compute total
     let totalAmount = 0;
     const descriptions: string[] = [];
     for (const li of lineItems) {
@@ -144,6 +168,10 @@ router.post("/paypal", requireAuth, async (req, res) => {
       });
       if (!product) {
         res.status(404).json({ error: `Product ${li.productId} not found` });
+        return;
+      }
+      if (product.stock < li.quantity) {
+        res.status(400).json({ error: `Insufficient stock for "${product.title}". Only ${product.stock} left.` });
         return;
       }
       totalAmount += parseFloat(String(product.price)) * li.quantity;
@@ -198,7 +226,6 @@ router.post("/paypal", requireAuth, async (req, res) => {
 });
 
 // ── GET /api/checkout/paypal/callback ──────────────────────────────────────────
-// PayPal redirects here after user approves/cancels payment
 router.get("/paypal/callback", (req, res) => {
   const { status, token } = req.query;
   const scheme = "coastaq-mobile";
@@ -210,10 +237,9 @@ router.get("/paypal/callback", (req, res) => {
 });
 
 // ── POST /api/checkout/paypal/capture ──────────────────────────────────────────
-// Body: { paypalOrderId, shipping, productId?, quantity? } OR { paypalOrderId, shipping, items: [{productId,quantity},...] }
 router.post("/paypal/capture", requireAuth, async (req, res) => {
   try {
-    const { paypalOrderId, productId, quantity = 1, shipping, items: rawItems } = req.body;
+    const { paypalOrderId, productId, quantity = 1, shipping, items: rawItems, ref } = req.body;
     if (!paypalOrderId) {
       res.status(400).json({ error: "paypalOrderId is required" });
       return;
@@ -247,7 +273,6 @@ router.post("/paypal/capture", requireAuth, async (req, res) => {
       country: "NG",
     };
 
-    // Resolve items list — either cart items array or single product
     let orderItems: Array<{ productId: string; quantity: number; price: number; title: string; shopId: string }>;
 
     if (rawItems && Array.isArray(rawItems) && rawItems.length > 0) {
@@ -290,13 +315,23 @@ router.post("/paypal/capture", requireAuth, async (req, res) => {
       return;
     }
 
-    const order = await createDbOrderWithEscrow(
-      req.userId!,
-      orderItems,
-      shipping || defaultShipping,
-      "PAYPAL",
-      paypalOrderId,
-    );
+    // Referral code from body or cookie
+    const refCode = ref || (req.headers.cookie?.match(/aff=([^;]+)/)?.[1]);
+
+    let order;
+    try {
+      order = await createDbOrderWithEscrow(
+        req.userId!,
+        orderItems,
+        shipping || defaultShipping,
+        "PAYPAL",
+        paypalOrderId,
+        refCode,
+      );
+    } catch (stockErr: any) {
+      res.status(400).json({ error: stockErr.message || "Order creation failed" });
+      return;
+    }
 
     const capturedAmount = captureData.purchase_units?.[0]?.payments?.captures?.[0]?.amount?.value;
     req.log.info({ userId: req.userId, orderId: order.id, paypalOrderId }, "Order captured via PayPal — funds in escrow");
@@ -317,12 +352,20 @@ router.post("/paypal/capture", requireAuth, async (req, res) => {
 // ── POST /api/checkout/manual ──────────────────────────────────────────────────
 router.post("/manual", requireAuth, async (req, res) => {
   try {
-    const { items, shipping } = req.body;
+    const { items, shipping, ref } = req.body;
     if (!items || !shipping) {
       res.status(400).json({ error: "Items and shipping are required" });
       return;
     }
-    const order = await createDbOrderWithEscrow(req.userId!, items, shipping, "MANUAL");
+
+    let order;
+    try {
+      order = await createDbOrderWithEscrow(req.userId!, items, shipping, "MANUAL", undefined, ref);
+    } catch (stockErr: any) {
+      res.status(400).json({ error: stockErr.message || "Order creation failed" });
+      return;
+    }
+
     const full = await db.query.ordersTable.findFirst({
       where: eq(ordersTable.id, order.id),
       with: { items: { with: { product: true } } },
