@@ -48,9 +48,9 @@ const PERMISSION_MAP: Record<Permission, AppRole[]> = {
 // Role → dashboard path (priority order determines redirect)
 export const ROLE_DASHBOARD: Record<AppRole, string> = {
   ADMIN:     "/admin",
-  SELLER:    "/seller/dashboard",
-  AFFILIATE: "/affiliate/dashboard",
-  BUYER:     "/buyer/dashboard",
+  SELLER:    "/seller",
+  AFFILIATE: "/affiliate",
+  BUYER:     "/account",
 };
 
 const ROLE_PRIORITY: AppRole[] = ["ADMIN", "SELLER", "AFFILIATE", "BUYER"];

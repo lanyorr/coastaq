@@ -1,4 +1,4 @@
-import { Switch, Route, Router as WouterRouter } from "wouter";
+import { Switch, Route, Router as WouterRouter, Redirect } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -13,8 +13,6 @@ import ProductDetails from "@/pages/ProductDetails";
 import Cart from "@/pages/Cart";
 import Checkout, { PayPalReturnPage } from "@/pages/Checkout";
 import Orders from "@/pages/Orders";
-import SellerDashboard from "@/pages/SellerDashboard";
-import AdminDashboard from "@/pages/AdminDashboard";
 import AdminOverview from "@/pages/admin/Overview";
 import AdminUsers from "@/pages/admin/Users";
 import AdminShops from "@/pages/admin/Shops";
@@ -22,8 +20,6 @@ import AdminProducts from "@/pages/admin/Products";
 import AdminReports from "@/pages/admin/Reports";
 import AdminAnalytics from "@/pages/admin/Analytics";
 import AdminCategories from "@/pages/admin/Categories";
-import BuyerDashboard from "@/pages/BuyerDashboard";
-import AffiliateDashboard from "@/pages/AffiliateDashboard";
 import Messages from "@/pages/Messages";
 import ChatRoom from "@/pages/ChatRoom";
 import TermsPage from "@/pages/legal/TermsPage";
@@ -34,6 +30,25 @@ import SellerAgreementPage from "@/pages/legal/SellerAgreementPage";
 import Antiques from "@/pages/Antiques";
 import Shop from "@/pages/Shop";
 import ShopPage from "@/pages/ShopPage";
+
+// New modular dashboard pages
+import AccountOverview from "@/pages/account/index";
+import AccountOrders from "@/pages/account/AccountOrders";
+import AccountMessages from "@/pages/account/AccountMessages";
+import AccountSaved from "@/pages/account/AccountSaved";
+import AccountSettings from "@/pages/account/AccountSettings";
+
+import SellerOverview from "@/pages/seller/index";
+import SellerProductsPage from "@/pages/seller/SellerProductsPage";
+import SellerOrdersPage from "@/pages/seller/SellerOrdersPage";
+import SellerMessagesPage from "@/pages/seller/SellerMessagesPage";
+import SellerEarningsPage from "@/pages/seller/SellerEarningsPage";
+import SellerSubscriptionPage from "@/pages/seller/SellerSubscriptionPage";
+import SellerShopPage from "@/pages/seller/SellerShopPage";
+
+import AffiliateOverview from "@/pages/affiliate/index";
+import AffiliateLinks from "@/pages/affiliate/AffiliateLinks";
+import AffiliateCommissions from "@/pages/affiliate/AffiliateCommissions";
 
 // Auth / RBAC
 import { ProtectedRoute, DashboardRedirect } from "@/components/auth/ProtectedRoute";
@@ -82,7 +97,7 @@ function Router() {
       <Route path="/refunds" component={RefundPage} />
       <Route path="/seller-agreement" component={SellerAgreementPage} />
 
-      {/* ── Auth pages (guest-only: logged-in users get redirected) ────────── */}
+      {/* ── Auth pages ─────────────────────────────────────────────────────── */}
       <Route path="/auth/login">
         {() => <ProtectedRoute guestOnly component={Login} />}
       </Route>
@@ -90,31 +105,72 @@ function Router() {
         {() => <ProtectedRoute guestOnly component={Register} />}
       </Route>
 
-      {/* ── Generic dashboard redirect (routes to role-appropriate dashboard) */}
+      {/* ── Generic dashboard redirect ──────────────────────────────────────── */}
       <Route path="/dashboard" component={DashboardRedirect} />
 
-      {/* ── Buyer routes ───────────────────────────────────────────────────── */}
+      {/* ── Buyer / Account routes (/account/*) ───────────────────────────── */}
+      <Route path="/account">
+        {() => <ProtectedRoute roles={["BUYER", "SELLER", "AFFILIATE", "ADMIN"]} component={AccountOverview} />}
+      </Route>
+      <Route path="/account/orders">
+        {() => <ProtectedRoute roles={["BUYER", "SELLER", "AFFILIATE", "ADMIN"]} component={AccountOrders} />}
+      </Route>
+      <Route path="/account/messages">
+        {() => <ProtectedRoute roles={["BUYER", "SELLER", "AFFILIATE", "ADMIN"]} component={AccountMessages} />}
+      </Route>
+      <Route path="/account/saved">
+        {() => <ProtectedRoute roles={["BUYER", "SELLER", "AFFILIATE", "ADMIN"]} component={AccountSaved} />}
+      </Route>
+      <Route path="/account/settings">
+        {() => <ProtectedRoute roles={["BUYER", "SELLER", "AFFILIATE", "ADMIN"]} component={AccountSettings} />}
+      </Route>
+
+      {/* ── Backward-compat redirects ──────────────────────────────────────── */}
+      <Route path="/buyer/dashboard">{() => <Redirect to="/account" />}</Route>
+      <Route path="/orders">{() => <ProtectedRoute roles={["BUYER", "SELLER", "ADMIN"]} component={Orders} />}</Route>
       <Route path="/cart" component={Cart} />
       <Route path="/checkout" component={Checkout} />
       <Route path="/checkout/paypal/return" component={PayPalReturnPage} />
-      <Route path="/orders">
-        {() => <ProtectedRoute roles={["BUYER", "SELLER", "ADMIN"]} component={Orders} />}
-      </Route>
-      <Route path="/buyer/dashboard">
-        {() => <ProtectedRoute roles={["BUYER", "SELLER", "ADMIN"]} component={BuyerDashboard} />}
-      </Route>
 
-      {/* ── Seller routes ──────────────────────────────────────────────────── */}
-      <Route path="/seller/dashboard">
-        {() => <ProtectedRoute roles={["SELLER", "ADMIN"]} component={SellerDashboard} />}
+      {/* ── Seller routes (/seller/*) ──────────────────────────────────────── */}
+      <Route path="/seller">
+        {() => <ProtectedRoute roles={["SELLER", "ADMIN"]} component={SellerOverview} />}
       </Route>
-
-      {/* ── Affiliate routes ───────────────────────────────────────────────── */}
-      <Route path="/affiliate/dashboard">
-        {() => <ProtectedRoute roles={["AFFILIATE", "SELLER", "ADMIN"]} component={AffiliateDashboard} />}
+      <Route path="/seller/products">
+        {() => <ProtectedRoute roles={["SELLER", "ADMIN"]} component={SellerProductsPage} />}
       </Route>
+      <Route path="/seller/orders">
+        {() => <ProtectedRoute roles={["SELLER", "ADMIN"]} component={SellerOrdersPage} />}
+      </Route>
+      <Route path="/seller/messages">
+        {() => <ProtectedRoute roles={["SELLER", "ADMIN"]} component={SellerMessagesPage} />}
+      </Route>
+      <Route path="/seller/earnings">
+        {() => <ProtectedRoute roles={["SELLER", "ADMIN"]} component={SellerEarningsPage} />}
+      </Route>
+      <Route path="/seller/subscription">
+        {() => <ProtectedRoute roles={["SELLER", "ADMIN"]} component={SellerSubscriptionPage} />}
+      </Route>
+      <Route path="/seller/shop">
+        {() => <ProtectedRoute roles={["SELLER", "ADMIN"]} component={SellerShopPage} />}
+      </Route>
+      {/* Backward-compat redirect */}
+      <Route path="/seller/dashboard">{() => <Redirect to="/seller" />}</Route>
 
-      {/* ── Admin routes ───────────────────────────────────────────────────── */}
+      {/* ── Affiliate routes (/affiliate/*) ───────────────────────────────── */}
+      <Route path="/affiliate">
+        {() => <ProtectedRoute roles={["AFFILIATE", "SELLER", "BUYER", "ADMIN"]} component={AffiliateOverview} />}
+      </Route>
+      <Route path="/affiliate/links">
+        {() => <ProtectedRoute roles={["AFFILIATE", "SELLER", "BUYER", "ADMIN"]} component={AffiliateLinks} />}
+      </Route>
+      <Route path="/affiliate/commissions">
+        {() => <ProtectedRoute roles={["AFFILIATE", "SELLER", "BUYER", "ADMIN"]} component={AffiliateCommissions} />}
+      </Route>
+      {/* Backward-compat redirect */}
+      <Route path="/affiliate/dashboard">{() => <Redirect to="/affiliate" />}</Route>
+
+      {/* ── Admin routes (/admin/*) ────────────────────────────────────────── */}
       <Route path="/admin">
         {() => <ProtectedRoute roles={["ADMIN"]} component={AdminOverview} />}
       </Route>
@@ -137,7 +193,7 @@ function Router() {
         {() => <ProtectedRoute roles={["ADMIN"]} component={AdminCategories} />}
       </Route>
 
-      {/* ── Messaging (any authenticated user) ────────────────────────────── */}
+      {/* ── Messaging ─────────────────────────────────────────────────────── */}
       <Route path="/messages">
         {() => <ProtectedRoute roles={["BUYER", "SELLER", "AFFILIATE", "ADMIN"]} component={Messages} />}
       </Route>
