@@ -188,8 +188,8 @@ export function DashboardLayout({
           </Link>
         </header>
 
-        {/* Page content */}
-        <main className="flex-1 p-4 lg:p-8 max-w-7xl w-full mx-auto">
+        {/* Page content — pb-16 md:pb-0 clears the mobile bottom tab bar */}
+        <main className="flex-1 p-4 lg:p-8 max-w-7xl w-full mx-auto pb-20 lg:pb-8">
           {children}
         </main>
       </div>

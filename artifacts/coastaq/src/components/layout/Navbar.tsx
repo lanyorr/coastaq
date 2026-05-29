@@ -3,12 +3,13 @@ import {
   Search, User, Store, LayoutDashboard, MessageCircle,
   Menu, X, ShoppingBag, Plus, ChevronDown, ExternalLink,
   Globe, Smartphone, Heart, Package, Shield,
-  TrendingUp, Link2, HelpCircle, FileText, Info, Mail,
-  LogOut, Settings, DollarSign, BarChart3,
+  TrendingUp, Link2, FileText, Info,
+  LogOut, Settings, DollarSign, BarChart3, Home,
+  Megaphone, Tag, BadgePercent, LifeBuoy, HelpCircle,
 } from "lucide-react";
 import { useGetMe, useLogout } from "@workspace/api-client-react";
 import { Input } from "@/components/ui/input";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { CoastaqLogo } from "./CoastaqLogo";
 import { useLocale } from "@/lib/locale/context";
@@ -17,50 +18,84 @@ import { CURRENCIES } from "@/lib/locale/currencies";
 import { cn } from "@/lib/utils";
 import { buildRolesFromUser, hasRole } from "@/lib/auth/rbac";
 
-/* ── Reusable dropdown ───────────────────────────────────────────────────── */
+/* ─── Auth-guard helper ────────────────────────────────────────────────────── */
+function useAuthNav() {
+  const [, setLocation] = useLocation();
+  const { data: user } = useGetMe({ query: { retry: false } });
+  return (path: string, fallback = "/auth/login") => {
+    setLocation(user ? path : `${fallback}?redirect=${encodeURIComponent(path)}`);
+  };
+}
+
+/* ─── Hover dropdown ───────────────────────────────────────────────────────── */
 function NavDropdown({
   label,
   icon,
+  align = "left",
   children,
 }: {
   label: React.ReactNode;
   icon?: React.ReactNode;
+  align?: "left" | "right";
   children: (close: () => void) => React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const h = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
-    document.addEventListener("mousedown", h);
-    return () => document.removeEventListener("mousedown", h);
+
+  const openMenu = useCallback(() => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    setOpen(true);
   }, []);
+
+  const scheduleClose = useCallback(() => {
+    timeoutRef.current = setTimeout(() => setOpen(false), 120);
+  }, []);
+
+  const close = useCallback(() => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    setOpen(false);
+  }, []);
+
   return (
-    <div ref={ref} className="relative">
+    <div
+      ref={ref}
+      className="relative"
+      onMouseEnter={openMenu}
+      onMouseLeave={scheduleClose}
+    >
       <button
-        onMouseEnter={() => setOpen(true)}
         onClick={() => setOpen(v => !v)}
         className={cn(
-          "flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-700 hover:text-primary transition-colors whitespace-nowrap",
-          open && "text-primary",
+          "flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition-colors whitespace-nowrap rounded-md",
+          open
+            ? "text-primary bg-primary/5"
+            : "text-gray-600 hover:text-gray-900 hover:bg-gray-50",
         )}
       >
-        {icon}
+        {icon && <span className={cn("transition-colors", open ? "text-primary" : "text-gray-400")}>{icon}</span>}
         {label}
-        <ChevronDown className={cn("w-3.5 h-3.5 transition-transform duration-150", open ? "rotate-180 text-primary" : "text-gray-400")} />
+        <ChevronDown className={cn("w-3 h-3 transition-transform duration-150", open ? "rotate-180 text-primary" : "text-gray-400")} />
       </button>
+
       {open && (
         <div
-          className="absolute left-0 top-full z-[200] bg-white rounded-2xl border border-gray-200 shadow-xl min-w-[220px] overflow-hidden"
-          onMouseLeave={() => setOpen(false)}
+          className={cn(
+            "absolute top-full z-[200] bg-white rounded-2xl border border-gray-100 shadow-2xl shadow-black/10 overflow-hidden",
+            align === "right" ? "right-0" : "left-0",
+          )}
+          style={{ marginTop: 4 }}
+          onMouseEnter={openMenu}
+          onMouseLeave={scheduleClose}
         >
-          {children(() => setOpen(false))}
+          {children(close)}
         </div>
       )}
     </div>
   );
 }
 
-/* ── Dropdown item helpers ───────────────────────────────────────────────── */
+/* ─── Drop item ─────────────────────────────────────────────────────────────── */
 function DropItem({
   icon,
   label,
@@ -69,6 +104,7 @@ function DropItem({
   href,
   accent,
   external,
+  badge,
 }: {
   icon: React.ReactNode;
   label: string;
@@ -77,19 +113,27 @@ function DropItem({
   href?: string;
   accent?: boolean;
   external?: boolean;
+  badge?: string;
 }) {
   const cls = cn(
-    "flex items-start gap-3 px-4 py-3 text-sm hover:bg-gray-50 transition-colors cursor-pointer group w-full text-left",
-    accent && "text-primary hover:bg-primary/5",
+    "flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors cursor-pointer group w-full text-left",
+    accent && "hover:bg-primary/5",
+  );
+  const iconCls = cn(
+    "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors",
+    accent
+      ? "bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white"
+      : "bg-gray-100 text-gray-500 group-hover:bg-gray-200 group-hover:text-gray-700",
   );
   const inner = (
     <>
-      <span className={cn("mt-0.5 shrink-0 text-gray-400 group-hover:text-primary transition-colors", accent && "text-primary")}>{icon}</span>
-      <span>
-        <span className="block font-medium text-gray-800">{label}</span>
-        {sub && <span className="block text-xs text-gray-400 mt-0.5">{sub}</span>}
+      <span className={iconCls}>{icon}</span>
+      <span className="flex-1 min-w-0">
+        <span className={cn("block font-medium leading-tight", accent ? "text-primary" : "text-gray-800")}>{label}</span>
+        {sub && <span className="block text-xs text-gray-400 mt-0.5 leading-tight">{sub}</span>}
       </span>
-      {external && <ExternalLink className="w-3 h-3 text-gray-300 mt-1 ml-auto shrink-0" />}
+      {badge && <span className="ml-auto shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-600">{badge}</span>}
+      {external && <ExternalLink className="w-3.5 h-3.5 text-gray-300 shrink-0 ml-1" />}
     </>
   );
   if (href && external) return <a href={href} target="_blank" rel="noopener noreferrer" className={cls}>{inner}</a>;
@@ -97,13 +141,43 @@ function DropItem({
   return <button className={cls} onClick={onClick}>{inner}</button>;
 }
 
-function DropSep() { return <div className="border-t border-gray-100 my-1" />; }
-
+function DropSep() { return <div className="mx-4 border-t border-gray-100 my-1" />; }
 function DropHeader({ label }: { label: string }) {
-  return <p className="px-4 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">{label}</p>;
+  return <p className="px-4 pt-3 pb-1 text-[10px] font-bold text-gray-400 uppercase tracking-widest">{label}</p>;
 }
 
-/* ── Main Navbar ─────────────────────────────────────────────────────────── */
+/* ─── Icon action button (top row) ─────────────────────────────────────────── */
+function ActionIcon({
+  icon,
+  label,
+  badge,
+  onClick,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  badge?: number;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="hidden sm:flex flex-col items-center gap-0.5 px-2.5 py-1.5 rounded-xl text-gray-500 hover:text-primary hover:bg-primary/5 transition-colors relative group"
+      title={label}
+    >
+      <div className="relative">
+        {icon}
+        {badge != null && badge > 0 && (
+          <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[9px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-0.5 leading-none">
+            {badge > 9 ? "9+" : badge}
+          </span>
+        )}
+      </div>
+      <span className="text-[10px] font-medium leading-none group-hover:text-primary transition-colors">{label}</span>
+    </button>
+  );
+}
+
+/* ─── Main Navbar ───────────────────────────────────────────────────────────── */
 export function Navbar() {
   const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
@@ -117,34 +191,39 @@ export function Navbar() {
   const { t, lang, currency, setLang, setCurrency } = useLocale();
 
   const userRoles = user ? buildRolesFromUser(user as any) : [];
-  const isSeller = hasRole(userRoles, "SELLER");
+  const isSeller    = hasRole(userRoles, "SELLER");
   const isAffiliate = hasRole(userRoles, "AFFILIATE");
-  const isAdmin = hasRole(userRoles, "ADMIN");
+  const isAdmin     = hasRole(userRoles, "ADMIN");
+
+  /* auth-guard nav */
+  const authNav = (path: string) => {
+    setLocation(user ? path : `/auth/login?redirect=${encodeURIComponent(path)}`);
+    setMobileOpen(false);
+  };
 
   useEffect(() => {
     if (!user) { setUnread(0); return; }
-    const fetch_ = () =>
+    const poll = () =>
       fetch("/api/messages/unread").then(r => r.json()).then(d => setUnread(d.unread ?? 0)).catch(() => {});
-    fetch_();
-    const timer = setInterval(fetch_, 15000);
-    return () => clearInterval(timer);
+    poll();
+    const t = setInterval(poll, 15000);
+    return () => clearInterval(t);
   }, [user]);
 
   useEffect(() => {
-    if (mobileSearchOpen) setTimeout(() => mobileSearchRef.current?.focus(), 50);
+    if (mobileSearchOpen) setTimeout(() => mobileSearchRef.current?.focus(), 60);
   }, [mobileSearchOpen]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      const next = new URLSearchParams();
-      const cur = new URLSearchParams(window.location.search);
-      if (cur.get("category")) next.set("category", cur.get("category")!);
-      next.set("search", searchQuery.trim());
-      setLocation(`/?${next.toString()}`);
-      setMobileOpen(false);
-      setMobileSearchOpen(false);
-    }
+    if (!searchQuery.trim()) return;
+    const cur = new URLSearchParams(window.location.search);
+    const next = new URLSearchParams();
+    if (cur.get("category")) next.set("category", cur.get("category")!);
+    next.set("search", searchQuery.trim());
+    setLocation(`/?${next.toString()}`);
+    setMobileOpen(false);
+    setMobileSearchOpen(false);
   };
 
   const handleLogout = () => {
@@ -155,124 +234,125 @@ export function Navbar() {
     setMobileOpen(false);
   };
 
-  const nav = (path: string) => { setLocation(path); setMobileOpen(false); };
-
   const currentLang = LANGUAGES[lang];
   const currentCurrency = CURRENCIES[currency];
 
+  /* ── render ───────────────────────────────────────────────────────────────── */
   return (
-    <header className="sticky top-0 z-50 w-full bg-white shadow-sm">
+    <>
+      <header className="sticky top-0 z-50 w-full bg-white border-b border-gray-100 shadow-sm">
 
-      {/* ══ ROW 1: Logo + Search + Utility actions ══════════════════════════ */}
-      <div className="border-b border-gray-100">
-        <div className="container mx-auto px-4 h-[60px] flex items-center gap-4">
+        {/* ══ ROW 1: Logo · Search · Actions ══════════════════════════════════ */}
+        <div className="container mx-auto px-4 h-14 flex items-center gap-3">
 
           {/* Logo */}
-          <Link href="/" className="flex items-center shrink-0 mr-2" onClick={() => setMobileOpen(false)}>
+          <Link href="/" className="flex items-center shrink-0 mr-1" onClick={() => setMobileOpen(false)}>
             <CoastaqLogo />
           </Link>
 
-          {/* Search bar — hidden on mobile */}
-          <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-xl relative group">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-primary transition-colors" />
-            <Input
-              type="search"
-              placeholder={t("nav.searchPlaceholder")}
-              className="w-full pl-10 h-10 bg-gray-50 border-gray-200 rounded-l-lg rounded-r-none focus-visible:ring-0 focus-visible:border-primary text-sm"
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-            />
-            <button
-              type="submit"
-              className="h-10 px-5 bg-primary hover:bg-primary/90 text-white text-sm font-semibold rounded-r-lg border border-primary transition-colors shrink-0"
-            >
-              {t("common.search")}
-            </button>
+          {/* Search bar — desktop */}
+          <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-lg">
+            <div className="flex w-full rounded-full border border-gray-200 overflow-hidden focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/10 transition-all bg-gray-50">
+              <div className="flex items-center pl-4 shrink-0">
+                <Search className="w-4 h-4 text-gray-400" />
+              </div>
+              <Input
+                type="search"
+                placeholder={t("nav.searchPlaceholder")}
+                className="flex-1 border-none bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-sm h-10 pl-2"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+              />
+              <button
+                type="submit"
+                className="px-5 h-10 bg-primary hover:bg-primary/90 text-white text-sm font-semibold transition-colors shrink-0"
+              >
+                Search
+              </button>
+            </div>
           </form>
 
-          {/* Utility icons (right side) */}
+          {/* Right utility actions */}
           <div className="flex items-center gap-0.5 ml-auto">
 
-            {/* Mobile search icon */}
+            {/* Mobile search toggle */}
             <button
-              className="md:hidden p-2 rounded-lg hover:bg-gray-100 text-gray-600 transition-colors"
+              className="md:hidden p-2 rounded-xl hover:bg-gray-100 text-gray-600 transition-colors"
               onClick={() => { setMobileSearchOpen(v => !v); setMobileOpen(false); }}
             >
-              <Search className="h-5 w-5" />
+              <Search className="w-5 h-5" />
             </button>
 
-            {/* Post Free Ad */}
+            {/* Post Free Ad — desktop only */}
             <button
-              onClick={() => setLocation(user ? "/seller/products" : "/auth/register?role=SELLER")}
-              className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:text-primary hover:bg-gray-50 transition-colors"
+              onClick={() => user ? setLocation("/seller/products") : setLocation("/auth/register?role=SELLER")}
+              className="hidden lg:flex items-center gap-2 mx-1 px-3 py-2 rounded-xl text-sm font-semibold text-orange-600 bg-orange-50 hover:bg-orange-100 border border-orange-200/60 transition-colors"
             >
-              <span className="w-7 h-7 rounded-full bg-orange-100 flex items-center justify-center shrink-0">
-                <Plus className="w-3.5 h-3.5 text-orange-600" />
-              </span>
-              <span className="hidden lg:inline">Post Free Ad</span>
+              <Megaphone className="w-4 h-4" />
+              Post Free Ad
             </button>
 
             {/* Messages */}
-            <button
-              onClick={() => nav(user ? "/messages" : "/auth/login")}
-              className="flex flex-col items-center gap-0.5 px-2.5 py-1.5 rounded-lg text-gray-600 hover:text-primary hover:bg-gray-50 transition-colors relative"
-              title={t("nav.messages")}
-            >
-              <div className="relative">
-                <MessageCircle className="w-5 h-5" />
-                {unread > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[9px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-0.5">
-                    {unread > 9 ? "9+" : unread}
-                  </span>
-                )}
-              </div>
-              <span className="hidden lg:block text-[10px] font-medium leading-none">Messages</span>
-            </button>
+            <ActionIcon
+              icon={<MessageCircle className="w-5 h-5" />}
+              label="Messages"
+              badge={unread}
+              onClick={() => authNav("/messages")}
+            />
 
-            {/* Orders / Inquiry Basket */}
-            <button
-              onClick={() => nav(user ? "/account/orders" : "/auth/login")}
-              className="flex flex-col items-center gap-0.5 px-2.5 py-1.5 rounded-lg text-gray-600 hover:text-primary hover:bg-gray-50 transition-colors"
-              title="Orders"
-            >
-              <ShoppingBag className="w-5 h-5" />
-              <span className="hidden lg:block text-[10px] font-medium leading-none">Orders</span>
-            </button>
+            {/* Orders */}
+            <ActionIcon
+              icon={<ShoppingBag className="w-5 h-5" />}
+              label="Orders"
+              onClick={() => authNav("/account/orders")}
+            />
 
-            {/* User — sign-in dropdown or avatar */}
+            {/* Sign In / User dropdown */}
             {user ? (
               <NavDropdown
+                align="right"
                 label={
-                  <span className="hidden lg:inline font-medium truncate max-w-[90px]">
+                  <span className="hidden lg:inline font-medium max-w-[80px] truncate text-gray-700">
                     {(user.name as string)?.split(" ")[0]}
                   </span>
                 }
                 icon={
-                  <span className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center shrink-0 text-primary font-bold text-sm">
-                    {(user.name as string)?.[0]?.toUpperCase() ?? <User className="w-4 h-4" />}
+                  <span className="w-7 h-7 rounded-full bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center text-white font-bold text-sm shrink-0">
+                    {(user.name as string)?.[0]?.toUpperCase() ?? "U"}
                   </span>
                 }
               >
                 {close => (
-                  <div className="py-1">
-                    <div className="px-4 py-3 border-b border-gray-100">
-                      <p className="font-semibold text-sm">{user.name as string}</p>
-                      <p className="text-xs text-gray-400 truncate">{user.email as string}</p>
+                  <div className="w-56 py-2">
+                    <div className="px-4 pb-3 border-b border-gray-100">
+                      <div className="flex items-center gap-3 pt-1">
+                        <span className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center text-white font-bold text-base shrink-0">
+                          {(user.name as string)?.[0]?.toUpperCase()}
+                        </span>
+                        <div className="min-w-0">
+                          <p className="font-semibold text-sm text-gray-900 truncate">{user.name as string}</p>
+                          <p className="text-xs text-gray-400 truncate">{user.email as string}</p>
+                        </div>
+                      </div>
                     </div>
-                    <DropItem icon={<User className="w-4 h-4" />} label="My Account" href="/account" onClick={close} />
-                    <DropItem icon={<Package className="w-4 h-4" />} label="My Orders" href="/account/orders" onClick={close} />
-                    <DropItem icon={<MessageCircle className="w-4 h-4" />} label="Messages" href="/messages" onClick={close} />
-                    <DropItem icon={<Heart className="w-4 h-4" />} label="Saved Listings" href="/account/saved" onClick={close} />
-                    {isSeller && <><DropSep /><DropItem icon={<Store className="w-4 h-4" />} label="Seller Hub" href="/seller" onClick={close} accent /></>}
-                    {isAffiliate && <DropItem icon={<Link2 className="w-4 h-4" />} label="Affiliate Hub" href="/affiliate" onClick={close} accent />}
+                    <DropHeader label="My Account" />
+                    <DropItem icon={<User className="w-4 h-4" />} label="Profile" sub="Account settings" href="/account" onClick={close} />
+                    <DropItem icon={<Package className="w-4 h-4" />} label="My Orders" sub="Track purchases" href="/account/orders" onClick={close} />
+                    <DropItem icon={<Heart className="w-4 h-4" />} label="Saved" sub="Bookmarked listings" href="/account/saved" onClick={close} />
+                    <DropItem icon={<MessageCircle className="w-4 h-4" />} label="Messages" badge={unread > 0 ? `${unread}` : undefined} href="/messages" onClick={close} />
+                    {(isSeller || isAffiliate || isAdmin) && <DropSep />}
+                    {isSeller && <DropItem icon={<Store className="w-4 h-4" />} label="Seller Hub" sub="Products & earnings" href="/seller" onClick={close} accent />}
+                    {isAffiliate && <DropItem icon={<Link2 className="w-4 h-4" />} label="Affiliate Hub" sub="Links & commissions" href="/affiliate" onClick={close} accent />}
                     {isAdmin && <DropItem icon={<BarChart3 className="w-4 h-4" />} label="Admin Panel" href="/admin" onClick={close} accent />}
                     <DropSep />
                     <DropItem icon={<Settings className="w-4 h-4" />} label="Settings" href="/account/settings" onClick={close} />
                     <button
                       onClick={() => { handleLogout(); close(); }}
-                      className="flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors w-full text-left"
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors w-full text-left"
                     >
-                      <LogOut className="w-4 h-4" />
+                      <span className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center shrink-0">
+                        <LogOut className="w-4 h-4 text-red-500" />
+                      </span>
                       <span className="font-medium">Sign Out</span>
                     </button>
                   </div>
@@ -282,14 +362,14 @@ export function Navbar() {
               <div className="flex items-center gap-1.5 ml-1">
                 <button
                   onClick={() => setLocation("/auth/login")}
-                  className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg text-gray-600 hover:text-primary hover:bg-gray-50 transition-colors"
+                  className="hidden sm:flex flex-col items-center gap-0.5 px-2.5 py-1.5 rounded-xl text-gray-500 hover:text-primary hover:bg-primary/5 transition-colors"
                 >
                   <User className="w-5 h-5" />
-                  <span className="hidden lg:block text-[10px] font-medium leading-none">Sign In</span>
+                  <span className="text-[10px] font-medium leading-none">Sign In</span>
                 </button>
                 <button
                   onClick={() => setLocation("/auth/register")}
-                  className="hidden sm:inline-flex items-center gap-1.5 h-9 px-4 bg-primary hover:bg-primary/90 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm shadow-primary/20"
+                  className="hidden sm:inline-flex items-center gap-1.5 h-9 px-4 bg-primary hover:bg-primary/90 text-white text-sm font-semibold rounded-full transition-colors shadow-sm shadow-primary/20"
                 >
                   Sign Up
                 </button>
@@ -298,263 +378,329 @@ export function Navbar() {
 
             {/* Mobile hamburger */}
             <button
-              className="md:hidden p-2 rounded-lg hover:bg-gray-100 text-gray-600 transition-colors ml-1"
+              className="md:hidden p-2 rounded-xl hover:bg-gray-100 text-gray-600 transition-colors"
               onClick={() => { setMobileOpen(v => !v); setMobileSearchOpen(false); }}
             >
-              {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
         </div>
-      </div>
 
-      {/* ══ ROW 2: Dropdown nav bar ══════════════════════════════════════════ */}
-      <div className="hidden md:block border-b border-gray-100 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center h-10">
+        {/* ══ ROW 2: Category nav with dropdowns (desktop only) ══════════════ */}
+        <div className="hidden md:block border-t border-gray-100 bg-white">
+          <div className="container mx-auto px-4">
+            <div className="flex items-center h-9">
 
-            {/* Left nav items with separator borders */}
-            <div className="flex items-stretch divide-x divide-gray-200">
+              {/* Left: role-nav dropdowns */}
+              <div className="flex items-center">
 
-              {/* Seller dropdown */}
-              <NavDropdown label="Seller" icon={<Store className="w-3.5 h-3.5" />}>
-                {close => (
-                  <div className="py-1">
-                    <DropHeader label="Seller Tools" />
-                    {isSeller ? (
-                      <>
-                        <DropItem icon={<LayoutDashboard className="w-4 h-4" />} label="Seller Dashboard" sub="Overview of your shop" href="/seller" onClick={close} accent />
-                        <DropItem icon={<Package className="w-4 h-4" />} label="My Products" sub="Manage listings" href="/seller/products" onClick={close} />
-                        <DropItem icon={<ShoppingBag className="w-4 h-4" />} label="Seller Orders" sub="Fulfill & track orders" href="/seller/orders" onClick={close} />
-                        <DropItem icon={<DollarSign className="w-4 h-4" />} label="Earnings" sub="Escrow & payouts" href="/seller/earnings" onClick={close} />
-                        <DropItem icon={<Settings className="w-4 h-4" />} label="Shop Settings" sub="Edit profile & branding" href="/seller/shop" onClick={close} />
-                      </>
-                    ) : (
-                      <>
-                        <DropItem icon={<Plus className="w-4 h-4" />} label="Start Selling" sub="Free to list — earn today" href="/auth/register?role=SELLER" onClick={close} accent />
-                        <DropItem icon={<FileText className="w-4 h-4" />} label="Seller Agreement" href="/seller-agreement" onClick={close} />
-                      </>
-                    )}
-                    <DropSep />
-                    <DropHeader label="Resources" />
-                    <DropItem icon={<Shield className="w-4 h-4" />} label="Escrow Protection" sub="How seller payouts work" href="/seller-agreement" onClick={close} />
-                  </div>
-                )}
-              </NavDropdown>
+                {/* Seller */}
+                <NavDropdown label="Seller" icon={<Store className="w-3.5 h-3.5" />}>
+                  {close => (
+                    <div className="w-64 py-2">
+                      {isSeller ? (
+                        <>
+                          <DropHeader label="My Seller Hub" />
+                          <DropItem icon={<LayoutDashboard className="w-4 h-4" />} label="Dashboard" sub="Overview & quick actions" href="/seller" onClick={close} accent />
+                          <DropItem icon={<Tag className="w-4 h-4" />} label="Products" sub="Manage listings" href="/seller/products" onClick={close} />
+                          <DropItem icon={<ShoppingBag className="w-4 h-4" />} label="Orders" sub="Fulfil & track" href="/seller/orders" onClick={close} />
+                          <DropItem icon={<DollarSign className="w-4 h-4" />} label="Earnings" sub="Escrow & payouts" href="/seller/earnings" onClick={close} />
+                          <DropItem icon={<Settings className="w-4 h-4" />} label="Shop Settings" sub="Branding & profile" href="/seller/shop" onClick={close} />
+                        </>
+                      ) : (
+                        <>
+                          <DropHeader label="Become a Seller" />
+                          <DropItem icon={<Megaphone className="w-4 h-4" />} label="Start Selling Free" sub="List products, no fees" href="/auth/register?role=SELLER" onClick={close} accent badge="Free" />
+                          <DropItem icon={<FileText className="w-4 h-4" />} label="Seller Agreement" href="/seller-agreement" onClick={close} />
+                        </>
+                      )}
+                      <DropSep />
+                      <DropItem icon={<Shield className="w-4 h-4" />} label="Escrow Protection" sub="Secure seller payouts" href="/terms" onClick={close} />
+                    </div>
+                  )}
+                </NavDropdown>
 
-              {/* Buyer dropdown */}
-              <NavDropdown label="Buyer" icon={<ShoppingBag className="w-3.5 h-3.5" />}>
-                {close => (
-                  <div className="py-1">
-                    <DropHeader label="My Buying" />
-                    {user ? (
-                      <>
-                        <DropItem icon={<User className="w-4 h-4" />} label="My Account" sub="Profile & preferences" href="/account" onClick={close} />
-                        <DropItem icon={<Package className="w-4 h-4" />} label="My Orders" sub="Track & manage orders" href="/account/orders" onClick={close} />
-                        <DropItem icon={<Heart className="w-4 h-4" />} label="Saved Listings" sub="Items you bookmarked" href="/account/saved" onClick={close} />
-                        <DropItem icon={<MessageCircle className="w-4 h-4" />} label="Messages" sub="Chat with sellers" href="/messages" onClick={close} />
-                      </>
-                    ) : (
-                      <DropItem icon={<User className="w-4 h-4" />} label="Sign In to Buy" sub="Access your account" href="/auth/login" onClick={close} accent />
-                    )}
-                    <DropSep />
-                    <DropHeader label="Buyer Protection" />
-                    <DropItem icon={<Shield className="w-4 h-4" />} label="Escrow Guarantee" sub="100% secure payments" href="/terms" onClick={close} />
-                    <DropItem icon={<FileText className="w-4 h-4" />} label="Refund Policy" href="/refunds" onClick={close} />
-                  </div>
-                )}
-              </NavDropdown>
+                {/* Buyer */}
+                <NavDropdown label="Buyer" icon={<ShoppingBag className="w-3.5 h-3.5" />}>
+                  {close => (
+                    <div className="w-64 py-2">
+                      {user ? (
+                        <>
+                          <DropHeader label="My Buying" />
+                          <DropItem icon={<User className="w-4 h-4" />} label="My Account" sub="Profile & preferences" href="/account" onClick={close} accent />
+                          <DropItem icon={<Package className="w-4 h-4" />} label="My Orders" sub="Track & manage" href="/account/orders" onClick={close} />
+                          <DropItem icon={<Heart className="w-4 h-4" />} label="Saved Listings" sub="Bookmarked items" href="/account/saved" onClick={close} />
+                          <DropItem icon={<MessageCircle className="w-4 h-4" />} label="Messages" sub="Chat with sellers" href="/messages" onClick={close} />
+                        </>
+                      ) : (
+                        <>
+                          <DropHeader label="Get Started" />
+                          <DropItem icon={<User className="w-4 h-4" />} label="Sign In to Buy" sub="Access your account" href="/auth/login" onClick={close} accent />
+                          <DropItem icon={<Plus className="w-4 h-4" />} label="Create Account" sub="Free buyer account" href="/auth/register" onClick={close} />
+                        </>
+                      )}
+                      <DropSep />
+                      <DropHeader label="Buyer Protection" />
+                      <DropItem icon={<Shield className="w-4 h-4" />} label="Escrow Guarantee" sub="100% secure payments" href="/terms" onClick={close} />
+                    </div>
+                  )}
+                </NavDropdown>
 
-              {/* Affiliate dropdown */}
-              <NavDropdown label="Affiliate" icon={<Link2 className="w-3.5 h-3.5" />}>
-                {close => (
-                  <div className="py-1">
-                    <DropHeader label="Earn with Coastaq" />
-                    {isAffiliate ? (
-                      <>
-                        <DropItem icon={<LayoutDashboard className="w-4 h-4" />} label="Affiliate Dashboard" sub="Stats & overview" href="/affiliate" onClick={close} accent />
-                        <DropItem icon={<Link2 className="w-4 h-4" />} label="My Links" sub="Create & copy links" href="/affiliate/links" onClick={close} />
-                        <DropItem icon={<DollarSign className="w-4 h-4" />} label="Commissions" sub="Earnings history" href="/affiliate/commissions" onClick={close} />
-                      </>
-                    ) : (
-                      <DropItem icon={<TrendingUp className="w-4 h-4" />} label="Become an Affiliate" sub="Earn 5% on referrals" href="/affiliate" onClick={close} accent />
-                    )}
-                    <DropSep />
-                    <DropItem icon={<Info className="w-4 h-4" />} label="How It Works" sub="Share links, earn commissions" href="/affiliate" onClick={close} />
-                  </div>
-                )}
-              </NavDropdown>
-            </div>
+                {/* Affiliate */}
+                <NavDropdown label="Affiliate" icon={<BadgePercent className="w-3.5 h-3.5" />}>
+                  {close => (
+                    <div className="w-64 py-2">
+                      {isAffiliate ? (
+                        <>
+                          <DropHeader label="My Affiliate Hub" />
+                          <DropItem icon={<LayoutDashboard className="w-4 h-4" />} label="Dashboard" sub="Stats & overview" href="/affiliate" onClick={close} accent />
+                          <DropItem icon={<Link2 className="w-4 h-4" />} label="My Links" sub="Generate & track links" href="/affiliate/links" onClick={close} />
+                          <DropItem icon={<DollarSign className="w-4 h-4" />} label="Commissions" sub="Earnings history" href="/affiliate/commissions" onClick={close} />
+                        </>
+                      ) : (
+                        <>
+                          <DropHeader label="Earn with Coastaq" />
+                          <DropItem icon={<TrendingUp className="w-4 h-4" />} label="Become an Affiliate" sub="Earn 5% per referral" href={user ? "/affiliate" : "/auth/register?affiliate=1"} onClick={close} accent badge="5%" />
+                        </>
+                      )}
+                      <DropSep />
+                      <DropItem icon={<Info className="w-4 h-4" />} label="How It Works" sub="Share links, earn commissions" href="/affiliate" onClick={close} />
+                    </div>
+                  )}
+                </NavDropdown>
 
-            {/* Spacer */}
-            <div className="flex-1" />
+                {/* Divider */}
+                <span className="w-px h-4 bg-gray-200 mx-1" />
 
-            {/* Right side: Apps + Language */}
-            <div className="flex items-stretch divide-x divide-gray-200">
+                {/* Help */}
+                <NavDropdown label="Help" icon={<HelpCircle className="w-3.5 h-3.5" />}>
+                  {close => (
+                    <div className="w-56 py-2">
+                      <DropItem icon={<LifeBuoy className="w-4 h-4" />} label="Help Centre" sub="FAQs & guides" href="/help" onClick={close} />
+                      <DropItem icon={<Shield className="w-4 h-4" />} label="Buyer Protection" sub="Dispute resolution" href="/terms" onClick={close} />
+                      <DropItem icon={<MessageCircle className="w-4 h-4" />} label="Contact Us" sub="Get in touch" onClick={() => { close(); authNav("/messages"); }} />
+                    </div>
+                  )}
+                </NavDropdown>
+              </div>
 
-              {/* Apps dropdown */}
-              <NavDropdown label="Apps">
-                {close => (
-                  <div className="py-1">
-                    <DropHeader label="Download" />
-                    <DropItem icon={<Smartphone className="w-4 h-4" />} label="Coastaq Mobile" sub="iOS & Android app" href="/" onClick={close} />
-                    <DropSep />
-                    <DropHeader label="Partner Apps" />
-                    <DropItem icon={<ExternalLink className="w-4 h-4" />} label="Afrigocall" sub="VoIP & communication" href="https://web.afrigocall.com" onClick={close} external />
-                  </div>
-                )}
-              </NavDropdown>
+              {/* Spacer */}
+              <div className="flex-1" />
 
-              {/* Language + Currency dropdown */}
-              <NavDropdown
-                label={
-                  <span className="flex items-center gap-1">
-                    <Globe className="w-3.5 h-3.5 text-gray-400" />
-                    <span>{currentLang?.flag} {(LANGUAGES[lang] as any)?.nativeName?.split(" ")[0] ?? lang.toUpperCase()}</span>
-                    <span className="text-gray-300 mx-0.5">|</span>
-                    <span>{currentCurrency?.symbol} {currency}</span>
-                  </span>
-                }
-              >
-                {close => (
-                  <div className="py-1 w-[360px] flex">
-                    {/* Language column */}
-                    <div className="flex-1 border-r border-gray-100">
-                      <DropHeader label="Language" />
-                      <div className="max-h-52 overflow-y-auto">
-                        {Object.entries(LANGUAGES).map(([code, info]) => (
-                          <button
-                            key={code}
-                            onClick={() => { setLang(code); close(); }}
-                            className={cn(
-                              "w-full flex items-center gap-2.5 px-4 py-2 text-sm hover:bg-gray-50 transition-colors",
-                              lang === code ? "bg-primary/5 text-primary font-semibold" : "text-gray-700",
-                            )}
-                          >
-                            <span className="text-base leading-none">{info.flag}</span>
-                            <span className="flex-1 text-left text-xs">{info.nativeName}</span>
-                            {lang === code && <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />}
-                          </button>
-                        ))}
+              {/* Right: Apps + Language */}
+              <div className="flex items-center">
+
+                {/* Apps */}
+                <NavDropdown label="Apps" align="right">
+                  {close => (
+                    <div className="w-52 py-2">
+                      <DropHeader label="Download" />
+                      <DropItem icon={<Smartphone className="w-4 h-4" />} label="Coastaq Mobile" sub="iOS & Android" href="/" onClick={close} />
+                      <DropSep />
+                      <DropHeader label="Partners" />
+                      <DropItem icon={<ExternalLink className="w-4 h-4" />} label="Afrigocall" sub="VoIP & calls" href="https://web.afrigocall.com" onClick={close} external />
+                    </div>
+                  )}
+                </NavDropdown>
+
+                {/* Language + Currency */}
+                <NavDropdown
+                  align="right"
+                  label={
+                    <span className="flex items-center gap-1.5">
+                      <span>{currentLang?.flag}</span>
+                      <span className="hidden xl:inline">{(LANGUAGES[lang] as any)?.nativeName?.split(" ")[0] ?? lang.toUpperCase()}</span>
+                      <span className="text-gray-300">·</span>
+                      <span className="font-semibold text-primary">{currentCurrency?.symbol}</span>
+                    </span>
+                  }
+                  icon={<Globe className="w-3.5 h-3.5" />}
+                >
+                  {close => (
+                    <div className="flex" style={{ width: 360 }}>
+                      <div className="flex-1 border-r border-gray-100 py-2">
+                        <DropHeader label="Language" />
+                        <div className="max-h-56 overflow-y-auto">
+                          {Object.entries(LANGUAGES).map(([code, info]) => (
+                            <button
+                              key={code}
+                              onClick={() => { setLang(code); close(); }}
+                              className={cn(
+                                "w-full flex items-center gap-2.5 px-4 py-2 text-sm hover:bg-gray-50 transition-colors",
+                                lang === code ? "bg-primary/5 text-primary font-semibold" : "text-gray-700",
+                              )}
+                            >
+                              <span className="text-base leading-none">{info.flag}</span>
+                              <span className="flex-1 text-left text-xs">{info.nativeName}</span>
+                              {lang === code && <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="flex-1 py-2">
+                        <DropHeader label="Currency" />
+                        <div className="max-h-56 overflow-y-auto">
+                          {Object.entries(CURRENCIES).map(([code, info]) => (
+                            <button
+                              key={code}
+                              onClick={() => { setCurrency(code); close(); }}
+                              className={cn(
+                                "w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-50 transition-colors",
+                                currency === code ? "bg-primary/5 text-primary font-semibold" : "text-gray-700",
+                              )}
+                            >
+                              <span className="text-base leading-none w-5">{info.flag}</span>
+                              <span className="font-semibold text-xs w-9 shrink-0">{code}</span>
+                              <span className="text-gray-400 text-xs truncate">{info.name}</span>
+                            </button>
+                          ))}
+                        </div>
                       </div>
                     </div>
-                    {/* Currency column */}
-                    <div className="flex-1">
-                      <DropHeader label="Currency" />
-                      <div className="max-h-52 overflow-y-auto">
-                        {Object.entries(CURRENCIES).map(([code, info]) => (
-                          <button
-                            key={code}
-                            onClick={() => { setCurrency(code); close(); }}
-                            className={cn(
-                              "w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-50 transition-colors",
-                              currency === code ? "bg-primary/5 text-primary font-semibold" : "text-gray-700",
-                            )}
-                          >
-                            <span className="w-5 text-base leading-none">{info.flag}</span>
-                            <span className="font-medium text-xs w-9 shrink-0">{code}</span>
-                            <span className="text-gray-400 text-xs truncate">{info.name}</span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </NavDropdown>
+                  )}
+                </NavDropdown>
 
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* ══ Mobile search bar ═════════════════════════════════════════════════ */}
-      {mobileSearchOpen && (
-        <div className="md:hidden border-t border-gray-100 px-4 py-3 bg-white">
-          <form onSubmit={handleSearch} className="flex gap-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input
-                ref={mobileSearchRef}
-                type="search"
-                placeholder={t("nav.searchPlaceholder")}
-                className="w-full pl-10 bg-gray-50 border-gray-200 rounded-lg"
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-              />
-            </div>
-            <button type="submit" className="px-4 h-10 bg-primary text-white rounded-lg text-sm font-semibold">{t("common.search")}</button>
-          </form>
-        </div>
-      )}
+        {/* ══ Mobile search ═══════════════════════════════════════════════════ */}
+        {mobileSearchOpen && (
+          <div className="md:hidden border-t border-gray-100 px-4 py-3 bg-white">
+            <form onSubmit={handleSearch} className="flex gap-2">
+              <div className="flex-1 flex items-center bg-gray-50 border border-gray-200 rounded-full px-4 gap-2 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/10 transition-all">
+                <Search className="w-4 h-4 text-gray-400 shrink-0" />
+                <Input
+                  ref={mobileSearchRef}
+                  type="search"
+                  placeholder={t("nav.searchPlaceholder")}
+                  className="flex-1 border-none bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-sm h-10 p-0"
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                />
+              </div>
+              <button type="submit" className="h-10 px-5 bg-primary text-white rounded-full text-sm font-semibold shrink-0">Go</button>
+            </form>
+          </div>
+        )}
 
-      {/* ══ Mobile menu ═══════════════════════════════════════════════════════ */}
-      {mobileOpen && (
-        <div className="md:hidden border-t border-gray-100 bg-white max-h-[80vh] overflow-y-auto">
-          <nav className="px-4 py-3 space-y-0.5">
+        {/* ══ Mobile full menu ════════════════════════════════════════════════ */}
+        {mobileOpen && (
+          <div className="md:hidden border-t border-gray-100 bg-white max-h-[75vh] overflow-y-auto">
+            <nav className="px-4 py-4 space-y-0.5">
 
-            {/* Role sections */}
-            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-2 pt-2 pb-1">Seller</div>
-            {isSeller ? (
-              <>
-                <MobileNavItem icon={<Store className="w-4 h-4" />} label="Seller Dashboard" onClick={() => nav("/seller")} />
-                <MobileNavItem icon={<Package className="w-4 h-4" />} label="My Products" onClick={() => nav("/seller/products")} />
-                <MobileNavItem icon={<DollarSign className="w-4 h-4" />} label="Earnings" onClick={() => nav("/seller/earnings")} />
-              </>
-            ) : (
-              <MobileNavItem icon={<Plus className="w-4 h-4 text-orange-500" />} label="Start Selling Free" onClick={() => nav("/auth/register?role=SELLER")} accent />
-            )}
+              <MSection label="Seller">
+                {isSeller ? (
+                  <>
+                    <MItem icon={<Store className="w-4 h-4" />} label="Seller Dashboard" accent onClick={() => { setMobileOpen(false); setLocation("/seller"); }} />
+                    <MItem icon={<Tag className="w-4 h-4" />} label="Products" onClick={() => { setMobileOpen(false); setLocation("/seller/products"); }} />
+                    <MItem icon={<DollarSign className="w-4 h-4" />} label="Earnings" onClick={() => { setMobileOpen(false); setLocation("/seller/earnings"); }} />
+                  </>
+                ) : (
+                  <MItem icon={<Megaphone className="w-4 h-4" />} label="Start Selling — Free" accent onClick={() => { setMobileOpen(false); setLocation("/auth/register?role=SELLER"); }} />
+                )}
+              </MSection>
 
-            <div className="border-t border-gray-100 my-2" />
-            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-2 pt-1 pb-1">Buyer</div>
-            {user ? (
-              <>
-                <MobileNavItem icon={<User className="w-4 h-4" />} label="My Account" onClick={() => nav("/account")} />
-                <MobileNavItem icon={<Package className="w-4 h-4" />} label="My Orders" onClick={() => nav("/account/orders")} />
-                <MobileNavItem icon={<Heart className="w-4 h-4" />} label="Saved Listings" onClick={() => nav("/account/saved")} />
-              </>
-            ) : (
-              <MobileNavItem icon={<User className="w-4 h-4" />} label="Sign In" onClick={() => nav("/auth/login")} />
-            )}
+              <MSection label="Buyer">
+                {user ? (
+                  <>
+                    <MItem icon={<User className="w-4 h-4" />} label="My Account" onClick={() => { setMobileOpen(false); setLocation("/account"); }} />
+                    <MItem icon={<Package className="w-4 h-4" />} label="My Orders" onClick={() => { setMobileOpen(false); setLocation("/account/orders"); }} />
+                    <MItem icon={<Heart className="w-4 h-4" />} label="Saved Listings" onClick={() => { setMobileOpen(false); setLocation("/account/saved"); }} />
+                  </>
+                ) : (
+                  <MItem icon={<User className="w-4 h-4" />} label="Sign In to Buy" accent onClick={() => { setMobileOpen(false); setLocation("/auth/login"); }} />
+                )}
+              </MSection>
 
-            <div className="border-t border-gray-100 my-2" />
-            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-2 pt-1 pb-1">Affiliate</div>
-            <MobileNavItem icon={<Link2 className="w-4 h-4" />} label={isAffiliate ? "Affiliate Dashboard" : "Become an Affiliate"} onClick={() => nav("/affiliate")} />
+              <MSection label="Affiliate">
+                <MItem
+                  icon={<BadgePercent className="w-4 h-4" />}
+                  label={isAffiliate ? "Affiliate Dashboard" : "Become an Affiliate — 5%"}
+                  accent={!isAffiliate}
+                  onClick={() => { setMobileOpen(false); setLocation(isAffiliate ? "/affiliate" : (user ? "/affiliate" : "/auth/register?affiliate=1")); }}
+                />
+                {isAffiliate && (
+                  <>
+                    <MItem icon={<Link2 className="w-4 h-4" />} label="My Links" onClick={() => { setMobileOpen(false); setLocation("/affiliate/links"); }} />
+                    <MItem icon={<DollarSign className="w-4 h-4" />} label="Commissions" onClick={() => { setMobileOpen(false); setLocation("/affiliate/commissions"); }} />
+                  </>
+                )}
+              </MSection>
 
-            <div className="border-t border-gray-100 my-2" />
-            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-2 pt-1 pb-1">Apps</div>
-            <MobileNavItem icon={<Smartphone className="w-4 h-4" />} label="Coastaq Mobile" onClick={() => nav("/")} />
-            <a href="https://web.afrigocall.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 text-sm font-medium text-gray-700 w-full">
-              <ExternalLink className="w-4 h-4 text-gray-400" /> Afrigocall <ExternalLink className="w-3 h-3 ml-auto text-gray-300" />
-            </a>
-
-            {user && (
-              <>
-                <div className="border-t border-gray-100 my-2" />
-                {isAdmin && <MobileNavItem icon={<BarChart3 className="w-4 h-4" />} label="Admin Panel" onClick={() => nav("/admin")} />}
-                <button
-                  onClick={handleLogout}
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-red-50 text-sm font-medium text-red-600 w-full text-left"
+              <MSection label="Apps">
+                <MItem icon={<Smartphone className="w-4 h-4" />} label="Coastaq Mobile App" onClick={() => setMobileOpen(false)} />
+                <a
+                  href="https://web.afrigocall.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 text-sm font-medium text-gray-700"
+                  onClick={() => setMobileOpen(false)}
                 >
-                  <LogOut className="w-4 h-4" /> Sign Out
-                </button>
-              </>
-            )}
+                  <span className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-gray-500 shrink-0">
+                    <ExternalLink className="w-4 h-4" />
+                  </span>
+                  Afrigocall
+                  <ExternalLink className="w-3 h-3 ml-auto text-gray-300" />
+                </a>
+              </MSection>
 
-            {!user && (
-              <>
-                <div className="border-t border-gray-100 my-2" />
-                <button onClick={() => nav("/auth/register")} className="w-full flex items-center justify-center gap-2 h-11 bg-primary hover:bg-primary/90 text-white text-sm font-semibold rounded-xl mt-1 transition-colors">
-                  <User className="w-4 h-4" /> Create Account
-                </button>
-              </>
-            )}
-          </nav>
-        </div>
-      )}
-    </header>
+              {user ? (
+                <>
+                  <div className="border-t border-gray-100 pt-3 mt-2">
+                    {isAdmin && <MItem icon={<BarChart3 className="w-4 h-4" />} label="Admin Panel" onClick={() => { setMobileOpen(false); setLocation("/admin"); }} />}
+                    <button
+                      onClick={handleLogout}
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-red-50 text-sm font-medium text-red-600 w-full text-left transition-colors"
+                    >
+                      <span className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center shrink-0"><LogOut className="w-4 h-4 text-red-500" /></span>
+                      Sign Out
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className="border-t border-gray-100 pt-3 mt-2 flex flex-col gap-2">
+                  <button onClick={() => { setMobileOpen(false); setLocation("/auth/login"); }} className="w-full h-11 border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
+                    Sign In
+                  </button>
+                  <button onClick={() => { setMobileOpen(false); setLocation("/auth/register"); }} className="w-full h-11 bg-primary hover:bg-primary/90 rounded-xl text-sm font-semibold text-white transition-colors shadow-sm shadow-primary/20">
+                    Create Free Account
+                  </button>
+                </div>
+              )}
+            </nav>
+          </div>
+        )}
+      </header>
+
+      {/* ══ Mobile bottom tab bar ═════════════════════════════════════════════ */}
+      <MobileTabBar user={user} unread={unread} authNav={authNav} setLocation={setLocation} />
+    </>
   );
 }
 
-function MobileNavItem({ icon, label, onClick, accent }: { icon: React.ReactNode; label: string; onClick: () => void; accent?: boolean }) {
+/* ─── Mobile section wrapper ─────────────────────────────────────────────── */
+function MSection({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-3 pt-3 pb-1">{label}</p>
+      {children}
+    </div>
+  );
+}
+
+function MItem({
+  icon,
+  label,
+  onClick,
+  accent,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  onClick: () => void;
+  accent?: boolean;
+}) {
   return (
     <button
       onClick={onClick}
@@ -563,8 +709,73 @@ function MobileNavItem({ icon, label, onClick, accent }: { icon: React.ReactNode
         accent ? "text-primary hover:bg-primary/5" : "text-gray-700 hover:bg-gray-50",
       )}
     >
-      <span className={accent ? "text-primary" : "text-gray-400"}>{icon}</span>
+      <span className={cn(
+        "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
+        accent ? "bg-primary/10 text-primary" : "bg-gray-100 text-gray-500",
+      )}>
+        {icon}
+      </span>
       {label}
     </button>
+  );
+}
+
+/* ─── Mobile bottom tab bar ─────────────────────────────────────────────── */
+function MobileTabBar({
+  user,
+  unread,
+  authNav,
+  setLocation,
+}: {
+  user: any;
+  unread: number;
+  authNav: (path: string) => void;
+  setLocation: (path: string) => void;
+}) {
+  const [location] = useLocation();
+  const active = (path: string) => location === path || (path !== "/" && location.startsWith(path));
+
+  const tabs = [
+    { icon: Home, label: "Home", path: "/", action: () => setLocation("/") },
+    { icon: Search, label: "Search", path: "/?search", action: () => setLocation("/") },
+    { icon: Megaphone, label: "Post Ad", path: "/post", action: () => user ? setLocation("/seller/products") : setLocation("/auth/register?role=SELLER"), highlight: true },
+    { icon: MessageCircle, label: "Messages", path: "/messages", badge: unread, action: () => authNav("/messages") },
+    { icon: User, label: user ? "Account" : "Sign In", path: user ? "/account" : "/auth/login", action: () => user ? setLocation("/account") : setLocation("/auth/login") },
+  ];
+
+  return (
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 safe-area-pb">
+      <div className="flex items-center h-16">
+        {tabs.map(tab => (
+          <button
+            key={tab.label}
+            onClick={tab.action}
+            className={cn(
+              "flex-1 flex flex-col items-center justify-center gap-1 h-full relative transition-colors",
+              tab.highlight ? "" : (active(tab.path) ? "text-primary" : "text-gray-400 hover:text-gray-600"),
+            )}
+          >
+            {tab.highlight ? (
+              <span className="w-12 h-12 -mt-6 rounded-2xl bg-primary shadow-lg shadow-primary/30 flex items-center justify-center">
+                <tab.icon className="w-5 h-5 text-white" />
+              </span>
+            ) : (
+              <>
+                <div className="relative">
+                  <tab.icon className="w-5 h-5" />
+                  {tab.badge != null && tab.badge > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[8px] font-bold rounded-full min-w-[14px] h-3.5 flex items-center justify-center px-0.5">
+                      {tab.badge > 9 ? "9+" : tab.badge}
+                    </span>
+                  )}
+                </div>
+                <span className={cn("text-[9px] font-medium leading-none", active(tab.path) ? "text-primary" : "")}>{tab.label}</span>
+                {active(tab.path) && <span className="absolute top-0 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-full bg-primary" />}
+              </>
+            )}
+          </button>
+        ))}
+      </div>
+    </nav>
   );
 }
