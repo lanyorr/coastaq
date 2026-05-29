@@ -3,7 +3,7 @@ import { AffiliateLayout } from "./AffiliateLayout";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Megaphone, Loader2, Users, Package, CheckCircle2 } from "lucide-react";
+import { Megaphone, Loader2, Users, Package, CheckCircle2, Mail, Check, X } from "lucide-react";
 
 function CommissionBadge({ rate }: { rate: string | number }) {
   return (
@@ -101,13 +101,82 @@ function CampaignCard({
   );
 }
 
+function InvitationCard({
+  invitation,
+  onAccept,
+  onDecline,
+  responding,
+}: {
+  invitation: any;
+  onAccept: (id: string) => void;
+  onDecline: (id: string) => void;
+  responding: string | null;
+}) {
+  const budget = invitation.budget ? parseFloat(invitation.budget) : null;
+  const isResponding = responding === invitation.id;
+
+  return (
+    <div className="bg-card border border-purple-200 rounded-2xl p-5 flex flex-col gap-3">
+      {/* Invitation badge */}
+      <div className="flex items-center gap-1.5 text-xs font-semibold text-purple-600 bg-purple-50 rounded-full w-fit px-2.5 py-1">
+        <Mail className="w-3 h-3" />
+        Invited by {invitation.shopName}
+      </div>
+
+      {/* Campaign info */}
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex-1 min-w-0">
+          <p className="font-semibold truncate">{invitation.name}</p>
+          {invitation.description && (
+            <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{invitation.description}</p>
+          )}
+        </div>
+        <CommissionBadge rate={invitation.commissionRate} />
+      </div>
+
+      {/* Meta */}
+      <div className="flex items-center gap-3 text-xs text-muted-foreground">
+        {budget !== null && (
+          <span className="text-green-600 font-medium">${budget.toFixed(2)} budget</span>
+        )}
+        <span>Invited {new Date(invitation.createdAt).toLocaleDateString()}</span>
+      </div>
+
+      {/* Accept / Decline */}
+      <div className="flex gap-2 mt-auto pt-1">
+        <Button
+          size="sm"
+          className="flex-1 bg-purple-600 hover:bg-purple-700 gap-1.5"
+          disabled={isResponding}
+          onClick={() => onAccept(invitation.id)}
+        >
+          {isResponding ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+          Accept
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          className="flex-1 gap-1.5 border-red-200 text-red-600 hover:bg-red-50"
+          disabled={isResponding}
+          onClick={() => onDecline(invitation.id)}
+        >
+          <X className="w-3.5 h-3.5" />
+          Decline
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 export default function AffiliateCampaigns() {
   const { toast } = useToast();
-  const [tab, setTab] = useState<"available" | "mine">("available");
+  const [tab, setTab] = useState<"available" | "invitations" | "mine">("available");
   const [available, setAvailable] = useState<any[]>([]);
   const [mine, setMine] = useState<any[]>([]);
+  const [invitations, setInvitations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState<string | null>(null);
+  const [responding, setResponding] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [pagination, setPagination] = useState<any>(null);
 
@@ -122,11 +191,20 @@ export default function AffiliateCampaigns() {
     }
   }, []);
 
+  const loadInvitations = useCallback(async () => {
+    const res = await fetch("/api/affiliates/me/invitations");
+    if (res.ok) {
+      const data = await res.json();
+      setInvitations(Array.isArray(data) ? data : []);
+    }
+  }, []);
+
   useEffect(() => {
     setLoading(true);
     Promise.all([
       loadAvailable(1),
       fetch("/api/affiliates/me/campaigns").then(r => r.ok ? r.json() : []).then(d => setMine(Array.isArray(d) ? d : [])),
+      loadInvitations(),
     ]).finally(() => setLoading(false));
   }, []);
 
@@ -139,7 +217,6 @@ export default function AffiliateCampaigns() {
         toast({ title: data.error || "Could not join campaign", variant: "destructive" });
       } else {
         toast({ title: "Campaign joined!", description: "You can now promote this campaign." });
-        // Move card from available to mine
         const joined = available.find(c => c.id === id);
         if (joined) {
           setMine(prev => [{ ...joined, joinedAt: new Date().toISOString() }, ...prev]);
@@ -152,10 +229,50 @@ export default function AffiliateCampaigns() {
     setJoining(null);
   }
 
+  async function acceptInvitation(id: string) {
+    setResponding(id);
+    try {
+      const res = await fetch(`/api/affiliates/me/invitations/${id}/accept`, { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) {
+        toast({ title: data.error || "Could not accept invitation", variant: "destructive" });
+      } else {
+        toast({ title: "Invitation accepted!", description: "You've joined the campaign." });
+        const inv = invitations.find(i => i.id === id);
+        if (inv) {
+          setMine(prev => [{ ...inv, joinedAt: new Date().toISOString() }, ...prev]);
+          setAvailable(prev => prev.filter(c => c.id !== inv.campaignId));
+        }
+        setInvitations(prev => prev.filter(i => i.id !== id));
+      }
+    } catch {
+      toast({ title: "Network error", variant: "destructive" });
+    }
+    setResponding(null);
+  }
+
+  async function declineInvitation(id: string) {
+    setResponding(id);
+    try {
+      const res = await fetch(`/api/affiliates/me/invitations/${id}/decline`, { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) {
+        toast({ title: data.error || "Could not decline invitation", variant: "destructive" });
+      } else {
+        toast({ title: "Invitation declined." });
+        setInvitations(prev => prev.filter(i => i.id !== id));
+      }
+    } catch {
+      toast({ title: "Network error", variant: "destructive" });
+    }
+    setResponding(null);
+  }
+
   const tabs = [
-    { key: "available", label: "Available", count: pagination?.total ?? available.length },
-    { key: "mine", label: "My Campaigns", count: mine.length },
-  ] as const;
+    { key: "available" as const, label: "Available", count: pagination?.total ?? available.length },
+    { key: "invitations" as const, label: "Invitations", count: invitations.length },
+    { key: "mine" as const, label: "My Campaigns", count: mine.length },
+  ];
 
   return (
     <AffiliateLayout>
@@ -178,7 +295,11 @@ export default function AffiliateCampaigns() {
             {t.count > 0 && (
               <span className={cn(
                 "text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1",
-                tab === t.key ? "bg-purple-600 text-white" : "bg-border text-muted-foreground",
+                tab === t.key
+                  ? t.key === "invitations" ? "bg-purple-600 text-white" : "bg-purple-600 text-white"
+                  : t.key === "invitations" && t.count > 0
+                    ? "bg-purple-100 text-purple-700"
+                    : "bg-border text-muted-foreground",
               )}>
                 {t.count}
               </span>
@@ -220,6 +341,26 @@ export default function AffiliateCampaigns() {
               </div>
             )}
           </>
+        )
+      ) : tab === "invitations" ? (
+        invitations.length === 0 ? (
+          <div className="text-center py-16 text-muted-foreground">
+            <Mail className="w-10 h-10 mx-auto mb-3 opacity-30" />
+            <p>No pending invitations.</p>
+            <p className="text-sm mt-1">When a seller invites you to a campaign, it will appear here.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {invitations.map(inv => (
+              <InvitationCard
+                key={inv.id}
+                invitation={inv}
+                onAccept={acceptInvitation}
+                onDecline={declineInvitation}
+                responding={responding}
+              />
+            ))}
+          </div>
         )
       ) : (
         mine.length === 0 ? (

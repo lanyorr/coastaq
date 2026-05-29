@@ -3,8 +3,9 @@ import { db } from "@workspace/db";
 import {
   affiliateCampaignsTable, affiliateCampaignMembersTable,
   affiliateCampaignProductsTable, affiliatesTable, shopsTable, productsTable,
+  usersTable, affiliateCampaignInvitationsTable,
 } from "@workspace/db";
-import { eq, desc, and, sql, inArray } from "drizzle-orm";
+import { eq, desc, and, sql, inArray, or, ilike } from "drizzle-orm";
 import { requireAuth, requireRole } from "../lib/auth.js";
 
 const router = Router();
@@ -65,7 +66,7 @@ router.post("/seller/campaigns", requireAuth, requireRole("SELLER"), async (req,
   }
 });
 
-// GET /api/seller/campaigns — list seller's campaigns with product list + member count
+// GET /api/seller/campaigns — list seller's campaigns with product list + member count + pending invites
 router.get("/seller/campaigns", requireAuth, requireRole("SELLER"), async (req, res) => {
   try {
     const shop = await db.query.shopsTable.findFirst({
@@ -88,6 +89,14 @@ router.get("/seller/campaigns", requireAuth, requireRole("SELLER"), async (req, 
           eq(affiliateCampaignMembersTable.status, "active"),
         ));
 
+      const [pendingInviteRow] = await db
+        .select({ count: sql<number>`COUNT(*)` })
+        .from(affiliateCampaignInvitationsTable)
+        .where(and(
+          eq(affiliateCampaignInvitationsTable.campaignId, c.id),
+          eq(affiliateCampaignInvitationsTable.status, "pending"),
+        ));
+
       const campaignProducts = await db
         .select({ productId: affiliateCampaignProductsTable.productId })
         .from(affiliateCampaignProductsTable)
@@ -96,6 +105,7 @@ router.get("/seller/campaigns", requireAuth, requireRole("SELLER"), async (req, 
       return {
         ...c,
         memberCount: Number(memberRow?.count ?? 0),
+        pendingInviteCount: Number(pendingInviteRow?.count ?? 0),
         productIds: campaignProducts.map(p => p.productId),
       };
     }));
@@ -174,6 +184,138 @@ router.patch("/seller/campaigns/:id", requireAuth, requireRole("SELLER"), async 
   } catch (err) {
     req.log.error({ err }, "Update campaign error");
     res.status(500).json({ error: "Failed to update campaign" });
+  }
+});
+
+// ── SELLER invitation routes ──────────────────────────────────────────────────
+
+// GET /api/seller/affiliates/search?q=... — search affiliates by email or name
+router.get("/seller/affiliates/search", requireAuth, requireRole("SELLER"), async (req, res) => {
+  try {
+    const q = String(req.query.q || "").trim();
+    if (q.length < 2) { res.json([]); return; }
+
+    const results = await db
+      .select({
+        affiliateId: affiliatesTable.id,
+        userId: usersTable.id,
+        name: usersTable.name,
+        email: usersTable.email,
+        isApproved: affiliatesTable.isApproved,
+      })
+      .from(affiliatesTable)
+      .innerJoin(usersTable, eq(affiliatesTable.userId, usersTable.id))
+      .where(
+        or(
+          ilike(usersTable.email, `%${q}%`),
+          ilike(usersTable.name, `%${q}%`),
+        )
+      )
+      .limit(10);
+
+    res.json(results);
+  } catch (err) {
+    req.log.error({ err }, "Search affiliates error");
+    res.status(500).json({ error: "Failed to search affiliates" });
+  }
+});
+
+// POST /api/seller/campaigns/:id/invitations — invite an affiliate
+router.post("/seller/campaigns/:id/invitations", requireAuth, requireRole("SELLER"), async (req, res) => {
+  try {
+    const shop = await db.query.shopsTable.findFirst({
+      where: eq(shopsTable.userId, req.userId!),
+    });
+    if (!shop) { res.status(404).json({ error: "No shop found" }); return; }
+
+    const campaign = await db.query.affiliateCampaignsTable.findFirst({
+      where: and(
+        eq(affiliateCampaignsTable.id, req.params.id),
+        eq(affiliateCampaignsTable.shopId, shop.id),
+      ),
+    });
+    if (!campaign) { res.status(404).json({ error: "Campaign not found" }); return; }
+
+    const { affiliateId } = req.body;
+    if (!affiliateId) { res.status(400).json({ error: "affiliateId is required" }); return; }
+
+    // Ensure the affiliate exists
+    const affiliate = await db.query.affiliatesTable.findFirst({
+      where: eq(affiliatesTable.id, affiliateId),
+    });
+    if (!affiliate) { res.status(404).json({ error: "Affiliate not found" }); return; }
+
+    // Check if already an active member
+    const existingMembership = await db.query.affiliateCampaignMembersTable.findFirst({
+      where: and(
+        eq(affiliateCampaignMembersTable.campaignId, campaign.id),
+        eq(affiliateCampaignMembersTable.affiliateId, affiliateId),
+        eq(affiliateCampaignMembersTable.status, "active"),
+      ),
+    });
+    if (existingMembership) {
+      res.status(409).json({ error: "This affiliate is already a member of the campaign" }); return;
+    }
+
+    // Check for existing pending invitation
+    const existingInvitation = await db.query.affiliateCampaignInvitationsTable.findFirst({
+      where: and(
+        eq(affiliateCampaignInvitationsTable.campaignId, campaign.id),
+        eq(affiliateCampaignInvitationsTable.affiliateId, affiliateId),
+        eq(affiliateCampaignInvitationsTable.status, "pending"),
+      ),
+    });
+    if (existingInvitation) {
+      res.status(409).json({ error: "A pending invitation already exists for this affiliate" }); return;
+    }
+
+    const [invitation] = await db
+      .insert(affiliateCampaignInvitationsTable)
+      .values({ campaignId: campaign.id, affiliateId })
+      .returning();
+
+    res.status(201).json(invitation);
+  } catch (err) {
+    req.log.error({ err }, "Invite affiliate error");
+    res.status(500).json({ error: "Failed to send invitation" });
+  }
+});
+
+// GET /api/seller/campaigns/:id/invitations — list invitations for a campaign
+router.get("/seller/campaigns/:id/invitations", requireAuth, requireRole("SELLER"), async (req, res) => {
+  try {
+    const shop = await db.query.shopsTable.findFirst({
+      where: eq(shopsTable.userId, req.userId!),
+    });
+    if (!shop) { res.status(404).json({ error: "No shop found" }); return; }
+
+    const campaign = await db.query.affiliateCampaignsTable.findFirst({
+      where: and(
+        eq(affiliateCampaignsTable.id, req.params.id),
+        eq(affiliateCampaignsTable.shopId, shop.id),
+      ),
+    });
+    if (!campaign) { res.status(404).json({ error: "Campaign not found" }); return; }
+
+    const invitations = await db
+      .select({
+        id: affiliateCampaignInvitationsTable.id,
+        status: affiliateCampaignInvitationsTable.status,
+        createdAt: affiliateCampaignInvitationsTable.createdAt,
+        affiliateId: affiliatesTable.id,
+        affiliateName: usersTable.name,
+        affiliateEmail: usersTable.email,
+      })
+      .from(affiliateCampaignInvitationsTable)
+      .innerJoin(affiliatesTable, eq(affiliateCampaignInvitationsTable.affiliateId, affiliatesTable.id))
+      .innerJoin(usersTable, eq(affiliatesTable.userId, usersTable.id))
+      .where(eq(affiliateCampaignInvitationsTable.campaignId, campaign.id))
+      .orderBy(desc(affiliateCampaignInvitationsTable.createdAt));
+
+    res.json(invitations);
+  } catch (err) {
+    req.log.error({ err }, "List campaign invitations error");
+    res.status(500).json({ error: "Failed to list invitations" });
   }
 });
 
@@ -338,6 +480,138 @@ router.get("/affiliates/me/campaigns", requireAuth, async (req, res) => {
   } catch (err) {
     req.log.error({ err }, "Get my campaigns error");
     res.status(500).json({ error: "Failed to get campaigns" });
+  }
+});
+
+// GET /api/affiliates/me/invitations — list pending invitations for the current affiliate
+router.get("/affiliates/me/invitations", requireAuth, async (req, res) => {
+  try {
+    const affiliate = await db.query.affiliatesTable.findFirst({
+      where: eq(affiliatesTable.userId, req.userId!),
+    });
+    if (!affiliate) { res.status(404).json({ error: "No affiliate account" }); return; }
+
+    const invitations = await db
+      .select({
+        id: affiliateCampaignInvitationsTable.id,
+        status: affiliateCampaignInvitationsTable.status,
+        createdAt: affiliateCampaignInvitationsTable.createdAt,
+        campaign: affiliateCampaignsTable,
+        shopName: shopsTable.name,
+        shopLogo: shopsTable.logo,
+      })
+      .from(affiliateCampaignInvitationsTable)
+      .innerJoin(affiliateCampaignsTable, eq(affiliateCampaignInvitationsTable.campaignId, affiliateCampaignsTable.id))
+      .innerJoin(shopsTable, eq(affiliateCampaignsTable.shopId, shopsTable.id))
+      .where(and(
+        eq(affiliateCampaignInvitationsTable.affiliateId, affiliate.id),
+        eq(affiliateCampaignInvitationsTable.status, "pending"),
+      ))
+      .orderBy(desc(affiliateCampaignInvitationsTable.createdAt));
+
+    res.json(invitations.map(row => {
+      const { id: _campaignId, ...campaignFields } = row.campaign;
+      return {
+        id: row.id,
+        campaignId: row.campaign.id,
+        status: row.status,
+        createdAt: row.createdAt,
+        ...campaignFields,
+        shopName: row.shopName,
+        shopLogo: row.shopLogo,
+      };
+    }));
+  } catch (err) {
+    req.log.error({ err }, "Get my invitations error");
+    res.status(500).json({ error: "Failed to get invitations" });
+  }
+});
+
+// POST /api/affiliates/me/invitations/:id/accept — accept an invitation and auto-join
+router.post("/affiliates/me/invitations/:id/accept", requireAuth, async (req, res) => {
+  try {
+    const affiliate = await db.query.affiliatesTable.findFirst({
+      where: eq(affiliatesTable.userId, req.userId!),
+    });
+    if (!affiliate) { res.status(404).json({ error: "No affiliate account" }); return; }
+    if (!affiliate.isApproved) { res.status(403).json({ error: "Affiliate account pending approval" }); return; }
+
+    const invitation = await db.query.affiliateCampaignInvitationsTable.findFirst({
+      where: and(
+        eq(affiliateCampaignInvitationsTable.id, req.params.id),
+        eq(affiliateCampaignInvitationsTable.affiliateId, affiliate.id),
+        eq(affiliateCampaignInvitationsTable.status, "pending"),
+      ),
+    });
+    if (!invitation) { res.status(404).json({ error: "Invitation not found or already responded to" }); return; }
+
+    // Ensure the campaign is still active
+    const campaign = await db.query.affiliateCampaignsTable.findFirst({
+      where: and(
+        eq(affiliateCampaignsTable.id, invitation.campaignId),
+        eq(affiliateCampaignsTable.status, "active"),
+      ),
+    });
+    if (!campaign) { res.status(400).json({ error: "Campaign is no longer active" }); return; }
+
+    // Mark invitation as accepted and upsert membership atomically
+    await db
+      .update(affiliateCampaignInvitationsTable)
+      .set({ status: "accepted", updatedAt: new Date() })
+      .where(eq(affiliateCampaignInvitationsTable.id, invitation.id));
+
+    const existingMembership = await db.query.affiliateCampaignMembersTable.findFirst({
+      where: and(
+        eq(affiliateCampaignMembersTable.campaignId, invitation.campaignId),
+        eq(affiliateCampaignMembersTable.affiliateId, affiliate.id),
+      ),
+    });
+
+    if (existingMembership) {
+      await db
+        .update(affiliateCampaignMembersTable)
+        .set({ status: "active", joinedAt: new Date() })
+        .where(eq(affiliateCampaignMembersTable.id, existingMembership.id));
+    } else {
+      await db.insert(affiliateCampaignMembersTable).values({
+        campaignId: invitation.campaignId,
+        affiliateId: affiliate.id,
+      });
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    req.log.error({ err }, "Accept invitation error");
+    res.status(500).json({ error: "Failed to accept invitation" });
+  }
+});
+
+// POST /api/affiliates/me/invitations/:id/decline — decline an invitation
+router.post("/affiliates/me/invitations/:id/decline", requireAuth, async (req, res) => {
+  try {
+    const affiliate = await db.query.affiliatesTable.findFirst({
+      where: eq(affiliatesTable.userId, req.userId!),
+    });
+    if (!affiliate) { res.status(404).json({ error: "No affiliate account" }); return; }
+
+    const invitation = await db.query.affiliateCampaignInvitationsTable.findFirst({
+      where: and(
+        eq(affiliateCampaignInvitationsTable.id, req.params.id),
+        eq(affiliateCampaignInvitationsTable.affiliateId, affiliate.id),
+        eq(affiliateCampaignInvitationsTable.status, "pending"),
+      ),
+    });
+    if (!invitation) { res.status(404).json({ error: "Invitation not found or already responded to" }); return; }
+
+    await db
+      .update(affiliateCampaignInvitationsTable)
+      .set({ status: "declined", updatedAt: new Date() })
+      .where(eq(affiliateCampaignInvitationsTable.id, invitation.id));
+
+    res.json({ success: true });
+  } catch (err) {
+    req.log.error({ err }, "Decline invitation error");
+    res.status(500).json({ error: "Failed to decline invitation" });
   }
 });
 

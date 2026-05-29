@@ -142,6 +142,21 @@ export const affiliateCampaignProductsTable = pgTable("affiliate_campaign_produc
   addedAt: timestamp("added_at").notNull().defaultNow(),
 });
 
+export const affiliateCampaignInvitationStatusEnum = pgEnum("affiliate_campaign_invitation_status", [
+  "pending",
+  "accepted",
+  "declined",
+]);
+
+export const affiliateCampaignInvitationsTable = pgTable("affiliate_campaign_invitations", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  campaignId: text("campaign_id").notNull().references(() => affiliateCampaignsTable.id, { onDelete: "cascade" }),
+  affiliateId: text("affiliate_id").notNull().references(() => affiliatesTable.id, { onDelete: "cascade" }),
+  status: affiliateCampaignInvitationStatusEnum("status").notNull().default("pending"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 export const insertAffiliateSchema = createInsertSchema(affiliatesTable).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertAffiliateLinkSchema = createInsertSchema(affiliateLinksTable).omit({ id: true, createdAt: true });
 export const insertAffiliateCommissionSchema = createInsertSchema(affiliateCommissionsTable).omit({ id: true, createdAt: true });
@@ -159,3 +174,4 @@ export type AffiliateCoupon = typeof affiliateCouponsTable.$inferSelect;
 export type AffiliateCampaign = typeof affiliateCampaignsTable.$inferSelect;
 export type AffiliateCampaignMember = typeof affiliateCampaignMembersTable.$inferSelect;
 export type AffiliateCampaignProduct = typeof affiliateCampaignProductsTable.$inferSelect;
+export type AffiliateCampaignInvitation = typeof affiliateCampaignInvitationsTable.$inferSelect;

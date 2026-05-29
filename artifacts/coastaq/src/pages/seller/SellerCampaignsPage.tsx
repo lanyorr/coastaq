@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { SellerLayout } from "./SellerLayout";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -6,13 +6,19 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import {
   Megaphone, Plus, Users, Loader2, X, ChevronDown, Package,
-  Play, Pause, StopCircle, Pencil,
+  Play, Pause, StopCircle, Pencil, UserPlus, Mail, Check, Clock,
 } from "lucide-react";
 
 const STATUS_STYLES: Record<string, { label: string; cls: string }> = {
   active:  { label: "Active",  cls: "bg-green-100 text-green-700" },
   paused:  { label: "Paused",  cls: "bg-yellow-100 text-yellow-700" },
   ended:   { label: "Ended",   cls: "bg-gray-100 text-gray-500" },
+};
+
+const INVITE_STATUS_STYLES: Record<string, { label: string; cls: string; icon: React.ReactNode }> = {
+  pending:  { label: "Pending",  cls: "bg-yellow-50 text-yellow-700 border-yellow-200", icon: <Clock className="w-3 h-3" /> },
+  accepted: { label: "Accepted", cls: "bg-green-50 text-green-700 border-green-200",   icon: <Check className="w-3 h-3" /> },
+  declined: { label: "Declined", cls: "bg-red-50 text-red-600 border-red-200",         icon: <X className="w-3 h-3" /> },
 };
 
 const EMPTY_FORM = {
@@ -103,6 +109,174 @@ function ProductMultiSelect({
   );
 }
 
+// ── Invite Modal ──────────────────────────────────────────────────────────────
+function InviteModal({
+  campaign,
+  onClose,
+}: {
+  campaign: any;
+  onClose: () => void;
+}) {
+  const { toast } = useToast();
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<any[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [inviting, setInviting] = useState<string | null>(null);
+  const [invitations, setInvitations] = useState<any[]>([]);
+  const [loadingInvitations, setLoadingInvitations] = useState(true);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    fetch(`/api/seller/campaigns/${campaign.id}/invitations`)
+      .then(r => r.ok ? r.json() : [])
+      .then(d => setInvitations(Array.isArray(d) ? d : []))
+      .finally(() => setLoadingInvitations(false));
+  }, [campaign.id]);
+
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (query.trim().length < 2) { setResults([]); return; }
+    debounceRef.current = setTimeout(async () => {
+      setSearching(true);
+      try {
+        const res = await fetch(`/api/seller/affiliates/search?q=${encodeURIComponent(query.trim())}`);
+        const data = await res.json();
+        setResults(Array.isArray(data) ? data : []);
+      } catch {}
+      setSearching(false);
+    }, 350);
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, [query]);
+
+  async function invite(affiliateId: string) {
+    setInviting(affiliateId);
+    try {
+      const res = await fetch(`/api/seller/campaigns/${campaign.id}/invitations`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ affiliateId }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast({ title: data.error || "Failed to send invitation", variant: "destructive" });
+      } else {
+        toast({ title: "Invitation sent!" });
+        // Reload invitations list
+        const inv = await fetch(`/api/seller/campaigns/${campaign.id}/invitations`).then(r => r.ok ? r.json() : []);
+        setInvitations(Array.isArray(inv) ? inv : []);
+        setQuery("");
+        setResults([]);
+      }
+    } catch {
+      toast({ title: "Network error", variant: "destructive" });
+    }
+    setInviting(null);
+  }
+
+  const invitedIds = new Set(invitations.filter(i => i.status === "pending").map(i => i.affiliateId));
+  const acceptedIds = new Set(invitations.filter(i => i.status === "accepted").map(i => i.affiliateId));
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+      <div className="bg-background border border-border rounded-2xl w-full max-w-md shadow-2xl flex flex-col max-h-[85vh]">
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border/60">
+          <div>
+            <h2 className="font-semibold text-base">Invite Affiliate</h2>
+            <p className="text-xs text-muted-foreground mt-0.5 truncate max-w-[260px]">{campaign.name}</p>
+          </div>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Search */}
+        <div className="px-5 pt-4 pb-3">
+          <div className="relative">
+            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by name or email…"
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              className="pl-9 focus-visible:ring-green-500/20 focus-visible:border-green-400"
+              autoFocus
+            />
+            {searching && (
+              <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-muted-foreground" />
+            )}
+          </div>
+        </div>
+
+        {/* Search results */}
+        {results.length > 0 && (
+          <div className="px-5 pb-2">
+            <div className="border border-border rounded-xl overflow-hidden">
+              {results.map(r => {
+                const alreadyInvited = invitedIds.has(r.affiliateId);
+                const alreadyAccepted = acceptedIds.has(r.affiliateId);
+                return (
+                  <div key={r.affiliateId} className="flex items-center gap-3 px-3 py-2.5 border-b border-border/40 last:border-b-0 hover:bg-secondary/40 transition-colors">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{r.name}</p>
+                      <p className="text-xs text-muted-foreground truncate">{r.email}</p>
+                    </div>
+                    {alreadyAccepted ? (
+                      <span className="text-xs text-green-600 font-medium flex items-center gap-1"><Check className="w-3 h-3" /> Joined</span>
+                    ) : alreadyInvited ? (
+                      <span className="text-xs text-yellow-600 font-medium flex items-center gap-1"><Clock className="w-3 h-3" /> Invited</span>
+                    ) : (
+                      <Button
+                        size="sm"
+                        className="bg-green-600 hover:bg-green-700 text-xs h-7 px-3 shrink-0"
+                        disabled={inviting === r.affiliateId}
+                        onClick={() => invite(r.affiliateId)}
+                      >
+                        {inviting === r.affiliateId ? <Loader2 className="w-3 h-3 animate-spin" /> : "Invite"}
+                      </Button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+        {query.trim().length >= 2 && !searching && results.length === 0 && (
+          <p className="px-5 pb-3 text-sm text-muted-foreground">No affiliates found matching "{query}".</p>
+        )}
+
+        {/* Sent invitations list */}
+        <div className="flex-1 overflow-y-auto px-5 pb-5">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 mt-2">
+            Sent Invitations
+          </p>
+          {loadingInvitations ? (
+            <div className="flex justify-center py-4"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>
+          ) : invitations.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-4">No invitations sent yet.</p>
+          ) : (
+            <div className="space-y-2">
+              {invitations.map(inv => {
+                const st = INVITE_STATUS_STYLES[inv.status] ?? INVITE_STATUS_STYLES.pending;
+                return (
+                  <div key={inv.id} className="flex items-center gap-3 py-2 border-b border-border/30 last:border-b-0">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{inv.affiliateName}</p>
+                      <p className="text-xs text-muted-foreground truncate">{inv.affiliateEmail}</p>
+                    </div>
+                    <span className={cn("inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full border", st.cls)}>
+                      {st.icon}{st.label}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function SellerCampaignsPage() {
   const { toast } = useToast();
   const [campaigns, setCampaigns] = useState<any[]>([]);
@@ -113,6 +287,7 @@ export default function SellerCampaignsPage() {
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [submitting, setSubmitting] = useState(false);
   const [toggling, setToggling] = useState<string | null>(null);
+  const [invitingCampaign, setInvitingCampaign] = useState<any | null>(null);
 
   const load = useCallback(async () => {
     const [cRes, shopRes] = await Promise.all([
@@ -238,6 +413,13 @@ export default function SellerCampaignsPage() {
 
   return (
     <SellerLayout>
+      {invitingCampaign && (
+        <InviteModal
+          campaign={invitingCampaign}
+          onClose={() => { setInvitingCampaign(null); load(); }}
+        />
+      )}
+
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-display font-bold">Affiliate Campaigns</h1>
@@ -402,6 +584,11 @@ export default function SellerCampaignsPage() {
                   <span className="inline-flex items-center gap-1 text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">
                     <Users className="w-3 h-3" /> {c.memberCount} affiliate{c.memberCount !== 1 ? "s" : ""}
                   </span>
+                  {c.pendingInviteCount > 0 && (
+                    <span className="inline-flex items-center gap-1 text-xs text-yellow-700 bg-yellow-50 border border-yellow-200 px-2 py-0.5 rounded-full">
+                      <Clock className="w-3 h-3" /> {c.pendingInviteCount} pending invite{c.pendingInviteCount !== 1 ? "s" : ""}
+                    </span>
+                  )}
                   {c.productIds?.length > 0 && (
                     <span className="inline-flex items-center gap-1 text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">
                       <Package className="w-3 h-3" /> {c.productIds.length} product{c.productIds.length !== 1 ? "s" : ""}
@@ -423,14 +610,22 @@ export default function SellerCampaignsPage() {
 
                 {/* Actions */}
                 {!isEnded && (
-                  <div className="flex items-center gap-2 pt-1 mt-auto">
+                  <div className="flex items-center gap-2 pt-1 mt-auto flex-wrap">
                     <Button
                       variant="outline"
                       size="sm"
-                      className="flex-1 gap-1.5 text-xs"
+                      className="gap-1.5 text-xs"
                       onClick={() => openEdit(c)}
                     >
                       <Pencil className="w-3.5 h-3.5" /> Edit
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-1.5 text-xs border-green-300 text-green-700 hover:bg-green-50"
+                      onClick={() => setInvitingCampaign(c)}
+                    >
+                      <UserPlus className="w-3.5 h-3.5" /> Invite
                     </Button>
                     <Button
                       variant="outline"
