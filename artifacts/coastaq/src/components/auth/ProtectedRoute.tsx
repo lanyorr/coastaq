@@ -47,7 +47,8 @@ export function ProtectedRoute({ roles, component: Component, guestOnly }: Prote
         setLocation(getDashboardPath(userRoles));
       }
     }
-  }, [user, isLoading, isError, roles, guestOnly, setLocation]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, isLoading, isError, roles, guestOnly]);
 
   // Loading state
   if (isLoading) {

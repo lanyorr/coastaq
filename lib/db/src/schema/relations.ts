@@ -11,18 +11,16 @@ import { adminActionsTable } from "./admin-actions";
 import { inventoryLogsTable } from "./inventory";
 import { shipmentsTable } from "./shipments";
 import { pageViewsTable } from "./analytics";
-import { affiliatesTable, affiliateLinksTable, affiliateCommissionsTable } from "./affiliates";
+import {
+  affiliatesTable, affiliateLinksTable, affiliateClicksTable,
+  affiliateCommissionsTable, affiliatePayoutsTable,
+  affiliateCouponsTable, affiliateCampaignsTable, affiliateCampaignMembersTable,
+} from "./affiliates";
 import { userRolesTable } from "./user-roles";
 
 export const usersRelations = relations(usersTable, ({ one, many }) => ({
-  shop: one(shopsTable, {
-    fields: [usersTable.id],
-    references: [shopsTable.userId],
-  }),
-  affiliate: one(affiliatesTable, {
-    fields: [usersTable.id],
-    references: [affiliatesTable.userId],
-  }),
+  shop: one(shopsTable, { fields: [usersTable.id], references: [shopsTable.userId] }),
+  affiliate: one(affiliatesTable, { fields: [usersTable.id], references: [affiliatesTable.userId] }),
   pageViews: many(pageViewsTable),
   roles: many(userRolesTable),
 }));
@@ -33,12 +31,10 @@ export const userRolesRelations = relations(userRolesTable, ({ one }) => ({
 }));
 
 export const shopsRelations = relations(shopsTable, ({ one, many }) => ({
-  user: one(usersTable, {
-    fields: [shopsTable.userId],
-    references: [usersTable.id],
-  }),
+  user: one(usersTable, { fields: [shopsTable.userId], references: [usersTable.id] }),
   products: many(productsTable),
   pageViews: many(pageViewsTable),
+  campaigns: many(affiliateCampaignsTable),
 }));
 
 export const categoriesRelations = relations(categoriesTable, ({ one, many }) => ({
@@ -52,14 +48,8 @@ export const categoriesRelations = relations(categoriesTable, ({ one, many }) =>
 }));
 
 export const productsRelations = relations(productsTable, ({ one, many }) => ({
-  shop: one(shopsTable, {
-    fields: [productsTable.shopId],
-    references: [shopsTable.id],
-  }),
-  category: one(categoriesTable, {
-    fields: [productsTable.categoryId],
-    references: [categoriesTable.id],
-  }),
+  shop: one(shopsTable, { fields: [productsTable.shopId], references: [shopsTable.id] }),
+  category: one(categoriesTable, { fields: [productsTable.categoryId], references: [categoriesTable.id] }),
   orderItems: many(orderItemsTable),
   inventoryLogs: many(inventoryLogsTable),
   pageViews: many(pageViewsTable),
@@ -67,15 +57,8 @@ export const productsRelations = relations(productsTable, ({ one, many }) => ({
 }));
 
 export const ordersRelations = relations(ordersTable, ({ one, many }) => ({
-  user: one(usersTable, {
-    fields: [ordersTable.userId],
-    references: [usersTable.id],
-  }),
-  seller: one(usersTable, {
-    fields: [ordersTable.sellerId],
-    references: [usersTable.id],
-    relationName: "sellerOrders",
-  }),
+  user: one(usersTable, { fields: [ordersTable.userId], references: [usersTable.id] }),
+  seller: one(usersTable, { fields: [ordersTable.sellerId], references: [usersTable.id], relationName: "sellerOrders" }),
   items: many(orderItemsTable),
   escrowTransactions: many(escrowTransactionsTable),
   shipments: many(shipmentsTable),
@@ -84,31 +67,14 @@ export const ordersRelations = relations(ordersTable, ({ one, many }) => ({
 }));
 
 export const orderItemsRelations = relations(orderItemsTable, ({ one }) => ({
-  order: one(ordersTable, {
-    fields: [orderItemsTable.orderId],
-    references: [ordersTable.id],
-  }),
-  product: one(productsTable, {
-    fields: [orderItemsTable.productId],
-    references: [productsTable.id],
-  }),
+  order: one(ordersTable, { fields: [orderItemsTable.orderId], references: [ordersTable.id] }),
+  product: one(productsTable, { fields: [orderItemsTable.productId], references: [productsTable.id] }),
 }));
 
 export const escrowTransactionsRelations = relations(escrowTransactionsTable, ({ one }) => ({
-  order: one(ordersTable, {
-    fields: [escrowTransactionsTable.orderId],
-    references: [ordersTable.id],
-  }),
-  buyer: one(usersTable, {
-    fields: [escrowTransactionsTable.buyerId],
-    references: [usersTable.id],
-    relationName: "buyerEscrowTransactions",
-  }),
-  seller: one(usersTable, {
-    fields: [escrowTransactionsTable.sellerId],
-    references: [usersTable.id],
-    relationName: "sellerEscrowTransactions",
-  }),
+  order: one(ordersTable, { fields: [escrowTransactionsTable.orderId], references: [ordersTable.id] }),
+  buyer: one(usersTable, { fields: [escrowTransactionsTable.buyerId], references: [usersTable.id], relationName: "buyerEscrowTransactions" }),
+  seller: one(usersTable, { fields: [escrowTransactionsTable.sellerId], references: [usersTable.id], relationName: "sellerEscrowTransactions" }),
 }));
 
 export const conversationsRelations = relations(conversationsTable, ({ one, many }) => ({
@@ -151,7 +117,11 @@ export const pageViewsRelations = relations(pageViewsTable, ({ one }) => ({
 export const affiliatesRelations = relations(affiliatesTable, ({ one, many }) => ({
   user: one(usersTable, { fields: [affiliatesTable.userId], references: [usersTable.id] }),
   links: many(affiliateLinksTable),
+  clicks: many(affiliateClicksTable),
   commissions: many(affiliateCommissionsTable),
+  payouts: many(affiliatePayoutsTable),
+  coupons: many(affiliateCouponsTable),
+  campaignMemberships: many(affiliateCampaignMembersTable),
 }));
 
 export const affiliateLinksRelations = relations(affiliateLinksTable, ({ one, many }) => ({
@@ -159,10 +129,34 @@ export const affiliateLinksRelations = relations(affiliateLinksTable, ({ one, ma
   product: one(productsTable, { fields: [affiliateLinksTable.productId], references: [productsTable.id] }),
   shop: one(shopsTable, { fields: [affiliateLinksTable.shopId], references: [shopsTable.id] }),
   commissions: many(affiliateCommissionsTable),
+  clicks: many(affiliateClicksTable),
+}));
+
+export const affiliateClicksRelations = relations(affiliateClicksTable, ({ one }) => ({
+  link: one(affiliateLinksTable, { fields: [affiliateClicksTable.linkId], references: [affiliateLinksTable.id] }),
+  affiliate: one(affiliatesTable, { fields: [affiliateClicksTable.affiliateId], references: [affiliatesTable.id] }),
 }));
 
 export const affiliateCommissionsRelations = relations(affiliateCommissionsTable, ({ one }) => ({
   affiliate: one(affiliatesTable, { fields: [affiliateCommissionsTable.affiliateId], references: [affiliatesTable.id] }),
   order: one(ordersTable, { fields: [affiliateCommissionsTable.orderId], references: [ordersTable.id] }),
   link: one(affiliateLinksTable, { fields: [affiliateCommissionsTable.linkId], references: [affiliateLinksTable.id] }),
+}));
+
+export const affiliatePayoutsRelations = relations(affiliatePayoutsTable, ({ one }) => ({
+  affiliate: one(affiliatesTable, { fields: [affiliatePayoutsTable.affiliateId], references: [affiliatesTable.id] }),
+}));
+
+export const affiliateCouponsRelations = relations(affiliateCouponsTable, ({ one }) => ({
+  affiliate: one(affiliatesTable, { fields: [affiliateCouponsTable.affiliateId], references: [affiliatesTable.id] }),
+}));
+
+export const affiliateCampaignsRelations = relations(affiliateCampaignsTable, ({ one, many }) => ({
+  shop: one(shopsTable, { fields: [affiliateCampaignsTable.shopId], references: [shopsTable.id] }),
+  members: many(affiliateCampaignMembersTable),
+}));
+
+export const affiliateCampaignMembersRelations = relations(affiliateCampaignMembersTable, ({ one }) => ({
+  campaign: one(affiliateCampaignsTable, { fields: [affiliateCampaignMembersTable.campaignId], references: [affiliateCampaignsTable.id] }),
+  affiliate: one(affiliatesTable, { fields: [affiliateCampaignMembersTable.affiliateId], references: [affiliatesTable.id] }),
 }));

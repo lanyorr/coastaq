@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { ordersTable, orderItemsTable, productsTable, shopsTable, usersTable, escrowTransactionsTable } from "@workspace/db";
-import { eq, sql } from "drizzle-orm";
+import { ordersTable, orderItemsTable, productsTable, shopsTable, usersTable, escrowTransactionsTable, affiliateCouponsTable } from "@workspace/db";
+import { eq, sql, and } from "drizzle-orm";
 import { requireAuth } from "../lib/auth.js";
 import { computeEscrowAmounts } from "../lib/escrow-auto-release.js";
 import { recordInventoryMovement } from "./inventory.js";
@@ -53,8 +53,28 @@ async function createDbOrderWithEscrow(
   paymentMethod: string,
   paymentId?: string,
   refCode?: string,
+  couponCode?: string,
 ) {
-  const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  let total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+  // Apply coupon discount if present
+  if (couponCode) {
+    try {
+      const coupon = await db.query.affiliateCouponsTable.findFirst({
+        where: and(
+          eq(affiliateCouponsTable.code, couponCode.toUpperCase()),
+          eq(affiliateCouponsTable.isActive, true),
+        ),
+      });
+      if (coupon) {
+        const pct = parseFloat(String(coupon.discountPct));
+        if (!isNaN(pct) && pct > 0) {
+          total = parseFloat((total * (1 - pct / 100)).toFixed(2));
+        }
+      }
+    } catch {}
+  }
+
   const { escrowAmount, sellerAmount, platformFee } = computeEscrowAmounts(total);
 
   // Validate stock availability before placing order
@@ -131,9 +151,9 @@ async function createDbOrderWithEscrow(
     );
   }
 
-  // ── Phase 3: Resolve affiliate commission if referral code present ─────────
-  if (refCode) {
-    resolveAffiliateCommission(order.id, total, refCode).catch(() => {});
+  // ── Phase 3: Resolve affiliate commission if referral code or coupon present ─
+  if (refCode || couponCode) {
+    resolveAffiliateCommission(order.id, total, userId, refCode, couponCode).catch(() => {});
   }
 
   return order;
@@ -315,8 +335,9 @@ router.post("/paypal/capture", requireAuth, async (req, res) => {
       return;
     }
 
-    // Referral code from body or cookie
+    // Referral code from body or cookie; coupon code from body
     const refCode = ref || (req.headers.cookie?.match(/aff=([^;]+)/)?.[1]);
+    const couponCode = req.body.coupon as string | undefined;
 
     let order;
     try {
@@ -327,6 +348,7 @@ router.post("/paypal/capture", requireAuth, async (req, res) => {
         "PAYPAL",
         paypalOrderId,
         refCode,
+        couponCode,
       );
     } catch (stockErr: any) {
       res.status(400).json({ error: stockErr.message || "Order creation failed" });
@@ -352,7 +374,7 @@ router.post("/paypal/capture", requireAuth, async (req, res) => {
 // ── POST /api/checkout/manual ──────────────────────────────────────────────────
 router.post("/manual", requireAuth, async (req, res) => {
   try {
-    const { items, shipping, ref } = req.body;
+    const { items, shipping, ref, coupon } = req.body;
     if (!items || !shipping) {
       res.status(400).json({ error: "Items and shipping are required" });
       return;
@@ -360,7 +382,7 @@ router.post("/manual", requireAuth, async (req, res) => {
 
     let order;
     try {
-      order = await createDbOrderWithEscrow(req.userId!, items, shipping, "MANUAL", undefined, ref);
+      order = await createDbOrderWithEscrow(req.userId!, items, shipping, "MANUAL", undefined, ref, coupon);
     } catch (stockErr: any) {
       res.status(400).json({ error: stockErr.message || "Order creation failed" });
       return;
