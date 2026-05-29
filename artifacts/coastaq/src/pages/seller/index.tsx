@@ -72,7 +72,7 @@ export default function SellerOverview() {
   return (
     <SellerLayout>
       {/* Profile header */}
-      <div className="rounded-2xl p-6 mb-6 flex flex-col sm:flex-row sm:items-center gap-5" style={{ background: "#141826", border: "1px solid #1e2538" }}>
+      <div className="rounded-2xl p-6 mb-6 flex flex-col sm:flex-row sm:items-center gap-5" style={{ background: "#0d1d3d", border: "1px solid #173069" }}>
         <div className="w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 text-white text-2xl font-bold" style={{ background: "linear-gradient(135deg, #10b981, #059669)" }}>
           {activeShop?.logo
             ? <img src={activeShop.logo} alt="" className="w-full h-full object-cover rounded-2xl" />
@@ -137,7 +137,7 @@ export default function SellerOverview() {
       {/* Revenue chart + Quick actions */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4">
         {/* Revenue chart */}
-        <div className="lg:col-span-2 rounded-2xl p-6" style={{ background: "#141826", border: "1px solid #1e2538" }}>
+        <div className="lg:col-span-2 rounded-2xl p-6" style={{ background: "#0d1d3d", border: "1px solid #173069" }}>
           <div className="flex items-center justify-between mb-5">
             <div>
               <p className="text-white font-bold">Revenue (Last 7 Days)</p>
@@ -164,7 +164,7 @@ export default function SellerOverview() {
               );
             })}
           </div>
-          <div className="flex justify-between mt-4 pt-4" style={{ borderTop: "1px solid #1e2538" }}>
+          <div className="flex justify-between mt-4 pt-4" style={{ borderTop: "1px solid #173069" }}>
             <div><p className="text-xs" style={{ color: "#64748b" }}>Total this week</p><p className="text-lg font-bold text-white">${revenueByDay.reduce((a, b) => a + b, 0).toFixed(2)}</p></div>
             <button onClick={() => setLocation("/seller/earnings")} className="flex items-center gap-1 text-sm font-semibold transition-colors" style={{ color: "#3b82f6" }}>
               Full report <ArrowUpRight style={{ width: 14, height: 14 }} />
@@ -173,7 +173,7 @@ export default function SellerOverview() {
         </div>
 
         {/* Quick actions */}
-        <div className="rounded-2xl p-5 flex flex-col gap-3" style={{ background: "#141826", border: "1px solid #1e2538" }}>
+        <div className="rounded-2xl p-5 flex flex-col gap-3" style={{ background: "#0d1d3d", border: "1px solid #173069" }}>
           <p className="text-white font-bold mb-1">Quick Actions</p>
           {[
             { label: "Add New Product",   href: "/seller/products",     color: "#10b981", icon: Package },
@@ -194,8 +194,8 @@ export default function SellerOverview() {
       </div>
 
       {/* Recent orders */}
-      <div className="mt-4 rounded-2xl overflow-hidden" style={{ background: "#141826", border: "1px solid #1e2538" }}>
-        <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: "1px solid #1e2538" }}>
+      <div className="mt-4 rounded-2xl overflow-hidden" style={{ background: "#0d1d3d", border: "1px solid #173069" }}>
+        <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: "1px solid #173069" }}>
           <p className="font-bold text-white">Recent Orders</p>
           <button onClick={() => setLocation("/seller/orders")} className="flex items-center gap-1 text-sm font-semibold transition-colors" style={{ color: "#3b82f6" }}>
             View all <ChevronRight style={{ width: 14, height: 14 }} />
@@ -215,7 +215,7 @@ export default function SellerOverview() {
               const cfg = STATUS_CFG[order.status] ?? STATUS_CFG.PENDING;
               return (
                 <div key={order.id} className="flex items-center gap-4 px-6 py-3.5 transition-colors hover:bg-white/[0.02]"
-                  style={{ borderBottom: idx < recentOrders.length - 1 ? "1px solid #1a1f30" : "none" }}>
+                  style={{ borderBottom: idx < recentOrders.length - 1 ? "1px solid #122040" : "none" }}>
                   <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: "rgba(59,130,246,0.1)" }}>
                     <ShoppingBag style={{ width: 16, height: 16, color: "#3b82f6" }} />
                   </div>

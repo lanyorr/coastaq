@@ -53,7 +53,7 @@ export default function AccountOverview() {
   return (
     <AccountLayout>
       {/* Profile header */}
-      <div className="rounded-2xl p-6 mb-6 flex flex-col sm:flex-row sm:items-center gap-5" style={{ background: "#141826", border: "1px solid #1e2538" }}>
+      <div className="rounded-2xl p-6 mb-6 flex flex-col sm:flex-row sm:items-center gap-5" style={{ background: "#0d1d3d", border: "1px solid #173069" }}>
         <div className="w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 text-white text-xl font-bold" style={{ background: "linear-gradient(135deg, #3b82f6, #8b5cf6)" }}>
           {initials}
         </div>
@@ -98,8 +98,8 @@ export default function AccountOverview() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4">
         {/* Recent orders */}
-        <div className="lg:col-span-2 rounded-2xl overflow-hidden" style={{ background: "#141826", border: "1px solid #1e2538" }}>
-          <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: "1px solid #1e2538" }}>
+        <div className="lg:col-span-2 rounded-2xl overflow-hidden" style={{ background: "#0d1d3d", border: "1px solid #173069" }}>
+          <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: "1px solid #173069" }}>
             <p className="font-bold text-white">Recent Orders</p>
             <button onClick={() => setLocation("/account/orders")} className="flex items-center gap-1 text-sm font-semibold" style={{ color: "#3b82f6" }}>
               View all <ChevronRight style={{ width: 14, height: 14 }} />
@@ -123,8 +123,8 @@ export default function AccountOverview() {
                 const StatusIcon = cfg.icon;
                 return (
                   <div key={order.id} className="flex items-center gap-4 px-6 py-3.5 transition-colors hover:bg-white/[0.02]"
-                    style={{ borderBottom: idx < recentOrders.length - 1 ? "1px solid #1a1f30" : "none" }}>
-                    <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0" style={{ background: "#1e2538" }}>
+                    style={{ borderBottom: idx < recentOrders.length - 1 ? "1px solid #122040" : "none" }}>
+                    <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0" style={{ background: "#122040" }}>
                       {image
                         ? <img src={image} alt="" className="w-full h-full object-cover" />
                         : <div className="w-full h-full flex items-center justify-center"><Package style={{ width: 16, height: 16, color: "#475569" }} /></div>
@@ -149,7 +149,7 @@ export default function AccountOverview() {
 
         {/* Quick actions + role links */}
         <div className="flex flex-col gap-4">
-          <div className="rounded-2xl p-5" style={{ background: "#141826", border: "1px solid #1e2538" }}>
+          <div className="rounded-2xl p-5" style={{ background: "#0d1d3d", border: "1px solid #173069" }}>
             <p className="text-white font-bold mb-3">Quick Actions</p>
             <div className="space-y-2">
               {[

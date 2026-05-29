@@ -113,7 +113,7 @@ export default function AffiliateOverview() {
                 { icon: MousePointerClick, label: "Share it", desc: "Post on social media, blogs, or WhatsApp", color: "#a78bfa" },
                 { icon: DollarSign, label: "Earn 5%", desc: "Get paid for every completed sale you refer", color: "#34d399" },
               ].map(({ icon: Icon, label, desc, color }, i) => (
-                <div key={label} className="rounded-2xl p-5" style={{ background: "#141826", border: "1px solid #1e2538" }}>
+                <div key={label} className="rounded-2xl p-5" style={{ background: "#0d1d3d", border: "1px solid #173069" }}>
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style={{ background: `${color}15` }}>
                     <Icon style={{ width: 18, height: 18, color }} />
                   </div>
@@ -157,7 +157,7 @@ export default function AffiliateOverview() {
             <p className="text-sm" style={{ color: "#8693b0" }}>Tell us about yourself to get approved faster.</p>
           </div>
 
-          <div className="rounded-2xl p-6 space-y-4 mb-5" style={{ background: "#141826", border: "1px solid #1e2538" }}>
+          <div className="rounded-2xl p-6 space-y-4 mb-5" style={{ background: "#0d1d3d", border: "1px solid #173069" }}>
             {[
               { key: "bio", type: "textarea", label: "Short bio", icon: FileText, placeholder: "Tell us how you plan to promote Coastaq…", optional: true },
               { key: "websiteUrl", type: "input", label: "Website / Social link", icon: Globe, placeholder: "https://yourblog.com or @yourhandle", optional: true },
@@ -225,7 +225,7 @@ export default function AffiliateOverview() {
   return (
     <AffiliateLayout>
       {/* Profile header */}
-      <div className="rounded-2xl p-6 mb-6 flex flex-col sm:flex-row sm:items-center gap-5" style={{ background: "#141826", border: "1px solid #1e2538" }}>
+      <div className="rounded-2xl p-6 mb-6 flex flex-col sm:flex-row sm:items-center gap-5" style={{ background: "#0d1d3d", border: "1px solid #173069" }}>
         <div className="w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 text-white text-2xl font-bold" style={{ background: "linear-gradient(135deg, #7c3aed, #4f46e5)" }}>
           {(user?.name as string)?.[0]?.toUpperCase() ?? "A"}
         </div>
@@ -266,7 +266,7 @@ export default function AffiliateOverview() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4">
         {/* Click activity */}
-        <div className="lg:col-span-2 rounded-2xl p-6" style={{ background: "#141826", border: "1px solid #1e2538" }}>
+        <div className="lg:col-span-2 rounded-2xl p-6" style={{ background: "#0d1d3d", border: "1px solid #173069" }}>
           <div className="flex items-center justify-between mb-5">
             <div>
               <p className="text-white font-bold">Recent Activity</p>
@@ -294,7 +294,7 @@ export default function AffiliateOverview() {
               </div>
               {recentLinks.map((link: any, idx: number) => (
                 <div key={link.id} className="grid grid-cols-4 gap-3 items-center px-1 py-2.5 rounded-xl transition-colors hover:bg-white/[0.03]"
-                  style={{ borderBottom: idx < recentLinks.length - 1 ? "1px solid #1a1f30" : "none" }}>
+                  style={{ borderBottom: idx < recentLinks.length - 1 ? "1px solid #122040" : "none" }}>
                   <div className="col-span-2 flex items-center gap-2 min-w-0">
                     <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ background: "rgba(139,92,246,0.15)" }}>
                       <Link2 style={{ width: 12, height: 12, color: "#a78bfa" }} />
@@ -313,7 +313,7 @@ export default function AffiliateOverview() {
         </div>
 
         {/* Quick actions */}
-        <div className="rounded-2xl p-5 flex flex-col gap-3" style={{ background: "#141826", border: "1px solid #1e2538" }}>
+        <div className="rounded-2xl p-5 flex flex-col gap-3" style={{ background: "#0d1d3d", border: "1px solid #173069" }}>
           <p className="text-white font-bold mb-1">Quick Actions</p>
           {[
             { label: "Generate Link",     href: "/affiliate/links",       color: "#7c3aed", icon: Link2 },
@@ -335,8 +335,8 @@ export default function AffiliateOverview() {
 
       {/* Recent commissions */}
       {recentCommissions.length > 0 && (
-        <div className="mt-4 rounded-2xl overflow-hidden" style={{ background: "#141826", border: "1px solid #1e2538" }}>
-          <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: "1px solid #1e2538" }}>
+        <div className="mt-4 rounded-2xl overflow-hidden" style={{ background: "#0d1d3d", border: "1px solid #173069" }}>
+          <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: "1px solid #173069" }}>
             <p className="font-bold text-white">Recent Commissions</p>
             <button onClick={() => setLocation("/affiliate/commissions")} className="flex items-center gap-1 text-sm font-semibold" style={{ color: "#a78bfa" }}>
               View all <ChevronRight style={{ width: 14, height: 14 }} />
@@ -344,7 +344,7 @@ export default function AffiliateOverview() {
           </div>
           {recentCommissions.map((c: any, idx: number) => (
             <div key={c.id} className="flex items-center gap-4 px-6 py-3.5 transition-colors hover:bg-white/[0.02]"
-              style={{ borderBottom: idx < recentCommissions.length - 1 ? "1px solid #1a1f30" : "none" }}>
+              style={{ borderBottom: idx < recentCommissions.length - 1 ? "1px solid #122040" : "none" }}>
               <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: "rgba(52,211,153,0.1)" }}>
                 <DollarSign style={{ width: 16, height: 16, color: "#34d399" }} />
               </div>

@@ -76,9 +76,9 @@ export function DashboardLayout({
   );
 
   const SidebarContent = () => (
-    <div className="flex flex-col h-full" style={{ background: "#0b0d16", borderRight: "1px solid #1b1f30" }}>
+    <div className="flex flex-col h-full" style={{ background: "#07112b", borderRight: "1px solid #152047" }}>
       {/* Brand */}
-      <div className="px-5 py-5 shrink-0" style={{ borderBottom: "1px solid #1b1f30" }}>
+      <div className="px-5 py-5 shrink-0" style={{ borderBottom: "1px solid #152047" }}>
         <div className="flex items-center gap-3">
           {TitleIcon && (
             <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center shrink-0", accentColor)}>
@@ -96,7 +96,7 @@ export function DashboardLayout({
       <NavItems />
 
       {/* Footer */}
-      <div className="shrink-0 px-3 pt-2 pb-4" style={{ borderTop: "1px solid #1b1f30" }}>
+      <div className="shrink-0 px-3 pt-2 pb-4" style={{ borderTop: "1px solid #152047" }}>
         <Link href="/">
           <a className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-[#8693b0] hover:bg-white/[0.06] hover:text-[#c8d0e0] transition-all">
             <Home className="w-4 h-4 shrink-0" />
@@ -128,7 +128,7 @@ export function DashboardLayout({
   );
 
   return (
-    <div className="min-h-screen flex" style={{ background: "#0e1018" }}>
+    <div className="min-h-screen flex" style={{ background: "#091425" }}>
       {/* Desktop sidebar */}
       <aside className="hidden lg:flex w-60 shrink-0 flex-col fixed inset-y-0 left-0 z-30">
         <SidebarContent />
@@ -150,7 +150,7 @@ export function DashboardLayout({
       {/* Main content */}
       <div className="flex-1 flex flex-col lg:ml-60 min-h-screen">
         {/* Mobile topbar */}
-        <header className="lg:hidden flex items-center gap-3 px-4 py-3 sticky top-0 z-20" style={{ background: "#0b0d16", borderBottom: "1px solid #1b1f30" }}>
+        <header className="lg:hidden flex items-center gap-3 px-4 py-3 sticky top-0 z-20" style={{ background: "#07112b", borderBottom: "1px solid #152047" }}>
           <button onClick={() => setOpen(true)} className="p-2 rounded-xl text-[#8693b0] hover:text-white hover:bg-white/10 transition-colors">
             <Menu className="w-5 h-5" />
           </button>

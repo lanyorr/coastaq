@@ -49,8 +49,8 @@ export function StatCard({
     <div
       className="relative rounded-2xl p-5 flex flex-col gap-3 overflow-hidden transition-all hover:translate-y-[-1px]"
       style={{
-        background: highlight ? `linear-gradient(135deg, ${cfg.glow.replace("0.12", "0.25")}, rgba(14,16,24,0.9))` : "#141826",
-        border: `1px solid #1e2538`,
+        background: highlight ? `linear-gradient(135deg, ${cfg.glow.replace("0.12", "0.25")}, rgba(9,20,37,0.9))` : "#0d1d3d",
+        border: `1px solid #173069`,
         boxShadow: highlight ? `0 0 0 1px ${cfg.border}30, 0 4px 24px ${cfg.glow}` : "0 1px 3px rgba(0,0,0,0.3)",
       }}
     >
