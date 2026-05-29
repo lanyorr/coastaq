@@ -135,12 +135,20 @@ export const affiliateCampaignMembersTable = pgTable("affiliate_campaign_members
   joinedAt: timestamp("joined_at").notNull().defaultNow(),
 });
 
+export const affiliateCampaignProductsTable = pgTable("affiliate_campaign_products", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  campaignId: text("campaign_id").notNull().references(() => affiliateCampaignsTable.id, { onDelete: "cascade" }),
+  productId: text("product_id").notNull().references(() => productsTable.id, { onDelete: "cascade" }),
+  addedAt: timestamp("added_at").notNull().defaultNow(),
+});
+
 export const insertAffiliateSchema = createInsertSchema(affiliatesTable).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertAffiliateLinkSchema = createInsertSchema(affiliateLinksTable).omit({ id: true, createdAt: true });
 export const insertAffiliateCommissionSchema = createInsertSchema(affiliateCommissionsTable).omit({ id: true, createdAt: true });
 export const insertAffiliatePayoutSchema = createInsertSchema(affiliatePayoutsTable).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertAffiliateCouponSchema = createInsertSchema(affiliateCouponsTable).omit({ id: true, createdAt: true });
 export const insertAffiliateCampaignSchema = createInsertSchema(affiliateCampaignsTable).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertAffiliateCampaignProductSchema = createInsertSchema(affiliateCampaignProductsTable).omit({ id: true, addedAt: true });
 
 export type Affiliate = typeof affiliatesTable.$inferSelect;
 export type AffiliateLink = typeof affiliateLinksTable.$inferSelect;
@@ -150,3 +158,4 @@ export type AffiliatePayout = typeof affiliatePayoutsTable.$inferSelect;
 export type AffiliateCoupon = typeof affiliateCouponsTable.$inferSelect;
 export type AffiliateCampaign = typeof affiliateCampaignsTable.$inferSelect;
 export type AffiliateCampaignMember = typeof affiliateCampaignMembersTable.$inferSelect;
+export type AffiliateCampaignProduct = typeof affiliateCampaignProductsTable.$inferSelect;

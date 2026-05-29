@@ -1,25 +1,117 @@
 import crypto from "crypto";
 import { db } from "@workspace/db";
-import { affiliateClicksTable, affiliateLinksTable, affiliatesTable } from "@workspace/db";
-import { and, eq, gte, count, sql } from "drizzle-orm";
+import {
+  affiliateClicksTable, affiliateLinksTable, affiliatesTable,
+  affiliateCouponsTable,
+} from "@workspace/db";
+import { and, eq, gte, count, sql, lt } from "drizzle-orm";
 
-/**
- * Hash an IP address for privacy-safe storage.
- */
+/** Hash an IP address for privacy-safe storage. */
 export function hashIp(ip: string): string {
-  return crypto.createHash("sha256").update(ip + (process.env["SESSION_SECRET"] || "coastaq")).digest("hex").slice(0, 16);
+  return crypto.createHash("sha256")
+    .update(ip + (process.env["SESSION_SECRET"] || "coastaq"))
+    .digest("hex")
+    .slice(0, 16);
 }
 
-/**
- * Extract the real client IP from the request, handling proxies.
- */
-export function getClientIp(req: { headers: Record<string, string | string[] | undefined>; socket?: { remoteAddress?: string } }): string {
+/** Extract the real client IP from the request, handling proxies. */
+export function getClientIp(
+  req: { headers: Record<string, string | string[] | undefined>; socket?: { remoteAddress?: string } },
+): string {
   const forwarded = req.headers["x-forwarded-for"];
   if (forwarded) {
     const first = Array.isArray(forwarded) ? forwarded[0] : forwarded.split(",")[0];
     return first.trim();
   }
   return req.socket?.remoteAddress ?? "unknown";
+}
+
+/**
+ * Validate a referral code or coupon code BEFORE order creation.
+ * Returns an error string if the code is invalid or is a self-referral,
+ * or null if the code is valid (or absent).
+ *
+ * Throws nothing — all errors are returned as strings so callers can
+ * return a 400 response to the client.
+ */
+export async function validateReferralForCheckout(
+  buyerUserId: string,
+  refCode?: string,
+  couponCode?: string,
+): Promise<{ error: string } | null> {
+  const code = refCode ?? couponCode;
+  if (!code) return null;
+
+  try {
+    if (refCode) {
+      const link = await db.query.affiliateLinksTable.findFirst({
+        where: and(
+          eq(affiliateLinksTable.code, refCode),
+          eq(affiliateLinksTable.isActive, true),
+        ),
+        with: { affiliate: true },
+      });
+      if (!link) return null; // Unknown code — silently ignore
+      if (!link.affiliate.isApproved) return null;
+      if (link.affiliate.userId === buyerUserId) {
+        return { error: "Self-referral is not allowed. You cannot purchase through your own affiliate link." };
+      }
+    } else if (couponCode) {
+      const upper = couponCode.toUpperCase();
+      const coupon = await db.query.affiliateCouponsTable.findFirst({
+        where: eq(affiliateCouponsTable.code, upper),
+        with: { affiliate: true },
+      });
+      if (!coupon) return { error: `Coupon code "${couponCode}" is invalid or does not exist.` };
+      if (!coupon.isActive) return { error: `Coupon code "${couponCode}" is no longer active.` };
+      if (coupon.expiresAt && coupon.expiresAt < new Date()) {
+        return { error: `Coupon code "${couponCode}" has expired.` };
+      }
+      if (coupon.maxUses !== null && coupon.uses >= coupon.maxUses) {
+        return { error: `Coupon code "${couponCode}" has reached its maximum use limit.` };
+      }
+      if (!coupon.affiliate.isApproved) {
+        return { error: `Coupon code "${couponCode}" is not currently available.` };
+      }
+      if (coupon.affiliate.userId === buyerUserId) {
+        return { error: "Self-referral is not allowed. You cannot purchase using your own affiliate coupon." };
+      }
+    }
+  } catch (err) {
+    console.error("[fraud] validateReferralForCheckout error:", err);
+  }
+  return null;
+}
+
+/**
+ * Validate a coupon and return the discount percentage.
+ * Returns the discountPct (number) if valid, or an error string.
+ * Call this BEFORE createDbOrderWithEscrow to apply the discount.
+ */
+export async function resolveCouponDiscount(
+  couponCode: string,
+  buyerUserId: string,
+): Promise<{ discountPct: number } | { error: string }> {
+  const upper = couponCode.toUpperCase();
+  const coupon = await db.query.affiliateCouponsTable.findFirst({
+    where: eq(affiliateCouponsTable.code, upper),
+    with: { affiliate: true },
+  });
+  if (!coupon) return { error: `Coupon code "${couponCode}" is invalid or does not exist.` };
+  if (!coupon.isActive) return { error: `Coupon code "${couponCode}" is no longer active.` };
+  if (coupon.expiresAt && coupon.expiresAt < new Date()) {
+    return { error: `Coupon code "${couponCode}" has expired.` };
+  }
+  if (coupon.maxUses !== null && coupon.uses >= coupon.maxUses) {
+    return { error: `Coupon code "${couponCode}" has reached its maximum use limit.` };
+  }
+  if (!coupon.affiliate.isApproved) {
+    return { error: `Coupon code "${couponCode}" is not currently available.` };
+  }
+  if (coupon.affiliate.userId === buyerUserId) {
+    return { error: "Self-referral is not allowed. You cannot purchase using your own affiliate coupon." };
+  }
+  return { discountPct: parseFloat(String(coupon.discountPct)) };
 }
 
 /**
@@ -33,7 +125,7 @@ export async function recordAffiliateClick(
   userAgent?: string,
   referrer?: string,
 ): Promise<{ isDuplicate: boolean }> {
-  const since = new Date(Date.now() - 60 * 1000); // 60-second window
+  const since = new Date(Date.now() - 60 * 1000);
 
   const [existing] = await db
     .select({ id: affiliateClicksTable.id })
@@ -64,17 +156,12 @@ export async function recordAffiliateClick(
       .set({ clicks: sql`${affiliateLinksTable.clicks} + 1` })
       .where(eq(affiliateLinksTable.id, linkId));
   } else {
-    // Increment suspicious click counter on the affiliate if duplicate rate is high
     await maybeIncrementSuspiciousCount(affiliateId);
   }
 
   return { isDuplicate };
 }
 
-/**
- * Checks duplicate-click rate in the rolling hour. If > 50%, bumps the
- * suspicious_click_count on the affiliate record.
- */
 async function maybeIncrementSuspiciousCount(affiliateId: string): Promise<void> {
   try {
     const since = new Date(Date.now() - 60 * 60 * 1000);
@@ -84,16 +171,13 @@ async function maybeIncrementSuspiciousCount(affiliateId: string): Promise<void>
         duplicates: sql<number>`SUM(CASE WHEN ${affiliateClicksTable.isDuplicate} THEN 1 ELSE 0 END)`,
       })
       .from(affiliateClicksTable)
-      .where(
-        and(
-          eq(affiliateClicksTable.affiliateId, affiliateId),
-          gte(affiliateClicksTable.createdAt, since),
-        )
-      );
+      .where(and(
+        eq(affiliateClicksTable.affiliateId, affiliateId),
+        gte(affiliateClicksTable.createdAt, since),
+      ));
 
     const total = Number(totals?.total ?? 0);
     const dups = Number(totals?.duplicates ?? 0);
-
     if (total > 10 && dups / total > 0.5) {
       await db
         .update(affiliatesTable)
@@ -104,8 +188,8 @@ async function maybeIncrementSuspiciousCount(affiliateId: string): Promise<void>
 }
 
 /**
- * Validates that the buyer is not the affiliate themselves (self-referral guard).
- * Returns true if the commission is safe to award.
+ * Returns true if the referral is safe to award commission (not self-referral).
+ * Used post-order-creation for commission resolution logic.
  */
 export async function isSafeReferral(affiliateId: string, buyerUserId: string): Promise<boolean> {
   const [aff] = await db
@@ -113,10 +197,9 @@ export async function isSafeReferral(affiliateId: string, buyerUserId: string): 
     .from(affiliatesTable)
     .where(eq(affiliatesTable.id, affiliateId))
     .limit(1);
-
   if (!aff) return false;
   if (aff.userId === buyerUserId) {
-    console.warn(`[fraud] Self-referral blocked: affiliate=${affiliateId}, buyer=${buyerUserId}`);
+    console.warn(`[fraud] Self-referral skipped at commission: affiliate=${affiliateId}, buyer=${buyerUserId}`);
     return false;
   }
   return true;

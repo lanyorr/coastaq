@@ -177,18 +177,34 @@ router.post("/me/payouts", requireAuth, async (req, res) => {
       res.status(400).json({ error: "Valid amount is required" }); return;
     }
     const requestedAmount = parseFloat(amount);
-    const pending = parseFloat(String(affiliate.pendingEarnings));
-
     if (requestedAmount < 10) {
       res.status(400).json({ error: "Minimum payout is $10.00" }); return;
-    }
-    if (requestedAmount > pending) {
-      res.status(400).json({ error: `Insufficient balance. Available: $${pending.toFixed(2)}` }); return;
     }
 
     const validMethods = ["paypal", "bank", "mobile_money", "crypto"];
     if (!validMethods.includes(method)) {
       res.status(400).json({ error: "Invalid payout method" }); return;
+    }
+
+    // Compute net-available balance: pendingEarnings minus already in-flight payout requests
+    const pendingEarnings = parseFloat(String(affiliate.pendingEarnings));
+    const [inFlightRow] = await db
+      .select({ total: sql<string>`COALESCE(SUM(amount), '0')` })
+      .from(affiliatePayoutsTable)
+      .where(
+        and(
+          eq(affiliatePayoutsTable.affiliateId, affiliate.id),
+          sql`${affiliatePayoutsTable.status} IN ('pending', 'approved')`,
+        )
+      );
+    const inFlight = parseFloat(String(inFlightRow?.total ?? "0"));
+    const netAvailable = Math.max(0, pendingEarnings - inFlight);
+
+    if (requestedAmount > netAvailable) {
+      res.status(400).json({
+        error: `Insufficient balance. Available: $${netAvailable.toFixed(2)} (of $${pendingEarnings.toFixed(2)} total, $${inFlight.toFixed(2)} already in pending requests)`,
+      });
+      return;
     }
 
     const [payout] = await db.insert(affiliatePayoutsTable).values({

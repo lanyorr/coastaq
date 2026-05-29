@@ -1,11 +1,12 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { ordersTable, orderItemsTable, productsTable, shopsTable, usersTable, escrowTransactionsTable, affiliateCouponsTable } from "@workspace/db";
-import { eq, sql, and } from "drizzle-orm";
+import { ordersTable, orderItemsTable, productsTable, shopsTable, escrowTransactionsTable } from "@workspace/db";
+import { eq, sql } from "drizzle-orm";
 import { requireAuth } from "../lib/auth.js";
 import { computeEscrowAmounts } from "../lib/escrow-auto-release.js";
 import { recordInventoryMovement } from "./inventory.js";
 import { resolveAffiliateCommission } from "./affiliates.js";
+import { validateReferralForCheckout, resolveCouponDiscount } from "../lib/fraud.js";
 
 const router = Router();
 
@@ -54,25 +55,13 @@ async function createDbOrderWithEscrow(
   paymentId?: string,
   refCode?: string,
   couponCode?: string,
+  preValidatedDiscountPct: number = 0,
 ) {
   let total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-  // Apply coupon discount if present
-  if (couponCode) {
-    try {
-      const coupon = await db.query.affiliateCouponsTable.findFirst({
-        where: and(
-          eq(affiliateCouponsTable.code, couponCode.toUpperCase()),
-          eq(affiliateCouponsTable.isActive, true),
-        ),
-      });
-      if (coupon) {
-        const pct = parseFloat(String(coupon.discountPct));
-        if (!isNaN(pct) && pct > 0) {
-          total = parseFloat((total * (1 - pct / 100)).toFixed(2));
-        }
-      }
-    } catch {}
+  // Apply pre-validated coupon discount (caller is responsible for validation)
+  if (preValidatedDiscountPct > 0) {
+    total = parseFloat((total * (1 - preValidatedDiscountPct / 100)).toFixed(2));
   }
 
   const { escrowAmount, sellerAmount, platformFee } = computeEscrowAmounts(total);
@@ -339,6 +328,23 @@ router.post("/paypal/capture", requireAuth, async (req, res) => {
     const refCode = ref || (req.headers.cookie?.match(/aff=([^;]+)/)?.[1]);
     const couponCode = req.body.coupon as string | undefined;
 
+    // ── Hard-block self-referral & validate coupon BEFORE finalising order ──
+    const referralError = await validateReferralForCheckout(req.userId!, refCode, couponCode);
+    if (referralError) {
+      res.status(400).json(referralError);
+      return;
+    }
+
+    let discountPct = 0;
+    if (couponCode) {
+      const couponResult = await resolveCouponDiscount(couponCode, req.userId!);
+      if ("error" in couponResult) {
+        res.status(400).json({ error: couponResult.error });
+        return;
+      }
+      discountPct = couponResult.discountPct;
+    }
+
     let order;
     try {
       order = await createDbOrderWithEscrow(
@@ -349,6 +355,7 @@ router.post("/paypal/capture", requireAuth, async (req, res) => {
         paypalOrderId,
         refCode,
         couponCode,
+        discountPct,
       );
     } catch (stockErr: any) {
       res.status(400).json({ error: stockErr.message || "Order creation failed" });
@@ -380,9 +387,26 @@ router.post("/manual", requireAuth, async (req, res) => {
       return;
     }
 
+    // ── Hard-block self-referral & validate coupon BEFORE creating order ──
+    const referralError = await validateReferralForCheckout(req.userId!, ref, coupon);
+    if (referralError) {
+      res.status(400).json(referralError);
+      return;
+    }
+
+    let discountPct = 0;
+    if (coupon) {
+      const couponResult = await resolveCouponDiscount(coupon, req.userId!);
+      if ("error" in couponResult) {
+        res.status(400).json({ error: couponResult.error });
+        return;
+      }
+      discountPct = couponResult.discountPct;
+    }
+
     let order;
     try {
-      order = await createDbOrderWithEscrow(req.userId!, items, shipping, "MANUAL", undefined, ref, coupon);
+      order = await createDbOrderWithEscrow(req.userId!, items, shipping, "MANUAL", undefined, ref, coupon, discountPct);
     } catch (stockErr: any) {
       res.status(400).json({ error: stockErr.message || "Order creation failed" });
       return;

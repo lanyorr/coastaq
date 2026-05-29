@@ -15,6 +15,7 @@ import {
   affiliatesTable, affiliateLinksTable, affiliateClicksTable,
   affiliateCommissionsTable, affiliatePayoutsTable,
   affiliateCouponsTable, affiliateCampaignsTable, affiliateCampaignMembersTable,
+  affiliateCampaignProductsTable,
 } from "./affiliates";
 import { userRolesTable } from "./user-roles";
 
@@ -154,9 +155,15 @@ export const affiliateCouponsRelations = relations(affiliateCouponsTable, ({ one
 export const affiliateCampaignsRelations = relations(affiliateCampaignsTable, ({ one, many }) => ({
   shop: one(shopsTable, { fields: [affiliateCampaignsTable.shopId], references: [shopsTable.id] }),
   members: many(affiliateCampaignMembersTable),
+  products: many(affiliateCampaignProductsTable),
 }));
 
 export const affiliateCampaignMembersRelations = relations(affiliateCampaignMembersTable, ({ one }) => ({
   campaign: one(affiliateCampaignsTable, { fields: [affiliateCampaignMembersTable.campaignId], references: [affiliateCampaignsTable.id] }),
   affiliate: one(affiliatesTable, { fields: [affiliateCampaignMembersTable.affiliateId], references: [affiliatesTable.id] }),
+}));
+
+export const affiliateCampaignProductsRelations = relations(affiliateCampaignProductsTable, ({ one }) => ({
+  campaign: one(affiliateCampaignsTable, { fields: [affiliateCampaignProductsTable.campaignId], references: [affiliateCampaignsTable.id] }),
+  product: one(productsTable, { fields: [affiliateCampaignProductsTable.productId], references: [productsTable.id] }),
 }));

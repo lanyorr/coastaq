@@ -2,16 +2,16 @@ import { Router } from "express";
 import { db } from "@workspace/db";
 import {
   affiliateCampaignsTable, affiliateCampaignMembersTable,
-  affiliatesTable, shopsTable,
+  affiliateCampaignProductsTable, affiliatesTable, shopsTable, productsTable,
 } from "@workspace/db";
-import { eq, desc, and, ne } from "drizzle-orm";
+import { eq, desc, and, sql, inArray } from "drizzle-orm";
 import { requireAuth, requireRole } from "../lib/auth.js";
 
 const router = Router();
 
 // ── SELLER campaign routes ────────────────────────────────────────────────────
 
-// POST /api/seller/campaigns — create a campaign
+// POST /api/seller/campaigns — create a campaign with optional product list
 router.post("/seller/campaigns", requireAuth, requireRole("SELLER"), async (req, res) => {
   try {
     const shop = await db.query.shopsTable.findFirst({
@@ -19,12 +19,26 @@ router.post("/seller/campaigns", requireAuth, requireRole("SELLER"), async (req,
     });
     if (!shop) { res.status(404).json({ error: "No shop found for this seller" }); return; }
 
-    const { name, description, commissionRate = 10, budget, startsAt, endsAt } = req.body;
+    const { name, description, commissionRate = 10, budget, startsAt, endsAt, productIds } = req.body;
     if (!name) { res.status(400).json({ error: "Campaign name is required" }); return; }
 
     const rate = parseFloat(String(commissionRate));
     if (isNaN(rate) || rate < 1 || rate > 50) {
       res.status(400).json({ error: "Commission rate must be between 1% and 50%" }); return;
+    }
+
+    // Validate product IDs belong to this shop
+    const validProductIds: string[] = [];
+    if (Array.isArray(productIds) && productIds.length > 0) {
+      const ids = productIds.map(String).slice(0, 100);
+      const ownedProducts = await db
+        .select({ id: productsTable.id })
+        .from(productsTable)
+        .where(and(
+          inArray(productsTable.id, ids),
+          eq(productsTable.shopId, shop.id),
+        ));
+      validProductIds.push(...ownedProducts.map(p => p.id));
     }
 
     const [campaign] = await db.insert(affiliateCampaignsTable).values({
@@ -37,14 +51,21 @@ router.post("/seller/campaigns", requireAuth, requireRole("SELLER"), async (req,
       endsAt: endsAt ? new Date(endsAt) : null,
     }).returning();
 
-    res.status(201).json(campaign);
+    // Insert product associations
+    if (validProductIds.length > 0) {
+      await db.insert(affiliateCampaignProductsTable).values(
+        validProductIds.map(pid => ({ campaignId: campaign.id, productId: pid }))
+      );
+    }
+
+    res.status(201).json({ ...campaign, productIds: validProductIds });
   } catch (err) {
     req.log.error({ err }, "Create campaign error");
     res.status(500).json({ error: "Failed to create campaign" });
   }
 });
 
-// GET /api/seller/campaigns — list seller's campaigns
+// GET /api/seller/campaigns — list seller's campaigns with product list + member count
 router.get("/seller/campaigns", requireAuth, requireRole("SELLER"), async (req, res) => {
   try {
     const shop = await db.query.shopsTable.findFirst({
@@ -58,16 +79,25 @@ router.get("/seller/campaigns", requireAuth, requireRole("SELLER"), async (req, 
       .where(eq(affiliateCampaignsTable.shopId, shop.id))
       .orderBy(desc(affiliateCampaignsTable.createdAt));
 
-    // Enrich with member count
     const enriched = await Promise.all(campaigns.map(async (c) => {
-      const members = await db
-        .select({ id: affiliateCampaignMembersTable.id })
+      const [memberRow] = await db
+        .select({ count: sql<number>`COUNT(*)` })
         .from(affiliateCampaignMembersTable)
         .where(and(
           eq(affiliateCampaignMembersTable.campaignId, c.id),
           eq(affiliateCampaignMembersTable.status, "active"),
         ));
-      return { ...c, memberCount: members.length };
+
+      const campaignProducts = await db
+        .select({ productId: affiliateCampaignProductsTable.productId })
+        .from(affiliateCampaignProductsTable)
+        .where(eq(affiliateCampaignProductsTable.campaignId, c.id));
+
+      return {
+        ...c,
+        memberCount: Number(memberRow?.count ?? 0),
+        productIds: campaignProducts.map(p => p.productId),
+      };
     }));
 
     res.json(enriched);
@@ -77,7 +107,7 @@ router.get("/seller/campaigns", requireAuth, requireRole("SELLER"), async (req, 
   }
 });
 
-// PATCH /api/seller/campaigns/:id — update/pause/end a campaign
+// PATCH /api/seller/campaigns/:id — update/pause/end a campaign; optionally replace product list
 router.patch("/seller/campaigns/:id", requireAuth, requireRole("SELLER"), async (req, res) => {
   try {
     const shop = await db.query.shopsTable.findFirst({
@@ -93,7 +123,7 @@ router.patch("/seller/campaigns/:id", requireAuth, requireRole("SELLER"), async 
     });
     if (!campaign) { res.status(404).json({ error: "Campaign not found" }); return; }
 
-    const { name, description, commissionRate, budget, status, startsAt, endsAt } = req.body;
+    const { name, description, commissionRate, budget, status, startsAt, endsAt, productIds } = req.body;
     const validStatuses = ["active", "paused", "ended"];
 
     const [updated] = await db
@@ -111,6 +141,35 @@ router.patch("/seller/campaigns/:id", requireAuth, requireRole("SELLER"), async 
       .where(eq(affiliateCampaignsTable.id, campaign.id))
       .returning();
 
+    // Replace product list if provided
+    if (Array.isArray(productIds)) {
+      await db
+        .delete(affiliateCampaignProductsTable)
+        .where(eq(affiliateCampaignProductsTable.campaignId, campaign.id));
+
+      if (productIds.length > 0) {
+        const ids = productIds.map(String).slice(0, 100);
+        const ownedProducts = await db
+          .select({ id: productsTable.id })
+          .from(productsTable)
+          .where(and(
+            inArray(productsTable.id, ids),
+            eq(productsTable.shopId, shop.id),
+          ));
+        if (ownedProducts.length > 0) {
+          await db.insert(affiliateCampaignProductsTable).values(
+            ownedProducts.map(p => ({ campaignId: campaign.id, productId: p.id }))
+          );
+        }
+        const campaignProducts = await db
+          .select({ productId: affiliateCampaignProductsTable.productId })
+          .from(affiliateCampaignProductsTable)
+          .where(eq(affiliateCampaignProductsTable.campaignId, campaign.id));
+        res.json({ ...updated, productIds: campaignProducts.map(p => p.productId) }); return;
+      }
+      res.json({ ...updated, productIds: [] }); return;
+    }
+
     res.json(updated);
   } catch (err) {
     req.log.error({ err }, "Update campaign error");
@@ -120,14 +179,38 @@ router.patch("/seller/campaigns/:id", requireAuth, requireRole("SELLER"), async 
 
 // ── AFFILIATE campaign routes ─────────────────────────────────────────────────
 
-// GET /api/affiliate-campaigns — list active campaigns an affiliate can join
+/**
+ * GET /api/affiliate-campaigns
+ * Query params:
+ *   page        — page number, 1-based (default: 1)
+ *   limit       — results per page (default: 20, max: 100)
+ *   showJoined  — "true" to include already-joined campaigns (default: only unjoined)
+ */
 router.get("/affiliate-campaigns", requireAuth, async (req, res) => {
   try {
+    const page = Math.max(1, parseInt(String(req.query.page || "1"), 10));
+    const limit = Math.min(100, Math.max(1, parseInt(String(req.query.limit || "20"), 10)));
+    const offset = (page - 1) * limit;
+    const showJoined = req.query.showJoined === "true";
+
     const affiliate = await db.query.affiliatesTable.findFirst({
       where: eq(affiliatesTable.userId, req.userId!),
     });
 
-    const campaigns = await db
+    // Collect joined campaign IDs so we can filter/flag them
+    let joinedSet = new Set<string>();
+    if (affiliate) {
+      const memberships = await db
+        .select({ campaignId: affiliateCampaignMembersTable.campaignId })
+        .from(affiliateCampaignMembersTable)
+        .where(and(
+          eq(affiliateCampaignMembersTable.affiliateId, affiliate.id),
+          eq(affiliateCampaignMembersTable.status, "active"),
+        ));
+      joinedSet = new Set(memberships.map(m => m.campaignId));
+    }
+
+    const allActive = await db
       .select({
         campaign: affiliateCampaignsTable,
         shopName: shopsTable.name,
@@ -138,31 +221,40 @@ router.get("/affiliate-campaigns", requireAuth, async (req, res) => {
       .where(eq(affiliateCampaignsTable.status, "active"))
       .orderBy(desc(affiliateCampaignsTable.createdAt));
 
-    // If affiliate exists, flag campaigns they've already joined
-    if (affiliate) {
-      const memberships = await db
-        .select({ campaignId: affiliateCampaignMembersTable.campaignId })
-        .from(affiliateCampaignMembersTable)
-        .where(and(
-          eq(affiliateCampaignMembersTable.affiliateId, affiliate.id),
-          eq(affiliateCampaignMembersTable.status, "active"),
-        ));
-      const joinedSet = new Set(memberships.map(m => m.campaignId));
+    // Filter or keep based on showJoined
+    const filtered = showJoined
+      ? allActive
+      : allActive.filter(row => !joinedSet.has(row.campaign.id));
 
-      return res.json(campaigns.map(row => ({
+    const total = filtered.length;
+    const page_results = filtered.slice(offset, offset + limit);
+
+    // Enrich with product count
+    const enriched = await Promise.all(page_results.map(async (row) => {
+      const [productCount] = await db
+        .select({ count: sql<number>`COUNT(*)` })
+        .from(affiliateCampaignProductsTable)
+        .where(eq(affiliateCampaignProductsTable.campaignId, row.campaign.id));
+
+      return {
         ...row.campaign,
         shopName: row.shopName,
         shopLogo: row.shopLogo,
         joined: joinedSet.has(row.campaign.id),
-      })));
-    }
+        productCount: Number(productCount?.count ?? 0),
+      };
+    }));
 
-    res.json(campaigns.map(row => ({
-      ...row.campaign,
-      shopName: row.shopName,
-      shopLogo: row.shopLogo,
-      joined: false,
-    })));
+    res.json({
+      data: enriched,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+        hasNextPage: offset + limit < total,
+      },
+    });
   } catch (err) {
     req.log.error({ err }, "List affiliate campaigns error");
     res.status(500).json({ error: "Failed to list campaigns" });
