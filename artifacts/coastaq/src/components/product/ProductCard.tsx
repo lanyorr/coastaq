@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Link, useLocation } from "wouter";
+import { Link } from "wouter";
 import { type Product } from "@workspace/api-client-react";
-import { ShoppingCart, MapPin, Shield, MessageCircle, CheckCircle2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ShoppingCart, MapPin, Shield } from "lucide-react";
 import { useCart } from "@/store/use-cart";
 import { useToast } from "@/hooks/use-toast";
 import { useLocale } from "@/lib/locale/context";
@@ -10,7 +11,6 @@ export function ProductCard({ product }: { product: Product }) {
   const addItem = useCart((state) => state.addItem);
   const { toast } = useToast();
   const { formatPrice, t } = useLocale();
-  const [, setLocation] = useLocation();
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -23,98 +23,67 @@ export function ProductCard({ product }: { product: Product }) {
     });
     toast({
       title: "Added to cart",
-      description: `${product.title} added to your cart.`,
+      description: `${product.title} has been added to your bag.`,
     });
   };
 
-  const handleInquire = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setLocation(`/products/${product.id}`);
-  };
-
   const FALLBACK = "https://images.unsplash.com/photo-1614179924047-e1ab49a0a0cf?w=600&h=600&fit=crop&auto=format";
-  const [imgSrc, setImgSrc] = useState(product.images?.[0] || FALLBACK);
+  const rawImage = product.images?.[0] || FALLBACK;
+  // Use relative upload URLs as-is; only apply fallback on load error
+  const [imgSrc, setImgSrc] = useState(rawImage);
 
   return (
     <Link href={`/products/${product.id}`} className="group block h-full">
-      <div className="bg-white rounded border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all duration-200 h-full flex flex-col">
-
-        {/* Image */}
-        <div className="relative aspect-square overflow-hidden bg-gray-50 rounded-t">
+      <div className="bg-card rounded-2xl overflow-hidden border border-border/50 hover-lift h-full flex flex-col">
+        <div className="relative aspect-square overflow-hidden bg-secondary/30">
           <img
             src={imgSrc}
             alt={product.title}
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             onError={() => setImgSrc(FALLBACK)}
           />
-          {/* Condition badge */}
-          {product.condition === "NEW" && (
-            <div className="absolute top-2 left-2 bg-green-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-sm">
-              NEW
+          {(product.condition === "NEW" || product.condition === "REFURBISHED") && (
+            <div className={`absolute top-3 left-3 backdrop-blur-sm px-2 py-1 rounded-md text-[10px] font-bold shadow-sm ${product.condition === "NEW" ? "bg-white/90 text-primary" : "bg-amber-100/90 text-amber-700"}`}>
+              {product.condition === "NEW" ? t("product.condition.NEW") : t("product.condition.REFURBISHED")}
             </div>
           )}
-          {product.condition === "REFURBISHED" && (
-            <div className="absolute top-2 left-2 bg-amber-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-sm">
-              REFURB
-            </div>
-          )}
-          {/* Escrow badge */}
-          <div className="absolute bottom-2 left-2 flex items-center gap-1 bg-primary text-white text-[9px] font-bold px-1.5 py-0.5 rounded-sm shadow-sm">
+          {/* Escrow badge overlay */}
+          <div className="absolute bottom-2 left-2 flex items-center gap-1 bg-blue-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md shadow-sm">
             <Shield className="w-2.5 h-2.5" />
-            Escrow
+            {t("product.escrow")}
           </div>
         </div>
 
-        {/* Content */}
-        <div className="p-3 flex flex-col flex-1 gap-1.5">
-          {/* Title */}
-          <h3 className="text-xs sm:text-sm font-medium text-gray-800 line-clamp-2 leading-snug group-hover:text-market transition-colors">
-            {product.title}
-          </h3>
-
-          {/* Price */}
-          <p className="font-bold text-sm sm:text-base text-market">
+        <div className="p-3 sm:p-5 flex flex-col flex-1">
+          <div className="flex justify-between items-start mb-1 sm:mb-2 gap-1">
+            <h3 className="font-display font-semibold text-sm sm:text-base text-foreground line-clamp-2 leading-tight group-hover:text-primary transition-colors">
+              {product.title}
+            </h3>
+          </div>
+          <span className="font-bold text-sm sm:text-base text-primary mb-1">
             {formatPrice(product.price)}
-          </p>
+          </span>
 
-          {/* Supplier */}
           {product.shop && (
-            <div className="flex items-center gap-1">
-              <CheckCircle2 className="w-3 h-3 text-green-500 shrink-0" />
-              <span className="text-xs text-gray-500 truncate">{product.shop.name}</span>
-            </div>
+            <p className="text-xs text-muted-foreground mb-2 font-medium truncate">
+              {product.shop.name}
+            </p>
           )}
 
-          {/* Location */}
-          {product.location && (
-            <div className="flex items-center gap-1 text-xs text-gray-400">
-              <MapPin className="w-3 h-3 shrink-0" />
-              <span className="truncate">{product.location}</span>
+          <div className="mt-auto flex items-center justify-between pt-2 sm:pt-4">
+            <div className="flex items-center text-xs text-muted-foreground bg-secondary/50 px-2 py-1 rounded-md min-w-0">
+              <MapPin className="w-3 h-3 mr-1 shrink-0" />
+              <span className="truncate max-w-[60px] sm:max-w-[100px]">{product.location || t("product.placeholderLocation")}</span>
             </div>
-          )}
 
-          {/* Actions */}
-          <div className="mt-auto pt-2 flex gap-1.5">
-            <button
-              onClick={handleInquire}
-              className="flex-1 flex items-center justify-center gap-1 py-1.5 text-xs font-semibold mkt-btn rounded"
-            >
-              Inquire
-            </button>
-            <button
+            <Button
+              size="sm"
+              className="rounded-xl bg-primary/10 text-primary hover:bg-primary hover:text-white transition-colors h-7 sm:h-8 px-2 sm:px-3 text-xs"
               onClick={handleAddToCart}
-              title={t("product.add")}
-              className="flex items-center justify-center p-1.5 border border-gray-300 rounded hover:border-primary hover:text-primary transition-colors text-gray-500"
             >
-              <ShoppingCart className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={(e) => { e.preventDefault(); setLocation("/messages"); }}
-              className="flex items-center justify-center p-1.5 border border-gray-300 rounded hover:border-primary hover:text-primary transition-colors text-gray-500"
-              title="Chat"
-            >
-              <MessageCircle className="w-3.5 h-3.5" />
-            </button>
+              <ShoppingCart className="w-3.5 h-3.5 sm:mr-1.5" />
+              <span className="hidden sm:inline">{t("product.add")}</span>
+            </Button>
           </div>
         </div>
       </div>
