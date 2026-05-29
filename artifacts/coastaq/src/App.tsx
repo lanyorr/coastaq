@@ -49,6 +49,11 @@ import SellerShopPage from "@/pages/seller/SellerShopPage";
 import AffiliateOverview from "@/pages/affiliate/index";
 import AffiliateLinks from "@/pages/affiliate/AffiliateLinks";
 import AffiliateCommissions from "@/pages/affiliate/AffiliateCommissions";
+import AffiliateAnalytics from "@/pages/affiliate/AffiliateAnalytics";
+import AffiliatePayouts from "@/pages/affiliate/AffiliatePayouts";
+import AffiliateCoupons from "@/pages/affiliate/AffiliateCoupons";
+import AffiliateCampaigns from "@/pages/affiliate/AffiliateCampaigns";
+import AffiliateSettings from "@/pages/affiliate/AffiliateSettings";
 
 // Auth / RBAC
 import { ProtectedRoute, DashboardRedirect } from "@/components/auth/ProtectedRoute";
@@ -166,6 +171,21 @@ function Router() {
       </Route>
       <Route path="/affiliate/commissions">
         {() => <ProtectedRoute roles={["AFFILIATE", "SELLER", "BUYER", "ADMIN"]} component={AffiliateCommissions} />}
+      </Route>
+      <Route path="/affiliate/analytics">
+        {() => <ProtectedRoute roles={["AFFILIATE", "SELLER", "BUYER", "ADMIN"]} component={AffiliateAnalytics} />}
+      </Route>
+      <Route path="/affiliate/payouts">
+        {() => <ProtectedRoute roles={["AFFILIATE", "SELLER", "BUYER", "ADMIN"]} component={AffiliatePayouts} />}
+      </Route>
+      <Route path="/affiliate/coupons">
+        {() => <ProtectedRoute roles={["AFFILIATE", "SELLER", "BUYER", "ADMIN"]} component={AffiliateCoupons} />}
+      </Route>
+      <Route path="/affiliate/campaigns">
+        {() => <ProtectedRoute roles={["AFFILIATE", "SELLER", "BUYER", "ADMIN"]} component={AffiliateCampaigns} />}
+      </Route>
+      <Route path="/affiliate/settings">
+        {() => <ProtectedRoute roles={["AFFILIATE", "SELLER", "BUYER", "ADMIN"]} component={AffiliateSettings} />}
       </Route>
       {/* Backward-compat redirect */}
       <Route path="/affiliate/dashboard">{() => <Redirect to="/affiliate" />}</Route>
