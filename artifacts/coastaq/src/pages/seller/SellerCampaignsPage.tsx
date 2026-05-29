@@ -115,16 +115,17 @@ export default function SellerCampaignsPage() {
   const [toggling, setToggling] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    const [cRes, shopsRes] = await Promise.all([
+    const [cRes, shopRes] = await Promise.all([
       fetch("/api/seller/campaigns").then(r => r.ok ? r.json() : []),
-      fetch("/api/shops/my").then(r => r.ok ? r.json() : []),
+      fetch("/api/shops/my").then(r => r.ok ? r.json() : null),
     ]);
     setCampaigns(Array.isArray(cRes) ? cRes : []);
 
-    const shops = Array.isArray(shopsRes) ? shopsRes : [];
-    if (shops.length > 0) {
-      const shopId = shops[0].id;
-      const pRes = await fetch(`/api/products?shopId=${shopId}&limit=100`).then(r => r.ok ? r.json() : { products: [] });
+    const shopId = shopRes?.id ?? null;
+    if (shopId) {
+      const pRes = await fetch(`/api/products?shopId=${shopId}&limit=100`)
+        .then(r => r.ok ? r.json() : { products: [] })
+        .catch(() => ({ products: [] }));
       setProducts(pRes.products ?? []);
     }
     setLoading(false);
