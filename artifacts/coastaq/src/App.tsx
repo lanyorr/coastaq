@@ -45,6 +45,8 @@ import SellerMessagesPage from "@/pages/seller/SellerMessagesPage";
 import SellerEarningsPage from "@/pages/seller/SellerEarningsPage";
 import SellerSubscriptionPage from "@/pages/seller/SellerSubscriptionPage";
 import SellerShopPage from "@/pages/seller/SellerShopPage";
+import SellerCampaignsPage from "@/pages/seller/SellerCampaignsPage";
+import AffiliateEarnPage from "@/pages/affiliate/AffiliateEarnPage";
 
 import AffiliateOverview from "@/pages/affiliate/index";
 import AffiliateLinks from "@/pages/affiliate/AffiliateLinks";
@@ -159,6 +161,9 @@ function Router() {
       <Route path="/seller/shop">
         {() => <ProtectedRoute roles={["SELLER", "ADMIN"]} component={SellerShopPage} />}
       </Route>
+      <Route path="/seller/campaigns">
+        {() => <ProtectedRoute roles={["SELLER", "ADMIN"]} component={SellerCampaignsPage} />}
+      </Route>
       {/* Backward-compat redirect */}
       <Route path="/seller/dashboard">{() => <Redirect to="/seller" />}</Route>
 
@@ -189,6 +194,7 @@ function Router() {
       </Route>
       {/* Backward-compat redirect */}
       <Route path="/affiliate/dashboard">{() => <Redirect to="/affiliate" />}</Route>
+      <Route path="/affiliate/earn" component={AffiliateEarnPage} />
 
       {/* ── Admin routes (/admin/*) ────────────────────────────────────────── */}
       <Route path="/admin">

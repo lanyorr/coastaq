@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { DashboardLayout, type SidebarItem } from "@/components/dashboard/DashboardLayout";
 import {
   LayoutDashboard, Package, ShoppingBag, MessageCircle,
-  DollarSign, CreditCard, Settings, Store,
+  DollarSign, CreditCard, Settings, Store, Megaphone,
 } from "lucide-react";
 
 function useSellerUnread() {
@@ -25,6 +25,7 @@ export function SellerLayout({ children }: { children: React.ReactNode }) {
     { href: "/seller/orders",       label: "Orders",       icon: ShoppingBag },
     { href: "/seller/messages",     label: "Messages",     icon: MessageCircle, badge: unread },
     { href: "/seller/earnings",     label: "Earnings",     icon: DollarSign },
+    { href: "/seller/campaigns",    label: "Campaigns",    icon: Megaphone },
     { href: "/seller/subscription", label: "Subscription", icon: CreditCard },
     { href: "/seller/shop",         label: "Shop Settings", icon: Settings },
   ];

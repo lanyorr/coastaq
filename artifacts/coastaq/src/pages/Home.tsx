@@ -601,6 +601,80 @@ export default function Home() {
         </div>
       </main>
 
+      {/* ── Earn With Coastaq ─────────────────────────────────────────── */}
+      {!searchQuery && !categoryId && (
+        <section
+          className="relative overflow-hidden"
+          style={{ background: "linear-gradient(135deg, #f5f3ff 0%, #ede9fe 60%, #ddd6fe 100%)" }}
+        >
+          {/* Background blobs */}
+          <div className="absolute inset-0 pointer-events-none overflow-hidden">
+            <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full opacity-20" style={{ background: "radial-gradient(circle, #a78bfa, transparent)" }} />
+            <div className="absolute -bottom-10 -left-10 w-48 h-48 rounded-full opacity-15" style={{ background: "radial-gradient(circle, #c4b5fd, transparent)" }} />
+          </div>
+
+          <div className="relative container mx-auto px-4 py-14 md:py-16">
+            <div className="text-center mb-10">
+              <span className="inline-flex items-center gap-1.5 bg-purple-100 border border-purple-200 text-purple-700 text-xs font-bold rounded-full px-3 py-1 mb-4 uppercase tracking-wide">
+                💸 For Creators & Promoters
+              </span>
+              <h2 className="text-2xl md:text-3xl font-display font-bold text-gray-900 mb-2">
+                Earn With Coastaq
+              </h2>
+              <p className="text-muted-foreground max-w-md mx-auto text-sm">
+                Share products you love. Earn 5% commission on every sale you refer — paid directly to your PayPal.
+              </p>
+            </div>
+
+            {/* Three benefit cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10 max-w-3xl mx-auto">
+              {[
+                {
+                  icon: "💰",
+                  title: "5% Commission",
+                  desc: "Earn on every purchase made through your unique affiliate link. No cap on earnings.",
+                },
+                {
+                  icon: "📊",
+                  title: "Real-time Tracking",
+                  desc: "See your clicks, conversions, and earnings update live on your affiliate dashboard.",
+                },
+                {
+                  icon: "⚡",
+                  title: "Instant PayPal Payouts",
+                  desc: "Request your earnings any time you reach $10. Processed within 1–3 business days.",
+                },
+              ].map(({ icon, title, desc }) => (
+                <div
+                  key={title}
+                  className="bg-white/70 backdrop-blur-sm border border-purple-100 rounded-2xl p-5 text-center shadow-sm hover:shadow-md transition-shadow"
+                >
+                  <div className="text-3xl mb-3">{icon}</div>
+                  <p className="font-semibold text-gray-900 mb-1.5 text-sm">{title}</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* CTA */}
+            <div className="text-center">
+              <p className="text-sm font-semibold text-gray-700 mb-4">Join 2,500+ Coastaq Affiliates</p>
+              <button
+                onClick={() => window.location.assign("/affiliate/earn")}
+                className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full text-base font-bold text-white transition-all hover:scale-105 shadow-lg shadow-purple-400/25"
+                style={{ background: "linear-gradient(135deg, #7c3aed, #6d28d9)" }}
+              >
+                Learn More & Apply Free
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+              <p className="text-xs text-muted-foreground mt-3">Free to join · No minimum following required</p>
+            </div>
+          </div>
+        </section>
+      )}
+
       <Footer />
     </div>
   );
