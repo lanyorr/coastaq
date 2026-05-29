@@ -3,21 +3,20 @@ import { ProductCard } from "@/components/product/ProductCard";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { useLocation, useSearch } from "wouter";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  Filter, Search, ChevronDown, ChevronRight, ChevronLeft,
-  Store, MapPin, Plus, Zap, Users, Shield, Lock, CheckCircle2,
+  ChevronDown, ChevronRight, ChevronLeft,
+  Store, Lock, CheckCircle2,
   Laptop, Car, Building2, Shirt, Sofa, Heart, Trophy,
   Briefcase, Wrench, PawPrint, Leaf, ShoppingBag, Package,
-  Camera, Cpu, Bike, Hammer, Apple, Music, BookOpen,
-  Baby, Gem, Plug
+  Camera, Cpu, Bike, Hammer, Music, BookOpen,
+  Baby, Gem, Plug, Menu, Shield, Users, TrendingUp,
+  Zap, Globe, Award, Tag,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useLocale } from "@/lib/locale/context";
 import { tCat } from "@/lib/locale/categoryTranslations";
 
-// Maps a category name → { icon, bg color }
 function getCategoryMeta(name: string): { icon: React.ReactNode; bg: string; fg: string } {
   const n = name.toLowerCase();
   if (n.includes("electron") || n.includes("gadget") || n.includes("computer") || n.includes("laptop") || n.includes("phone"))
@@ -32,7 +31,7 @@ function getCategoryMeta(name: string): { icon: React.ReactNode; bg: string; fg:
     return { icon: <Building2 className="w-4 h-4" />, bg: "#dcfce7", fg: "#15803d" };
   if (n.includes("fashion") || n.includes("cloth") || n.includes("wear") || n.includes("dress") || n.includes("shirt"))
     return { icon: <Shirt className="w-4 h-4" />, bg: "#fae8ff", fg: "#9333ea" };
-  if (n.includes("shoe") || n.includes("footwear") || n.includes("bag") || n.includes("jewel") || n.includes("accessori"))
+  if (n.includes("shoe") || n.includes("footwear") || n.includes("bag") || n.includes("jewel"))
     return { icon: <Gem className="w-4 h-4" />, bg: "#fdf2f8", fg: "#db2777" };
   if (n.includes("furniture") || n.includes("home") || n.includes("kitchen") || n.includes("applian") || n.includes("sofa"))
     return { icon: <Sofa className="w-4 h-4" />, bg: "#fef3c7", fg: "#d97706" };
@@ -60,9 +59,44 @@ function getCategoryMeta(name: string): { icon: React.ReactNode; bg: string; fg:
     return { icon: <Hammer className="w-4 h-4" />, bg: "#ffedd5", fg: "#9a3412" };
   if (n.includes("electric") || n.includes("solar") || n.includes("power") || n.includes("energy"))
     return { icon: <Plug className="w-4 h-4" />, bg: "#fef9c3", fg: "#ca8a04" };
-  // default
   return { icon: <Package className="w-4 h-4" />, bg: "#f1f5f9", fg: "#475569" };
 }
+
+const BANNERS = [
+  {
+    id: 1,
+    gradient: "linear-gradient(135deg, #0f172a 0%, #1e3a5f 60%, #1a56db 100%)",
+    accentColor: "#60a5fa",
+    badge: "🔒 100% Escrow Protected",
+    heading: "Source Products\nGlobally",
+    sub: "Connect with 850,000+ verified sellers across Africa and beyond",
+    cta: "Browse Products",
+    ctaHref: "/shop",
+    stat: "2.5M+ Listings Available",
+  },
+  {
+    id: 2,
+    gradient: "linear-gradient(135deg, #052e16 0%, #064e3b 60%, #047857 100%)",
+    accentColor: "#34d399",
+    badge: "🏆 Top Seller Program",
+    heading: "Grow Your\nBusiness Online",
+    sub: "Reach millions of buyers. Easy setup, powerful tools, fast payouts",
+    cta: "Start Selling Free",
+    ctaHref: "/auth/register?role=SELLER",
+    stat: "850K+ Active Sellers",
+  },
+  {
+    id: 3,
+    gradient: "linear-gradient(135deg, #3b0764 0%, #6b21a8 60%, #7c3aed 100%)",
+    accentColor: "#c084fc",
+    badge: "💰 Earn Commissions",
+    heading: "Join Our\nAffiliate Program",
+    sub: "Earn on every sale you refer. No inventory, no risk — just share and earn",
+    cta: "Join Free Today",
+    ctaHref: "/auth/register?role=AFFILIATE",
+    stat: "Up to 15% Commission",
+  },
+];
 
 const PAGE_SIZE = 24;
 
@@ -72,22 +106,32 @@ export default function Home() {
   const searchParams = new URLSearchParams(searchString);
   const searchQuery = searchParams.get("search") || undefined;
   const categoryId = searchParams.get("category") || undefined;
+
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [page, setPage] = useState(1);
-  const [heroSearch, setHeroSearch] = useState("");
   const { t, formatPrice, lang } = useLocale();
 
-  const handleHeroSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    const q = heroSearch.trim();
-    if (q) {
-      const next = new URLSearchParams();
-      if (categoryId) next.set("category", categoryId);
-      next.set("search", q);
-      setLocation(`/?${next.toString()}`);
-    }
+  // Banner carousel
+  const [bannerIdx, setBannerIdx] = useState(0);
+  const bannerTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    bannerTimerRef.current = setInterval(() => {
+      setBannerIdx(i => (i + 1) % BANNERS.length);
+    }, 4500);
+    return () => { if (bannerTimerRef.current) clearInterval(bannerTimerRef.current); };
+  }, []);
+
+  const goBannerPrev = () => {
+    if (bannerTimerRef.current) clearInterval(bannerTimerRef.current);
+    setBannerIdx(i => (i - 1 + BANNERS.length) % BANNERS.length);
+  };
+  const goBannerNext = () => {
+    if (bannerTimerRef.current) clearInterval(bannerTimerRef.current);
+    setBannerIdx(i => (i + 1) % BANNERS.length);
   };
 
+  // Reset page when filter changes
   const filterKey = `${searchQuery ?? ""}|${categoryId ?? ""}`;
   const [prevFilterKey, setPrevFilterKey] = useState(filterKey);
   if (filterKey !== prevFilterKey) {
@@ -95,45 +139,14 @@ export default function Home() {
     setPage(1);
   }
 
-  const { data: productsData, isLoading: loadingProducts } = useListProducts({ 
+  const { data: productsData, isLoading: loadingProducts } = useListProducts({
     search: searchQuery,
     categoryId: categoryId,
     limit: PAGE_SIZE,
     page,
   });
-  
+
   const { data: categories, isLoading: loadingCats } = useListCategories();
-
-  // Featured carousel
-  const CAROUSEL_FALLBACK = "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&h=600&fit=crop&auto=format";
-  const { data: featuredData } = useListProducts({ limit: 6, page: 1 });
-  const featuredProducts = featuredData?.products ?? [];
-  const [featuredIdx, setFeaturedIdx] = useState(0);
-  const featuredTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const currentFeatured = featuredProducts[featuredIdx] ?? null;
-  const [carouselImgSrc, setCarouselImgSrc] = useState<string>(CAROUSEL_FALLBACK);
-
-  useEffect(() => {
-    const raw = currentFeatured?.images?.[0];
-    setCarouselImgSrc(raw || CAROUSEL_FALLBACK);
-  }, [currentFeatured?.id]);
-
-  useEffect(() => {
-    if (featuredProducts.length < 2) return;
-    featuredTimerRef.current = setInterval(() => {
-      setFeaturedIdx(i => (i + 1) % featuredProducts.length);
-    }, 4000);
-    return () => { if (featuredTimerRef.current) clearInterval(featuredTimerRef.current); };
-  }, [featuredProducts.length]);
-
-  const goFeaturedPrev = () => {
-    if (featuredTimerRef.current) clearInterval(featuredTimerRef.current);
-    setFeaturedIdx(i => (i - 1 + featuredProducts.length) % featuredProducts.length);
-  };
-  const goFeaturedNext = () => {
-    if (featuredTimerRef.current) clearInterval(featuredTimerRef.current);
-    setFeaturedIdx(i => (i + 1) % featuredProducts.length);
-  };
 
   function toggleExpand(id: string) {
     setExpanded(prev => {
@@ -144,461 +157,696 @@ export default function Home() {
     });
   }
 
-  return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <Navbar />
-      
-      {/* Mobile category chips */}
-      <div className="md:hidden border-b border-border/20 bg-background">
-        <div className="flex gap-2 overflow-x-auto px-4 py-2 scrollbar-hide" style={{ WebkitOverflowScrolling: "touch" }}>
-          <button
-            onClick={() => {
-              const next = new URLSearchParams();
-              if (searchQuery) next.set("search", searchQuery);
-              setLocation(`/${next.toString() ? `?${next}` : ""}`);
-            }}
-            className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors border ${!categoryId ? "bg-primary text-white border-primary" : "bg-background text-muted-foreground border-border hover:border-primary/40 hover:text-foreground"}`}
-          >
-            All
-          </button>
-          {!loadingCats && categories?.map((cat) => {
-            const isActive = categoryId === cat.id || (cat as any).children?.some((c: any) => c.id === categoryId);
-            return (
-              <button
-                key={cat.id}
-                onClick={() => {
-                  const next = new URLSearchParams();
-                  next.set("category", cat.id);
-                  if (searchQuery) next.set("search", searchQuery);
-                  setLocation(`/?${next.toString()}`);
-                }}
-                className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors border ${isActive ? "bg-primary text-white border-primary" : "bg-background text-muted-foreground border-border hover:border-primary/40 hover:text-foreground"}`}
-              >
-                {tCat(cat.name, lang)}
-              </button>
-            );
-          })}
+  const navToCategory = (id: string) => {
+    const next = new URLSearchParams();
+    next.set("category", id);
+    if (searchQuery) next.set("search", searchQuery);
+    setLocation(`/?${next.toString()}`);
+  };
+
+  const clearFilters = () => {
+    setLocation("/");
+    setPage(1);
+  };
+
+  const isHomepage = !searchQuery && !categoryId;
+
+  // ── Shared: Mobile category chips ──────────────────────────────────────────
+  const mobileCategoryChips = (
+    <div className="md:hidden border-b border-gray-200 bg-white">
+      <div
+        className="flex gap-2 overflow-x-auto px-4 py-2.5 scrollbar-hide"
+        style={{ WebkitOverflowScrolling: "touch" }}
+      >
+        <button
+          onClick={clearFilters}
+          className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap border transition-colors ${
+            !categoryId
+              ? "bg-market text-white border-market"
+              : "bg-white text-gray-600 border-gray-300 hover:border-market hover:text-market"
+          }`}
+        >
+          All
+        </button>
+        {!loadingCats && categories?.map((cat) => {
+          const isActive = categoryId === cat.id || (cat as any).children?.some((c: any) => c.id === categoryId);
+          return (
+            <button
+              key={cat.id}
+              onClick={() => navToCategory(cat.id)}
+              className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap border transition-colors ${
+                isActive
+                  ? "bg-market text-white border-market"
+                  : "bg-white text-gray-600 border-gray-300 hover:border-market hover:text-market"
+              }`}
+            >
+              {tCat(cat.name, lang)}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+
+  // ── Product grid (shared between homepage and browse mode) ──────────────────
+  const productGridSection = (
+    <div id="product-grid">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
+        <div className="flex items-center gap-2">
+          <h2 className="text-lg font-display font-bold text-gray-900">
+            {searchQuery
+              ? `Results for "${searchQuery}"`
+              : categoryId
+              ? (() => {
+                  const all = categories ?? [];
+                  const flat = all.flatMap(c => [c, ...((c as any).children ?? [])]);
+                  const found = flat.find((c: any) => c.id === categoryId);
+                  return found ? tCat(found.name, lang) : "Browse Products";
+                })()
+              : "Latest Products"}
+          </h2>
+          {!loadingProducts && productsData && productsData.total > 0 && (
+            <span className="text-xs text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full font-medium">
+              {productsData.total.toLocaleString()} listings
+            </span>
+          )}
         </div>
+        {(searchQuery || categoryId) && (
+          <button
+            onClick={clearFilters}
+            className="text-xs text-market hover:underline font-medium"
+          >
+            Clear filters
+          </button>
+        )}
       </div>
 
-      <main className="flex-1 flex flex-col md:flex-row">
-        {/* Sidebar — desktop only */}
-        <aside className="hidden md:flex flex-col w-72 shrink-0 border-r border-border bg-white">
-          <div className="sticky top-16 overflow-y-auto" style={{ maxHeight: "calc(100vh - 64px)" }}>
-            <div className="px-5 pt-6 pb-3">
-              <p className="font-display font-bold text-base text-foreground">{t("browse.categories")}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">{t("browse.findWhat")}</p>
+      {loadingProducts ? (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+          {Array.from({ length: PAGE_SIZE }).map((_, i) => (
+            <div key={i} className="space-y-2">
+              <Skeleton className="aspect-square rounded" />
+              <Skeleton className="h-3 w-3/4" />
+              <Skeleton className="h-3 w-1/3" />
             </div>
+          ))}
+        </div>
+      ) : productsData?.products.length === 0 ? (
+        <div className="text-center py-20 bg-white rounded border border-gray-200">
+          <div className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 text-gray-400 mb-4">
+            <Store className="h-7 w-7" />
+          </div>
+          <h3 className="text-lg font-display font-bold text-gray-800 mb-2">{t("browse.noProducts")}</h3>
+          <p className="text-gray-500 text-sm">{t("browse.noProductsDesc")}</p>
+          <button onClick={clearFilters} className="mt-4 px-5 py-2 mkt-btn text-sm font-semibold rounded">
+            Browse All Products
+          </button>
+        </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+            {productsData?.products.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
 
-            {loadingCats ? (
-              <div className="px-4 space-y-2 pb-4">
-                {[1,2,3,4,5,6].map(i => <Skeleton key={i} className="h-10 w-full rounded-xl" />)}
-              </div>
-            ) : (
-              <ul className="px-3 pb-6 space-y-0.5">
-                <li>
+          {/* Pagination */}
+          {productsData && productsData.totalPages > 1 && (
+            <div className="flex items-center justify-center gap-1.5 mt-10">
+              <button
+                className="px-3 py-1.5 text-sm border border-gray-300 rounded hover:border-market hover:text-market disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1"
+                disabled={page <= 1}
+                onClick={() => { setPage(p => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+              >
+                <ChevronLeft className="w-4 h-4" /> Prev
+              </button>
+
+              {Array.from({ length: Math.min(productsData.totalPages, 7) }, (_, i) => {
+                const totalPages = productsData.totalPages;
+                let pageNum: number;
+                if (totalPages <= 7) pageNum = i + 1;
+                else if (page <= 4) pageNum = i + 1;
+                else if (page >= totalPages - 3) pageNum = totalPages - 6 + i;
+                else pageNum = page - 3 + i;
+                return (
                   <button
-                    onClick={() => {
-                      const next = new URLSearchParams();
-                      if (searchQuery) next.set("search", searchQuery);
-                      setLocation(`/${next.toString() ? `?${next}` : ""}`);
-                    }}
-                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-colors group ${!categoryId ? 'bg-primary/10 text-primary' : 'text-foreground hover:bg-gray-50'}`}
+                    key={pageNum}
+                    onClick={() => { setPage(pageNum); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                    className={`w-9 h-9 text-sm rounded border font-medium transition-colors ${
+                      pageNum === page
+                        ? "bg-market border-market text-white"
+                        : "border-gray-300 text-gray-700 hover:border-market hover:text-market"
+                    }`}
                   >
-                    <div className="flex items-center gap-3">
-                      <div
-                        className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
-                        style={{ background: !categoryId ? "#1d4ed8" : "#dbeafe", color: !categoryId ? "#fff" : "#1d4ed8" }}
-                      >
-                        <ShoppingBag className="w-4 h-4" />
-                      </div>
-                      <span>{t("browse.allProducts")}</span>
-                    </div>
-                    <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50 group-hover:text-muted-foreground transition-colors" />
+                    {pageNum}
                   </button>
-                </li>
-                {categories?.map((cat) => {
-                  const children = (cat as any).children ?? [];
-                  const isParentActive = categoryId === cat.id;
-                  const isChildActive = children.some((c: any) => c.id === categoryId);
-                  const isOpen = expanded.has(cat.id) || isParentActive || isChildActive;
+                );
+              })}
 
-                  const navToCategory = (id: string) => {
-                    const next = new URLSearchParams();
-                    next.set("category", id);
-                    if (searchQuery) next.set("search", searchQuery);
-                    setLocation(`/?${next.toString()}`);
-                  };
+              <button
+                className="px-3 py-1.5 text-sm border border-gray-300 rounded hover:border-market hover:text-market disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1"
+                disabled={page >= productsData.totalPages}
+                onClick={() => { setPage(p => p + 1); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+              >
+                Next <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
 
-                  return (
-                    <li key={cat.id}>
-                      <button
-                        onClick={() => children.length > 0 ? toggleExpand(cat.id) : navToCategory(cat.id)}
-                        className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-colors group ${isParentActive || isChildActive ? 'bg-primary/10 text-primary' : 'text-foreground hover:bg-gray-50'}`}
-                        aria-expanded={children.length > 0 ? isOpen : undefined}
-                      >
-                        <div className="flex items-center gap-3">
-                          {(() => {
+  return (
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      <Navbar />
+
+      <main className="flex-1">
+
+        {/* ══════════════════════════════════════════════════════
+            HOMEPAGE LAYOUT (no search/category filter)
+        ══════════════════════════════════════════════════════ */}
+        {isHomepage ? (
+          <>
+            {/* Mobile category chips */}
+            {mobileCategoryChips}
+
+            {/* ── Hero: 3-column marketplace layout ── */}
+            <section className="bg-white border-b border-gray-200">
+              <div className="container mx-auto px-0 lg:px-4">
+                <div className="grid grid-cols-1 lg:grid-cols-[210px_1fr_185px]">
+
+                  {/* Left: Category sidebar */}
+                  <aside className="hidden lg:block border-r border-gray-200">
+                    <div className="flex items-center gap-2 px-4 py-3 bg-gray-800 text-white text-sm font-semibold">
+                      <Menu className="w-4 h-4" />
+                      All Categories
+                    </div>
+                    <ul className="divide-y divide-gray-100">
+                      {loadingCats
+                        ? Array.from({ length: 10 }).map((_, i) => (
+                            <li key={i} className="px-4 py-2.5">
+                              <Skeleton className="h-4 w-3/4" />
+                            </li>
+                          ))
+                        : categories?.slice(0, 14).map(cat => {
                             const meta = getCategoryMeta(cat.name);
                             return (
-                              <div
-                                className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
-                                style={{
-                                  background: isParentActive || isChildActive ? "#1d4ed8" : meta.bg,
-                                  color: isParentActive || isChildActive ? "#fff" : meta.fg,
-                                }}
-                              >
-                                {meta.icon}
-                              </div>
+                              <li key={cat.id}>
+                                <button
+                                  onClick={() => navToCategory(cat.id)}
+                                  className="w-full flex items-center justify-between px-3 py-2 text-xs text-gray-700 hover:bg-red-50 hover:text-market group transition-colors"
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <span
+                                      className="w-5 h-5 rounded flex items-center justify-center shrink-0"
+                                      style={{ background: meta.bg, color: meta.fg }}
+                                    >
+                                      {meta.icon}
+                                    </span>
+                                    <span className="truncate">{tCat(cat.name, lang)}</span>
+                                  </div>
+                                  <ChevronRight className="w-3 h-3 text-gray-300 group-hover:text-market shrink-0" />
+                                </button>
+                              </li>
                             );
-                          })()}
-                          <span className="truncate">{tCat(cat.name, lang)}</span>
-                        </div>
-                        {children.length > 0 ? (
-                          <ChevronDown
-                            className={`w-3.5 h-3.5 shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-0 text-primary' : '-rotate-90 text-muted-foreground/50 group-hover:text-muted-foreground'}`}
-                          />
-                        ) : (
-                          <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50 group-hover:text-muted-foreground transition-colors shrink-0" />
-                        )}
-                      </button>
-
-                      {children.length > 0 && isOpen && (
-                        <ul className="ml-3 mt-0.5 mb-1 pl-3 border-l border-border space-y-0.5">
-                          {children.map((child: any) => (
-                            <li key={child.id}>
-                              <button
-                                onClick={() => navToCategory(child.id)}
-                                className={`w-full text-left block px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${categoryId === child.id ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-gray-50 hover:text-foreground'}`}
-                              >
-                                {tCat(child.name, lang)}
-                              </button>
-                            </li>
-                          ))}
-                        </ul>
+                          })}
+                      {!loadingCats && (
+                        <li>
+                          <button
+                            onClick={() => setLocation("/shop")}
+                            className="w-full text-left px-3 py-2.5 text-xs text-market font-semibold hover:bg-red-50 transition-colors"
+                          >
+                            View All Categories →
+                          </button>
+                        </li>
                       )}
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </div>
-        </aside>
+                    </ul>
+                  </aside>
 
-        {/* Right column: hero (home only) + product grid */}
-        <div className="flex-1 min-w-0 flex flex-col">
-
-          {/* Hero Banner — only on home (no search/category filter) */}
-          {!searchQuery && !categoryId && (
-            <section
-              className="relative overflow-hidden"
-              style={{
-                background: "linear-gradient(135deg, #0c2461 0%, #1a56db 70%, #1e6fd9 100%)",
-                minHeight: 460,
-              }}
-            >
-              {/* Reflective white gloss — top-left highlight simulating light reflection */}
-              <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.10) 20%, rgba(255,255,255,0.03) 45%, transparent 65%)" }} />
-              {/* Subtle secondary shimmer on right edge */}
-              <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(225deg, rgba(255,255,255,0.07) 0%, transparent 40%)" }} />
-
-              <div className="absolute -top-20 -right-20 w-96 h-96 rounded-full opacity-10" style={{ background: "radial-gradient(circle, #60a5fa, transparent)" }} />
-              <div className="absolute -bottom-16 -left-16 w-72 h-72 rounded-full opacity-10" style={{ background: "radial-gradient(circle, #93c5fd, transparent)" }} />
-
-              <div className="relative px-8 py-10 md:py-14 flex flex-col md:flex-row items-center gap-8 md:gap-10 h-full" style={{ minHeight: 460 }}>
-                {/* Left: Hero content */}
-                <div className="flex-1 flex flex-col gap-6 z-10">
-                  <div>
-                    <h1 className="text-4xl md:text-5xl font-display font-bold text-white leading-[1.1] tracking-tight mb-4">
-                      {t("hero.title")}
-                    </h1>
-                    <p className="text-base text-white/95 max-w-md leading-relaxed font-medium">
-                      {t("hero.subtitle")}
-                    </p>
-                  </div>
-
-                  {/* Search bar */}
-                  <form onSubmit={handleHeroSearch} className="flex items-center gap-0 max-w-lg">
-                    <div className="flex items-center flex-1 bg-white rounded-l-full px-4 py-3 shadow-lg gap-3">
-                      <Search className="h-4 w-4 text-gray-400 shrink-0" />
-                      <input
-                        type="search"
-                        placeholder={t("hero.searchPlaceholder")}
-                        className="flex-1 bg-transparent outline-none text-sm text-gray-800 placeholder:text-gray-400 min-w-0"
-                        value={heroSearch}
-                        onChange={(e) => setHeroSearch(e.target.value)}
-                      />
-                    </div>
-                    <button
-                      type="submit"
-                      className="rounded-r-full px-6 py-3 text-sm font-semibold text-white shadow-lg transition-opacity hover:opacity-90 shrink-0"
-                      style={{ background: "linear-gradient(135deg, #f97316, #ef4444)" }}
-                    >
-                      {t("common.search")}
-                    </button>
-                  </form>
-
-                  {/* CTA Buttons */}
-                  <div className="flex items-center gap-3 flex-wrap">
-                    <button
-                      onClick={() => setLocation("/auth/register?role=SELLER")}
-                      className="flex items-center gap-2 px-5 py-2.5 rounded-full border-2 border-white/40 text-white text-sm font-semibold hover:bg-white/10 transition-colors"
-                    >
-                      <Plus className="w-4 h-4" />
-                      {t("hero.postAd")}
-                    </button>
-                    <button
-                      onClick={() => document.getElementById("product-grid")?.scrollIntoView({ behavior: "smooth" })}
-                      className="flex items-center gap-2 px-5 py-2.5 rounded-full border-2 border-white/30 text-white/90 text-sm font-semibold hover:bg-white/10 transition-colors"
-                    >
-                      <Zap className="w-4 h-4" />
-                      {t("hero.browseDeals")}
-                    </button>
-                  </div>
-
-                  {/* Stats row */}
-                  <div className="flex items-center gap-8 pt-2">
-                    {[
-                      { value: "2.5M+", label: t("hero.stats.listings") },
-                      { value: "850K+", label: t("hero.stats.sellers") },
-                      { value: "100%", label: t("hero.stats.escrowSafe") },
-                    ].map((s) => (
-                      <div key={s.label} className="flex flex-col">
-                        <span className="text-2xl md:text-3xl font-display font-bold text-white tracking-tight">{s.value}</span>
-                        <span className="text-xs text-blue-200/70 font-medium uppercase tracking-wide">{s.label}</span>
+                  {/* Center: Banner carousel */}
+                  <div className="relative overflow-hidden" style={{ minHeight: 340 }}>
+                    {BANNERS.map((banner, i) => (
+                      <div
+                        key={banner.id}
+                        className="absolute inset-0 transition-opacity duration-700 flex items-center"
+                        style={{
+                          background: banner.gradient,
+                          opacity: i === bannerIdx ? 1 : 0,
+                          pointerEvents: i === bannerIdx ? "auto" : "none",
+                        }}
+                      >
+                        <div className="px-8 md:px-12 py-10 flex flex-col gap-4 max-w-xl">
+                          <span
+                            className="text-xs font-semibold px-3 py-1 rounded-full w-fit"
+                            style={{ background: "rgba(255,255,255,0.15)", color: banner.accentColor }}
+                          >
+                            {banner.badge}
+                          </span>
+                          <h1
+                            className="text-3xl md:text-4xl font-display font-bold text-white leading-tight whitespace-pre-line"
+                          >
+                            {banner.heading}
+                          </h1>
+                          <p className="text-white/80 text-sm leading-relaxed max-w-sm">
+                            {banner.sub}
+                          </p>
+                          <div className="flex items-center gap-4 flex-wrap">
+                            <button
+                              onClick={() => setLocation(banner.ctaHref)}
+                              className="mkt-btn px-6 py-2.5 rounded text-sm font-bold transition-colors"
+                            >
+                              {banner.cta}
+                            </button>
+                            <span className="text-xs font-medium" style={{ color: banner.accentColor }}>
+                              {banner.stat}
+                            </span>
+                          </div>
+                        </div>
                       </div>
                     ))}
+
+                    {/* Prev / Next */}
+                    <button
+                      onClick={goBannerPrev}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/30 hover:bg-black/50 flex items-center justify-center text-white z-10 transition-colors"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={goBannerNext}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/30 hover:bg-black/50 flex items-center justify-center text-white z-10 transition-colors"
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+
+                    {/* Dot indicators */}
+                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+                      {BANNERS.map((_, i) => (
+                        <button
+                          key={i}
+                          onClick={() => setBannerIdx(i)}
+                          className="w-2 h-2 rounded-full transition-colors"
+                          style={{ background: i === bannerIdx ? "#fff" : "rgba(255,255,255,0.4)" }}
+                        />
+                      ))}
+                    </div>
                   </div>
 
-                  {/* Escrow trust pill */}
-                  <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full px-4 py-2 w-fit">
-                    <Shield className="w-4 h-4 text-white" />
-                    <span className="text-white text-xs font-semibold tracking-wide">{t("hero.escrowNote")}</span>
+                  {/* Right: Quick panels */}
+                  <aside className="hidden lg:flex flex-col border-l border-gray-200">
+                    {/* Buyer Center */}
+                    <div
+                      className="flex-1 p-4 border-b border-gray-200 hover:bg-blue-50 cursor-pointer transition-colors"
+                      onClick={() => setLocation("/account")}
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-7 h-7 rounded bg-blue-100 flex items-center justify-center shrink-0">
+                          <ShoppingBag className="w-3.5 h-3.5 text-blue-700" />
+                        </div>
+                        <span className="text-xs font-bold text-gray-800">Buyer Center</span>
+                      </div>
+                      <ul className="text-[11px] text-gray-500 space-y-1 pl-9">
+                        <li className="hover:text-blue-700 cursor-pointer">→ Source Products</li>
+                        <li className="hover:text-blue-700 cursor-pointer">→ Track Orders</li>
+                        <li className="hover:text-blue-700 cursor-pointer">→ Escrow Protection</li>
+                      </ul>
+                    </div>
+
+                    {/* Seller Center */}
+                    <div
+                      className="flex-1 p-4 border-b border-gray-200 hover:bg-green-50 cursor-pointer transition-colors"
+                      onClick={() => setLocation("/seller")}
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-7 h-7 rounded bg-green-100 flex items-center justify-center shrink-0">
+                          <Store className="w-3.5 h-3.5 text-green-700" />
+                        </div>
+                        <span className="text-xs font-bold text-gray-800">Seller Center</span>
+                      </div>
+                      <ul className="text-[11px] text-gray-500 space-y-1 pl-9">
+                        <li className="hover:text-green-700 cursor-pointer">→ List Products</li>
+                        <li className="hover:text-green-700 cursor-pointer">→ Manage Orders</li>
+                        <li className="hover:text-green-700 cursor-pointer">→ Grow Revenue</li>
+                      </ul>
+                    </div>
+
+                    {/* Affiliate Center */}
+                    <div
+                      className="flex-1 p-4 border-b border-gray-200 hover:bg-purple-50 cursor-pointer transition-colors"
+                      onClick={() => setLocation("/affiliate")}
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-7 h-7 rounded bg-purple-100 flex items-center justify-center shrink-0">
+                          <Users className="w-3.5 h-3.5 text-purple-700" />
+                        </div>
+                        <span className="text-xs font-bold text-gray-800">Affiliate Center</span>
+                      </div>
+                      <ul className="text-[11px] text-gray-500 space-y-1 pl-9">
+                        <li className="hover:text-purple-700 cursor-pointer">→ Earn Commissions</li>
+                        <li className="hover:text-purple-700 cursor-pointer">→ Share Links</li>
+                        <li className="hover:text-purple-700 cursor-pointer">→ Track Earnings</li>
+                      </ul>
+                    </div>
+
+                    {/* App download teaser */}
+                    <div className="p-4 bg-gray-800 text-white">
+                      <p className="text-[11px] font-bold mb-1">📱 Coastaq App</p>
+                      <p className="text-[10px] text-gray-400 mb-2">Trade on the go</p>
+                      <button
+                        onClick={() => setLocation("/auth/register")}
+                        className="w-full py-1.5 text-[11px] font-semibold rounded bg-market hover:bg-red-700 transition-colors"
+                      >
+                        Get Started Free
+                      </button>
+                    </div>
+                  </aside>
+
+                </div>
+              </div>
+            </section>
+
+            {/* ── Category Showcase ── */}
+            {!loadingCats && categories && categories.length > 0 && (
+              <section className="bg-white border-b border-gray-200 py-6">
+                <div className="container mx-auto px-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-base font-display font-bold text-gray-900">Browse by Category</h2>
+                    <button
+                      onClick={() => setLocation("/shop")}
+                      className="text-xs text-market hover:underline font-medium"
+                    >
+                      View All →
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
+                    {categories.slice(0, 16).map(cat => {
+                      const meta = getCategoryMeta(cat.name);
+                      return (
+                        <button
+                          key={cat.id}
+                          onClick={() => navToCategory(cat.id)}
+                          className="flex flex-col items-center gap-2 p-3 rounded bg-white border border-gray-200 hover:border-market hover:shadow-sm transition-all group"
+                        >
+                          <div
+                            className="w-10 h-10 rounded-full flex items-center justify-center transition-transform group-hover:scale-110"
+                            style={{ background: meta.bg, color: meta.fg }}
+                          >
+                            {meta.icon}
+                          </div>
+                          <span className="text-[11px] text-gray-600 text-center font-medium leading-tight line-clamp-2 group-hover:text-market transition-colors">
+                            {tCat(cat.name, lang)}
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
+              </section>
+            )}
 
-                {/* Right: Live featured listing carousel */}
-                <div className="hidden lg:flex flex-col gap-3 shrink-0 w-[856px] z-10">
-                  <div className="rounded-2xl overflow-hidden shadow-2xl border border-white/10">
-                    {/* Image area */}
-                    <div className="relative h-[533px] overflow-hidden" style={{ background: "linear-gradient(135deg, #1e3a5f 0%, #2d5a8e 100%)" }}>
-                      <img
-                        src={carouselImgSrc}
-                        alt={currentFeatured?.title ?? "Featured listing"}
-                        className="w-full h-full object-cover transition-opacity duration-500"
-                        onError={() => setCarouselImgSrc(CAROUSEL_FALLBACK)}
-                      />
-                      {/* Dark overlay for readability */}
-                      <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 60%)" }} />
-                      {/* Prev / Next */}
-                      <button
-                        onClick={goFeaturedPrev}
-                        className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/20 hover:bg-white/35 backdrop-blur-sm flex items-center justify-center transition-colors"
-                      >
-                        <ChevronLeft className="w-4 h-4 text-white" />
-                      </button>
-                      <button
-                        onClick={goFeaturedNext}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/20 hover:bg-white/35 backdrop-blur-sm flex items-center justify-center transition-colors"
-                      >
-                        <ChevronRight className="w-4 h-4 text-white" />
-                      </button>
-                      {/* Badges */}
-                      <div className="absolute bottom-3 left-3 flex gap-2">
-                        <span className="px-2.5 py-1 rounded-full text-xs font-semibold text-white" style={{ background: "#f97316" }}>Featured</span>
-                        {currentFeatured?.shop && (
-                          <span className="px-2.5 py-1 rounded-full text-xs font-semibold text-white bg-primary">Top Seller</span>
-                        )}
+            {/* ── Trust Strip ── */}
+            <section className="bg-white border-b border-gray-200 py-4">
+              <div className="container mx-auto px-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {[
+                    { icon: <Lock className="w-5 h-5 text-blue-600" />, bg: "bg-blue-50", title: t("escrow.paymentInEscrow"), desc: t("escrow.fundsHeld") },
+                    { icon: <Shield className="w-5 h-5 text-green-600" />, bg: "bg-green-50", title: t("escrow.disputeProtection"), desc: t("escrow.disputeDesc") },
+                    { icon: <CheckCircle2 className="w-5 h-5 text-orange-500" />, bg: "bg-orange-50", title: t("escrow.autoRelease"), desc: t("escrow.autoReleaseDesc") },
+                    { icon: <Award className="w-5 h-5 text-purple-600" />, bg: "bg-purple-50", title: "Verified Sellers", desc: "All suppliers checked and reviewed" },
+                  ].map(item => (
+                    <div key={item.title} className="flex items-start gap-3">
+                      <div className={`w-9 h-9 ${item.bg} rounded-full flex items-center justify-center shrink-0`}>
+                        {item.icon}
                       </div>
-                      {/* Dot indicators */}
-                      {featuredProducts.length > 1 && (
-                        <div className="absolute top-3 left-0 right-0 flex justify-center gap-1.5">
-                          {featuredProducts.map((_, i) => (
-                            <button
-                              key={i}
-                              onClick={() => setFeaturedIdx(i)}
-                              className="w-1.5 h-1.5 rounded-full transition-all"
-                              style={{ background: i === featuredIdx ? "#fff" : "rgba(255,255,255,0.4)" }}
-                            />
-                          ))}
-                        </div>
-                      )}
+                      <div>
+                        <p className="text-xs font-bold text-gray-800 leading-none">{item.title}</p>
+                        <p className="text-[11px] text-gray-500 mt-0.5 leading-snug">{item.desc}</p>
+                      </div>
                     </div>
-                    {/* Info */}
-                    <div
-                      className="p-4 cursor-pointer"
-                      style={{ background: "rgba(15, 30, 80, 0.88)", backdropFilter: "blur(12px)" }}
-                      onClick={() => currentFeatured && setLocation(`/products/${currentFeatured.id}`)}
-                    >
-                      <h3 className="text-white font-display font-bold text-base leading-tight mb-1 line-clamp-1">
-                        {currentFeatured?.title ?? "Premium Marketplace Deals"}
-                      </h3>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1.5 text-blue-200/60">
-                          <MapPin className="w-3.5 h-3.5" />
-                          <span className="text-xs truncate max-w-[140px]">
-                            {currentFeatured?.location ?? "Coastaq Global"}
-                          </span>
-                        </div>
-                        <span className="font-bold text-sm shrink-0" style={{ color: "#60a5fa" }}>
-                          {currentFeatured?.price != null ? formatPrice(Number(currentFeatured.price)) : "Explore"} →
-                        </span>
+                  ))}
+                </div>
+              </div>
+            </section>
+
+            {/* ── Stats Banner ── */}
+            <div className="bg-market py-3">
+              <div className="container mx-auto px-4">
+                <div className="flex items-center justify-center gap-8 md:gap-16 flex-wrap">
+                  {[
+                    { value: "2.5M+", label: t("hero.stats.listings") },
+                    { value: "850K+", label: t("hero.stats.sellers") },
+                    { value: "50+", label: "Countries" },
+                    { value: "100%", label: t("hero.stats.escrowSafe") },
+                  ].map(s => (
+                    <div key={s.label} className="text-center">
+                      <p className="text-xl font-display font-bold text-white leading-none">{s.value}</p>
+                      <p className="text-[10px] text-white/70 font-medium uppercase tracking-wide mt-0.5">{s.label}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* ── Latest Products ── */}
+            <section className="container mx-auto px-4 py-8">
+              {productGridSection}
+            </section>
+
+            {/* ── Role Portals ── */}
+            <section className="bg-white border-t border-gray-200 py-12">
+              <div className="container mx-auto px-4">
+                <div className="text-center mb-8">
+                  <h2 className="text-2xl font-display font-bold text-gray-900 mb-2">The Coastaq Ecosystem</h2>
+                  <p className="text-gray-500 text-sm max-w-xl mx-auto">One platform for buyers, sellers, and affiliates to connect, trade, and grow</p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Buyer portal */}
+                  <div className="rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+                    <div className="bg-gradient-to-br from-blue-700 to-blue-900 p-6 text-white">
+                      <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center mb-4">
+                        <ShoppingBag className="w-6 h-6" />
                       </div>
+                      <h3 className="text-lg font-display font-bold mb-1">Buyer Center</h3>
+                      <p className="text-blue-200 text-sm">Source products globally with full escrow protection</p>
+                    </div>
+                    <div className="p-5 bg-white">
+                      <ul className="space-y-2 mb-5">
+                        {["Browse 2.5M+ verified listings", "Escrow-protected payments", "Direct supplier communication", "Track orders in real time"].map(item => (
+                          <li key={item} className="flex items-center gap-2 text-sm text-gray-600">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-green-500 shrink-0" />
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                      <button
+                        onClick={() => setLocation("/auth/register")}
+                        className="w-full py-2.5 bg-blue-700 hover:bg-blue-800 text-white text-sm font-semibold rounded transition-colors"
+                      >
+                        Start Buying →
+                      </button>
                     </div>
                   </div>
-                  <div className="flex items-center justify-center gap-2 text-blue-200/60 text-xs">
-                    <Users className="w-3.5 h-3.5" />
-                    <span>Thousands of buyers active right now</span>
+
+                  {/* Seller portal */}
+                  <div className="rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+                    <div className="bg-gradient-to-br from-green-700 to-emerald-900 p-6 text-white">
+                      <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center mb-4">
+                        <Store className="w-6 h-6" />
+                      </div>
+                      <h3 className="text-lg font-display font-bold mb-1">Seller Center</h3>
+                      <p className="text-green-200 text-sm">List products and reach millions of global buyers</p>
+                    </div>
+                    <div className="p-5 bg-white">
+                      <ul className="space-y-2 mb-5">
+                        {["Free shop setup in minutes", "Fast escrow payouts", "Manage orders & inventory", "Analytics & performance tools"].map(item => (
+                          <li key={item} className="flex items-center gap-2 text-sm text-gray-600">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-green-500 shrink-0" />
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                      <button
+                        onClick={() => setLocation("/auth/register?role=SELLER")}
+                        className="w-full py-2.5 bg-green-700 hover:bg-green-800 text-white text-sm font-semibold rounded transition-colors"
+                      >
+                        Start Selling Free →
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Affiliate portal */}
+                  <div className="rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+                    <div className="bg-gradient-to-br from-purple-700 to-violet-900 p-6 text-white">
+                      <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center mb-4">
+                        <TrendingUp className="w-6 h-6" />
+                      </div>
+                      <h3 className="text-lg font-display font-bold mb-1">Affiliate Center</h3>
+                      <p className="text-purple-200 text-sm">Earn commissions by sharing Coastaq with your audience</p>
+                    </div>
+                    <div className="p-5 bg-white">
+                      <ul className="space-y-2 mb-5">
+                        {["Earn up to 15% per sale", "Custom affiliate links", "Real-time commission tracking", "Monthly payouts"].map(item => (
+                          <li key={item} className="flex items-center gap-2 text-sm text-gray-600">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-green-500 shrink-0" />
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                      <button
+                        onClick={() => setLocation("/auth/register?role=AFFILIATE")}
+                        className="w-full py-2.5 bg-purple-700 hover:bg-purple-800 text-white text-sm font-semibold rounded transition-colors"
+                      >
+                        Join Program Free →
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
             </section>
-          )}
 
-          {/* Escrow Trust Strip — always visible */}
-          <div className="px-4 md:px-6 py-4 border-b border-border/50" style={{ background: "linear-gradient(90deg, #eff6ff 0%, #f0f9ff 100%)" }}>
-            <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-0 justify-between max-w-4xl mx-auto">
-              <div className="flex items-center gap-2 text-blue-700">
-                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
-                  <Lock className="w-4 h-4 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-blue-800 leading-none">{t("escrow.paymentInEscrow")}</p>
-                  <p className="text-[11px] text-blue-600/80 mt-0.5">{t("escrow.fundsHeld")}</p>
-                </div>
-              </div>
-              <div className="hidden sm:block w-px h-8 bg-blue-200/60" />
-              <div className="flex items-center gap-2 text-blue-700">
-                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
-                  <Shield className="w-4 h-4 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-blue-800 leading-none">{t("escrow.disputeProtection")}</p>
-                  <p className="text-[11px] text-blue-600/80 mt-0.5">{t("escrow.disputeDesc")}</p>
+            {/* ── Why Coastaq ── */}
+            <section className="bg-gray-50 py-10 border-t border-gray-200">
+              <div className="container mx-auto px-4">
+                <h2 className="text-xl font-display font-bold text-gray-900 text-center mb-6">Why Trade on Coastaq?</h2>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {[
+                    { icon: <Globe className="w-6 h-6 text-blue-600" />, title: "Global Reach", desc: "Connect with buyers and sellers in 50+ countries" },
+                    { icon: <Shield className="w-6 h-6 text-green-600" />, title: "Safe Payments", desc: "Every transaction protected by escrow" },
+                    { icon: <Zap className="w-6 h-6 text-yellow-500" />, title: "Fast & Easy", desc: "Start buying or selling in minutes" },
+                    { icon: <Tag className="w-6 h-6 text-market" />, title: "Best Prices", desc: "Competitive pricing from verified suppliers" },
+                  ].map(item => (
+                    <div key={item.title} className="bg-white rounded border border-gray-200 p-5 text-center hover:shadow-sm transition-shadow">
+                      <div className="flex justify-center mb-3">{item.icon}</div>
+                      <h4 className="font-display font-bold text-sm text-gray-900 mb-1">{item.title}</h4>
+                      <p className="text-xs text-gray-500 leading-relaxed">{item.desc}</p>
+                    </div>
+                  ))}
                 </div>
               </div>
-              <div className="hidden sm:block w-px h-8 bg-blue-200/60" />
-              <div className="flex items-center gap-2 text-blue-700">
-                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
-                  <CheckCircle2 className="w-4 h-4 text-blue-600" />
+            </section>
+          </>
+        ) : (
+
+          /* ══════════════════════════════════════════════════════
+              BROWSE/SEARCH LAYOUT (with filter active)
+          ══════════════════════════════════════════════════════ */
+          <>
+            {mobileCategoryChips}
+
+            {/* Trust strip compact */}
+            <div className="bg-white border-b border-gray-200 py-2.5 hidden md:block">
+              <div className="container mx-auto px-4">
+                <div className="flex items-center gap-6 text-xs text-gray-500">
+                  <span className="flex items-center gap-1.5"><Lock className="w-3.5 h-3.5 text-blue-500" /> {t("escrow.paymentInEscrow")}</span>
+                  <span className="flex items-center gap-1.5"><Shield className="w-3.5 h-3.5 text-green-500" /> {t("escrow.disputeProtection")}</span>
+                  <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-orange-400" /> Verified Sellers</span>
+                  <button onClick={clearFilters} className="ml-auto text-market hover:underline font-medium">
+                    ← Back to Homepage
+                  </button>
                 </div>
-                <div>
-                  <p className="text-xs font-bold text-blue-800 leading-none">{t("escrow.autoRelease")}</p>
-                  <p className="text-[11px] text-blue-600/80 mt-0.5">{t("escrow.autoReleaseDesc")}</p>
-                </div>
-              </div>
-              <div className="hidden sm:block w-px h-8 bg-blue-200/60" />
-              <div className="flex items-center gap-2">
-                <Shield className="w-4 h-4 text-blue-600 shrink-0" />
-                <span className="text-xs font-bold text-blue-700 uppercase tracking-wide">{t("escrow.everyOrder")}</span>
               </div>
             </div>
-          </div>
 
-          {/* Product Grid */}
-          <div id="product-grid" className="flex-1 px-4 md:px-6 py-6 md:py-8">
-          {/* Header: title + count */}
-          <div className="flex items-center justify-between mb-5 gap-4 flex-wrap">
-            <h2 className="text-xl font-display font-bold text-foreground">
-              {searchQuery
-                ? `Results for "${searchQuery}"`
-                : categoryId
-                ? (() => {
-                    const all = categories ?? [];
-                    const flat = all.flatMap(c => [c, ...((c as any).children ?? [])]);
-                    const found = flat.find((c: any) => c.id === categoryId);
-                    return found ? found.name : "Browse Products";
-                  })()
-                : t("browse.allProducts")}
-            </h2>
-            {!loadingProducts && productsData && productsData.total > 0 && (
-              <span className="text-sm text-muted-foreground bg-secondary/60 px-3 py-1 rounded-full">
-                {productsData.total.toLocaleString()} {t("common.listings")}
-              </span>
-            )}
-          </div>
+            <div className="flex">
+              {/* Category sidebar */}
+              <aside className="hidden md:flex flex-col w-64 shrink-0 border-r border-gray-200 bg-white">
+                <div
+                  className="sticky overflow-y-auto"
+                  style={{ top: "136px", maxHeight: "calc(100vh - 136px)" }}
+                >
+                  <div className="px-4 pt-5 pb-3 border-b border-gray-100">
+                    <p className="font-display font-bold text-sm text-gray-900">{t("browse.categories")}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">{t("browse.findWhat")}</p>
+                  </div>
 
-          {loadingProducts ? (
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
-              {Array.from({ length: PAGE_SIZE }).map((_, i) => (
-                <div key={i} className="space-y-3">
-                  <Skeleton className="aspect-square rounded-2xl" />
-                  <Skeleton className="h-4 w-2/3" />
-                  <Skeleton className="h-4 w-1/4" />
+                  {loadingCats ? (
+                    <div className="px-4 space-y-2 py-4">
+                      {[1,2,3,4,5,6].map(i => <Skeleton key={i} className="h-9 w-full rounded" />)}
+                    </div>
+                  ) : (
+                    <ul className="px-3 py-3 space-y-0.5">
+                      <li>
+                        <button
+                          onClick={clearFilters}
+                          className={`w-full flex items-center justify-between px-3 py-2 rounded text-sm font-medium transition-colors ${!categoryId ? "bg-red-50 text-market" : "text-gray-700 hover:bg-gray-50"}`}
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <div className={`w-7 h-7 rounded flex items-center justify-center shrink-0 ${!categoryId ? "bg-market text-white" : "bg-blue-100 text-blue-700"}`}>
+                              <ShoppingBag className="w-3.5 h-3.5" />
+                            </div>
+                            <span>{t("browse.allProducts")}</span>
+                          </div>
+                        </button>
+                      </li>
+                      {categories?.map((cat) => {
+                        const children = (cat as any).children ?? [];
+                        const isParentActive = categoryId === cat.id;
+                        const isChildActive = children.some((c: any) => c.id === categoryId);
+                        const isOpen = expanded.has(cat.id) || isParentActive || isChildActive;
+                        const meta = getCategoryMeta(cat.name);
+
+                        return (
+                          <li key={cat.id}>
+                            <button
+                              onClick={() => children.length > 0 ? toggleExpand(cat.id) : navToCategory(cat.id)}
+                              className={`w-full flex items-center justify-between px-3 py-2 rounded text-sm font-medium transition-colors ${
+                                isParentActive || isChildActive ? "bg-red-50 text-market" : "text-gray-700 hover:bg-gray-50"
+                              }`}
+                            >
+                              <div className="flex items-center gap-2.5">
+                                <div
+                                  className="w-7 h-7 rounded flex items-center justify-center shrink-0"
+                                  style={{
+                                    background: isParentActive || isChildActive ? "#dc2626" : meta.bg,
+                                    color: isParentActive || isChildActive ? "#fff" : meta.fg,
+                                  }}
+                                >
+                                  {meta.icon}
+                                </div>
+                                <span className="truncate">{tCat(cat.name, lang)}</span>
+                              </div>
+                              {children.length > 0 ? (
+                                <ChevronDown className={`w-3.5 h-3.5 shrink-0 transition-transform ${isOpen ? "rotate-0 text-market" : "-rotate-90 text-gray-300"}`} />
+                              ) : (
+                                <ChevronRight className="w-3.5 h-3.5 text-gray-300 shrink-0" />
+                              )}
+                            </button>
+
+                            {children.length > 0 && isOpen && (
+                              <ul className="ml-3 mt-0.5 mb-1 pl-3 border-l border-gray-200 space-y-0.5">
+                                {children.map((child: any) => (
+                                  <li key={child.id}>
+                                    <button
+                                      onClick={() => navToCategory(child.id)}
+                                      className={`w-full text-left px-3 py-1.5 rounded text-xs font-medium transition-colors ${
+                                        categoryId === child.id
+                                          ? "bg-red-50 text-market"
+                                          : "text-gray-500 hover:bg-gray-50 hover:text-gray-800"
+                                      }`}
+                                    >
+                                      {tCat(child.name, lang)}
+                                    </button>
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
                 </div>
-              ))}
-            </div>
-          ) : productsData?.products.length === 0 ? (
-            <div className="text-center py-20 glass-panel rounded-3xl">
-              <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-secondary text-primary mb-4">
-                <Store className="h-8 w-8" />
+              </aside>
+
+              {/* Product grid */}
+              <div className="flex-1 min-w-0 px-4 md:px-6 py-6">
+                {productGridSection}
               </div>
-              <h3 className="text-xl font-display font-bold text-foreground mb-2">{t("browse.noProducts")}</h3>
-              <p className="text-muted-foreground">{t("browse.noProductsDesc")}</p>
             </div>
-          ) : (
-            <>
-              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
-                {productsData?.products.map((product) => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-              </div>
-
-              {/* Pagination */}
-              {productsData && productsData.totalPages > 1 && (
-                <div className="flex items-center justify-center gap-2 mt-10">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="rounded-xl gap-1"
-                    disabled={page <= 1}
-                    onClick={() => { setPage(p => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                    Prev
-                  </Button>
-
-                  {Array.from({ length: Math.min(productsData.totalPages, 7) }, (_, i) => {
-                    const totalPages = productsData.totalPages;
-                    let pageNum: number;
-                    if (totalPages <= 7) {
-                      pageNum = i + 1;
-                    } else if (page <= 4) {
-                      pageNum = i + 1;
-                    } else if (page >= totalPages - 3) {
-                      pageNum = totalPages - 6 + i;
-                    } else {
-                      pageNum = page - 3 + i;
-                    }
-                    return (
-                      <Button
-                        key={pageNum}
-                        variant={pageNum === page ? "default" : "outline"}
-                        size="sm"
-                        className="rounded-xl w-9 h-9 p-0"
-                        onClick={() => { setPage(pageNum); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                      >
-                        {pageNum}
-                      </Button>
-                    );
-                  })}
-
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="rounded-xl gap-1"
-                    disabled={page >= productsData.totalPages}
-                    onClick={() => { setPage(p => p + 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                  >
-                    Next
-                    <ChevronRight className="w-4 h-4" />
-                  </Button>
-                </div>
-              )}
-            </>
-          )}
-        </div>
-        </div>
+          </>
+        )}
       </main>
 
       <Footer />
