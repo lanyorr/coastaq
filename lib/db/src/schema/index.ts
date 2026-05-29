@@ -11,4 +11,5 @@ export * from "./inventory";
 export * from "./shipments";
 export * from "./analytics";
 export * from "./affiliates";
+export * from "./user-roles";
 export * from "./relations";

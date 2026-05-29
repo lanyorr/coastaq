@@ -17,6 +17,7 @@ import shipmentsRouter from "./shipments.js";
 import analyticsRouter from "./analytics.js";
 import affiliatesRouter from "./affiliates.js";
 import aiRouter from "./ai.js";
+import rolesRouter from "./roles.js";
 
 const router: IRouter = Router();
 
@@ -38,5 +39,6 @@ router.use("/shipments", shipmentsRouter);
 router.use("/analytics", analyticsRouter);
 router.use("/affiliates", affiliatesRouter);
 router.use("/ai", aiRouter);
+router.use("/roles", rolesRouter);
 
 export default router;

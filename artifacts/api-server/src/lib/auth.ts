@@ -2,8 +2,9 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import type { Request, Response, NextFunction } from "express";
 import { db } from "@workspace/db";
-import { usersTable } from "@workspace/db";
+import { usersTable, userRolesTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
+import type { AppRole } from "./rbac.js";
 
 const JWT_SECRET = process.env["SESSION_SECRET"] || "coastaq-dev-secret";
 
@@ -36,55 +37,100 @@ export async function comparePassword(password: string, hash: string): Promise<b
   return bcrypt.compare(password, hash);
 }
 
+/** Fetch all roles for a user from the user_roles table. */
+export async function getUserRoles(userId: string): Promise<AppRole[]> {
+  const rows = await db
+    .select({ role: userRolesTable.role })
+    .from(userRolesTable)
+    .where(eq(userRolesTable.userId, userId));
+  return rows.map(r => r.role as AppRole);
+}
+
+/** Ensure a user has an entry in user_roles for their primary role. */
+export async function ensureUserRole(userId: string, role: AppRole, grantedBy?: string): Promise<void> {
+  await db
+    .insert(userRolesTable)
+    .values({ userId, role, grantedBy: grantedBy || null })
+    .onConflictDoNothing();
+}
+
 declare global {
   namespace Express {
     interface Request {
       userId?: string;
       userRole?: string;
+      userRoles?: AppRole[];
     }
   }
 }
 
+/**
+ * requireAuth middleware
+ * Verifies the JWT, checks the user is not blocked, fetches all multi-roles,
+ * and attaches userId, userRole (primary), and userRoles (all) to the request.
+ */
 export function requireAuth(req: Request, res: Response, next: NextFunction): void {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     res.status(401).json({ error: "Unauthorized" });
     return;
   }
-  const token = authHeader.slice(7);
-  try {
-    const payload = verifyToken(token);
-    req.userId = payload.userId;
-    req.userRole = payload.role;
 
-    // Async blocked-user check — runs without holding up the request chain
-    // We do a quick DB check and abort if blocked
+  const token = authHeader.slice(7);
+  let payload: JwtPayload;
+  try {
+    payload = verifyToken(token);
+  } catch {
+    res.status(401).json({ error: "Invalid token" });
+    return;
+  }
+
+  req.userId = payload.userId;
+  req.userRole = payload.role;
+
+  // DB check: blocked status + multi-roles (single query for both)
+  Promise.all([
     db.select({ isBlocked: usersTable.isBlocked })
       .from(usersTable)
       .where(eq(usersTable.id, payload.userId))
-      .limit(1)
-      .then(([user]) => {
-        if (!user || user.isBlocked) {
-          if (!res.headersSent) {
-            res.status(403).json({ error: "Account suspended" });
-          }
-          return;
-        }
-        next();
-      })
-      .catch(() => next());
-  } catch {
-    res.status(401).json({ error: "Invalid token" });
-  }
+      .limit(1),
+    db.select({ role: userRolesTable.role })
+      .from(userRolesTable)
+      .where(eq(userRolesTable.userId, payload.userId)),
+  ])
+    .then(([userRows, roleRows]) => {
+      if (res.headersSent) return;
+
+      const user = userRows[0];
+      if (!user || user.isBlocked) {
+        res.status(403).json({ error: "Account suspended" });
+        return;
+      }
+
+      // Attach multi-roles; fall back to primary role from JWT if table is empty
+      const dbRoles = roleRows.map(r => r.role as AppRole);
+      req.userRoles = dbRoles.length > 0 ? dbRoles : [payload.role as AppRole];
+
+      next();
+    })
+    .catch(() => {
+      // On DB error, proceed with JWT role only (graceful degradation)
+      req.userRoles = [payload.role as AppRole];
+      next();
+    });
 }
 
+/** Backward-compatible single-role check (checks primary JWT role). */
 export function requireRole(...roles: string[]) {
   return (req: Request, res: Response, next: NextFunction): void => {
     if (!req.userId) {
       res.status(401).json({ error: "Unauthorized" });
       return;
     }
-    if (!roles.includes(req.userRole || "")) {
+    // Check both multi-roles and primary role
+    const userRoles = req.userRoles ?? (req.userRole ? [req.userRole] : []);
+    const hasRole = roles.some(r => userRoles.includes(r));
+    if (!hasRole) {
       res.status(403).json({ error: "Forbidden" });
       return;
     }
@@ -95,9 +141,7 @@ export function requireRole(...roles: string[]) {
 export async function getUserWithShop(userId: string) {
   const user = await db.query.usersTable.findFirst({
     where: eq(usersTable.id, userId),
-    with: {
-      shop: true,
-    },
+    with: { shop: true },
   });
   return user;
 }

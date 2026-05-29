@@ -12,6 +12,7 @@ import { inventoryLogsTable } from "./inventory";
 import { shipmentsTable } from "./shipments";
 import { pageViewsTable } from "./analytics";
 import { affiliatesTable, affiliateLinksTable, affiliateCommissionsTable } from "./affiliates";
+import { userRolesTable } from "./user-roles";
 
 export const usersRelations = relations(usersTable, ({ one, many }) => ({
   shop: one(shopsTable, {
@@ -23,6 +24,12 @@ export const usersRelations = relations(usersTable, ({ one, many }) => ({
     references: [affiliatesTable.userId],
   }),
   pageViews: many(pageViewsTable),
+  roles: many(userRolesTable),
+}));
+
+export const userRolesRelations = relations(userRolesTable, ({ one }) => ({
+  user: one(usersTable, { fields: [userRolesTable.userId], references: [usersTable.id] }),
+  grantedByUser: one(usersTable, { fields: [userRolesTable.grantedBy], references: [usersTable.id], relationName: "grantedRoles" }),
 }));
 
 export const shopsRelations = relations(shopsTable, ({ one, many }) => ({

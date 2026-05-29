@@ -23,6 +23,7 @@ import AdminReports from "@/pages/admin/Reports";
 import AdminAnalytics from "@/pages/admin/Analytics";
 import AdminCategories from "@/pages/admin/Categories";
 import BuyerDashboard from "@/pages/BuyerDashboard";
+import AffiliateDashboard from "@/pages/AffiliateDashboard";
 import Messages from "@/pages/Messages";
 import ChatRoom from "@/pages/ChatRoom";
 import TermsPage from "@/pages/legal/TermsPage";
@@ -34,21 +35,23 @@ import Antiques from "@/pages/Antiques";
 import Shop from "@/pages/Shop";
 import ShopPage from "@/pages/ShopPage";
 
+// Auth / RBAC
+import { ProtectedRoute, DashboardRedirect } from "@/components/auth/ProtectedRoute";
+
 // Setup global fetch interceptor to inject Authorization header
 const originalFetch = window.fetch;
 window.fetch = async (...args) => {
   let [resource, config] = args;
-  if (typeof resource === 'string' && resource.startsWith('/api')) {
-    const token = localStorage.getItem('coastaq_token');
+  if (typeof resource === "string" && resource.startsWith("/api")) {
+    const token = localStorage.getItem("coastaq_token");
     if (token) {
       config = config || {};
-      // Safely merge headers — Headers instances don't spread with {...obj}
-      const merged = new Headers(config.headers instanceof Headers
-        ? Object.fromEntries((config.headers as Headers).entries())
-        : (config.headers as Record<string, string> | undefined) ?? {});
-      if (!merged.has('Authorization')) {
-        merged.set('Authorization', `Bearer ${token}`);
-      }
+      const merged = new Headers(
+        config.headers instanceof Headers
+          ? Object.fromEntries((config.headers as Headers).entries())
+          : (config.headers as Record<string, string> | undefined) ?? {},
+      );
+      if (!merged.has("Authorization")) merged.set("Authorization", `Bearer ${token}`);
       config = { ...config, headers: merged };
     }
   }
@@ -67,33 +70,81 @@ const queryClient = new QueryClient({
 function Router() {
   return (
     <Switch>
+      {/* ── Public routes ──────────────────────────────────────────────────── */}
       <Route path="/" component={Home} />
-      <Route path="/auth/login" component={Login} />
-      <Route path="/auth/register" component={Register} />
       <Route path="/products/:id" component={ProductDetails} />
-      <Route path="/cart" component={Cart} />
-      <Route path="/checkout" component={Checkout} />
-      <Route path="/checkout/paypal/return" component={PayPalReturnPage} />
-      <Route path="/orders" component={Orders} />
-      <Route path="/buyer/dashboard" component={BuyerDashboard} />
-      <Route path="/seller/dashboard" component={SellerDashboard} />
-      <Route path="/admin" component={AdminOverview} />
-      <Route path="/admin/users" component={AdminUsers} />
-      <Route path="/admin/shops" component={AdminShops} />
-      <Route path="/admin/products" component={AdminProducts} />
-      <Route path="/admin/reports" component={AdminReports} />
-      <Route path="/admin/analytics" component={AdminAnalytics} />
-      <Route path="/admin/categories" component={AdminCategories} />
-      <Route path="/messages" component={Messages} />
-      <Route path="/messages/:id" component={ChatRoom} />
+      <Route path="/shop" component={Shop} />
+      <Route path="/shop/:slug" component={ShopPage} />
+      <Route path="/antiques" component={Antiques} />
       <Route path="/terms" component={TermsPage} />
       <Route path="/privacy" component={PrivacyPage} />
       <Route path="/contact" component={ContactPage} />
       <Route path="/refunds" component={RefundPage} />
       <Route path="/seller-agreement" component={SellerAgreementPage} />
-      <Route path="/antiques" component={Antiques} />
-      <Route path="/shop" component={Shop} />
-      <Route path="/shop/:slug" component={ShopPage} />
+
+      {/* ── Auth pages (guest-only: logged-in users get redirected) ────────── */}
+      <Route path="/auth/login">
+        {() => <ProtectedRoute guestOnly component={Login} />}
+      </Route>
+      <Route path="/auth/register">
+        {() => <ProtectedRoute guestOnly component={Register} />}
+      </Route>
+
+      {/* ── Generic dashboard redirect (routes to role-appropriate dashboard) */}
+      <Route path="/dashboard" component={DashboardRedirect} />
+
+      {/* ── Buyer routes ───────────────────────────────────────────────────── */}
+      <Route path="/cart" component={Cart} />
+      <Route path="/checkout" component={Checkout} />
+      <Route path="/checkout/paypal/return" component={PayPalReturnPage} />
+      <Route path="/orders">
+        {() => <ProtectedRoute roles={["BUYER", "SELLER", "ADMIN"]} component={Orders} />}
+      </Route>
+      <Route path="/buyer/dashboard">
+        {() => <ProtectedRoute roles={["BUYER", "SELLER", "ADMIN"]} component={BuyerDashboard} />}
+      </Route>
+
+      {/* ── Seller routes ──────────────────────────────────────────────────── */}
+      <Route path="/seller/dashboard">
+        {() => <ProtectedRoute roles={["SELLER", "ADMIN"]} component={SellerDashboard} />}
+      </Route>
+
+      {/* ── Affiliate routes ───────────────────────────────────────────────── */}
+      <Route path="/affiliate/dashboard">
+        {() => <ProtectedRoute roles={["AFFILIATE", "SELLER", "ADMIN"]} component={AffiliateDashboard} />}
+      </Route>
+
+      {/* ── Admin routes ───────────────────────────────────────────────────── */}
+      <Route path="/admin">
+        {() => <ProtectedRoute roles={["ADMIN"]} component={AdminOverview} />}
+      </Route>
+      <Route path="/admin/users">
+        {() => <ProtectedRoute roles={["ADMIN"]} component={AdminUsers} />}
+      </Route>
+      <Route path="/admin/shops">
+        {() => <ProtectedRoute roles={["ADMIN"]} component={AdminShops} />}
+      </Route>
+      <Route path="/admin/products">
+        {() => <ProtectedRoute roles={["ADMIN"]} component={AdminProducts} />}
+      </Route>
+      <Route path="/admin/reports">
+        {() => <ProtectedRoute roles={["ADMIN"]} component={AdminReports} />}
+      </Route>
+      <Route path="/admin/analytics">
+        {() => <ProtectedRoute roles={["ADMIN"]} component={AdminAnalytics} />}
+      </Route>
+      <Route path="/admin/categories">
+        {() => <ProtectedRoute roles={["ADMIN"]} component={AdminCategories} />}
+      </Route>
+
+      {/* ── Messaging (any authenticated user) ────────────────────────────── */}
+      <Route path="/messages">
+        {() => <ProtectedRoute roles={["BUYER", "SELLER", "AFFILIATE", "ADMIN"]} component={Messages} />}
+      </Route>
+      <Route path="/messages/:id">
+        {() => <ProtectedRoute roles={["BUYER", "SELLER", "AFFILIATE", "ADMIN"]} component={ChatRoom} />}
+      </Route>
+
       <Route component={NotFound} />
     </Switch>
   );
