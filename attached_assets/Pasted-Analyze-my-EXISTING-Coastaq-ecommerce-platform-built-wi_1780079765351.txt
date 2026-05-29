@@ -1,0 +1,321 @@
+Analyze my EXISTING Coastaq ecommerce platform built with Replit + Supabase and EXTEND it with a scalable affiliate and influencer system WITHOUT rebuilding existing systems.
+
+IMPORTANT:
+- DO NOT rebuild backend
+- DO NOT recreate authentication
+- DO NOT change existing database architecture unnecessarily
+- DO NOT break current ecommerce functionality
+- DO NOT replace Supabase
+- Preserve existing users, products, orders, and checkout flows
+- Extend existing architecture modularly
+- Focus on affiliate workflow, tracking, dashboard, and creator economy infrastructure
+
+FIRST:
+Analyze the current system and identify:
+- existing authentication flow
+- existing user system
+- existing order flow
+- existing product system
+- existing dashboard structure
+- existing payment system
+- reusable components
+- reusable APIs
+- scalable extension points
+
+THEN:
+Design and implement a scalable affiliate workflow for Coastaq.
+
+AFFILIATE SYSTEM GOALS:
+- allow users to become affiliates
+- support influencer marketing
+- support creator economy
+- support seller-affiliate collaboration
+- support commission tracking
+- support real-time earnings
+- support referral tracking
+- preserve existing ecommerce flows
+
+PART 1 — AFFILIATE REGISTRATION WORKFLOW
+
+Implement affiliate onboarding flow.
+
+Requirements:
+- users register normally using existing auth system
+- users can apply to become affiliates
+- affiliate role added to existing user account
+- support multi-role users
+
+Supported roles:
+- buyer
+- seller
+- affiliate
+- admin
+
+Workflow:
+User Signup
+→ Apply As Affiliate
+→ Fill Affiliate Application
+→ Approval
+→ Affiliate Dashboard Activated
+
+Affiliate application form fields:
+- full name
+- country
+- social media links
+- traffic sources
+- niche/category
+- payout method
+- short bio
+
+Requirements:
+- preserve current auth
+- integrate into existing user system
+- support role-based access control
+- use Supabase row-level security
+
+Generate:
+- affiliate onboarding flow
+- role upgrade system
+- affiliate application forms
+- role middleware
+- affiliate approval system
+
+PART 2 — AFFILIATE DASHBOARD
+
+Create a professional affiliate dashboard.
+
+Dashboard route:
+- /affiliate
+
+Features:
+- earnings overview
+- pending commissions
+- approved commissions
+- paid commissions
+- referral links
+- coupon codes
+- analytics dashboard
+- clicks tracking
+- conversions tracking
+- top-performing products
+- payout requests
+- affiliate profile settings
+
+UI Requirements:
+- professional marketplace dashboard
+- responsive design
+- analytics widgets
+- charts
+- realtime updates
+- modern sidebar navigation
+
+Generate:
+- affiliate dashboard pages
+- analytics components
+- earnings widgets
+- referral management pages
+- payout pages
+
+PART 3 — REFERRAL LINK SYSTEM
+
+Build scalable referral tracking infrastructure.
+
+Referral link format:
+- coastaq.com/product/123?ref=username
+
+Requirements:
+- automatic referral code generation
+- track affiliate clicks
+- track product visits
+- track conversions
+- support coupon attribution
+- support multi-product referrals
+
+Tracking system:
+- cookies
+- session tracking
+- server-side attribution
+- order attribution
+
+Generate:
+- referral tracking middleware
+- affiliate link generator
+- tracking database tables
+- attribution system
+- analytics tracking services
+
+PART 4 — COMMISSION ENGINE
+
+Build a scalable commission system.
+
+Requirements:
+- product-level commissions
+- seller-defined commissions
+- affiliate earnings tracking
+- automatic commission calculation
+- refund/reversal handling
+
+Commission statuses:
+- pending
+- locked
+- approved
+- paid
+- reversed
+
+Requirements:
+- integrate into existing order flow
+- preserve checkout system
+- preserve payment system
+
+Generate:
+- commission engine
+- commission services
+- commission tables
+- commission calculation logic
+- payout readiness system
+
+PART 5 — AFFILIATE ANALYTICS
+
+Create detailed affiliate analytics infrastructure.
+
+Track:
+- clicks
+- conversions
+- sales
+- conversion rates
+- revenue
+- commission history
+- top products
+- traffic sources
+
+Requirements:
+- realtime updates
+- dashboard widgets
+- chart visualizations
+- scalable analytics architecture
+
+Generate:
+- analytics services
+- affiliate charts
+- reporting system
+- realtime analytics widgets
+
+PART 6 — PAYOUT SYSTEM
+
+Build affiliate payout workflow.
+
+Supported payout methods:
+- PayPal
+- bank transfer
+- mobile money
+- crypto (future-ready)
+
+Workflow:
+Affiliate Earnings
+→ Minimum Threshold
+→ Withdrawal Request
+→ Admin Review
+→ Payment Sent
+
+Requirements:
+- payout request system
+- payout approval flow
+- payout history
+- admin payout management
+
+Generate:
+- payout tables
+- payout APIs
+- payout dashboard
+- admin payout tools
+
+PART 7 — SELLER + AFFILIATE CONNECTION
+
+Allow sellers to work with affiliates.
+
+Features:
+- seller affiliate campaigns
+- seller-defined commissions
+- sponsored campaigns
+- affiliate invitations
+- featured products
+
+Generate:
+- seller-affiliate campaign system
+- campaign management pages
+- seller affiliate tools
+
+PART 8 — TRUST + FRAUD PREVENTION
+
+Implement basic fraud prevention.
+
+Requirements:
+- prevent self-referrals
+- suspicious click detection
+- duplicate conversion detection
+- fake traffic monitoring
+
+Generate:
+- fraud detection middleware
+- validation logic
+- suspicious activity logging
+
+PART 9 — HOMEPAGE AFFILIATE EXPERIENCE
+
+Create affiliate-focused homepage sections.
+
+Requirements:
+- “Earn With Coastaq” CTA
+- affiliate landing page
+- affiliate benefits section
+- creator onboarding section
+- influencer campaign banners
+
+Generate:
+- affiliate homepage sections
+- affiliate onboarding UI
+- creator economy landing pages
+
+PART 10 — DATABASE + ARCHITECTURE
+
+Generate scalable affiliate database structure.
+
+Create:
+- affiliate_profiles
+- affiliate_links
+- affiliate_clicks
+- commissions
+- payouts
+- affiliate_campaigns
+- coupon_tracking
+
+Requirements:
+- optimized indexing
+- scalable queries
+- Supabase-compatible schema
+- realtime-ready structure
+
+IMPORTANT DEVELOPMENT RULES:
+- analyze first before modifying
+- extend existing architecture only
+- modular implementation
+- preserve current ecommerce system
+- preserve Supabase auth
+- use reusable services
+- responsive design
+- scalable architecture
+- enterprise marketplace structure
+
+FINALLY GENERATE:
+1. affiliate workflow architecture
+2. database migrations
+3. frontend dashboard structure
+4. referral tracking system
+5. commission engine
+6. payout architecture
+7. analytics system
+8. role management
+9. fraud prevention system
+10. implementation roadmap
+11. reusable service architecture
+12. responsive affiliate UX
