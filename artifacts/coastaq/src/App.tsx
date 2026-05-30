@@ -46,6 +46,8 @@ import SellerEarningsPage from "@/pages/seller/SellerEarningsPage";
 import SellerSubscriptionPage from "@/pages/seller/SellerSubscriptionPage";
 import SellerShopPage from "@/pages/seller/SellerShopPage";
 import SellerCampaignsPage from "@/pages/seller/SellerCampaignsPage";
+import BulkImportPage from "@/pages/seller/BulkImportPage";
+import ImportHistoryPage from "@/pages/seller/ImportHistoryPage";
 import AffiliateEarnPage from "@/pages/affiliate/AffiliateEarnPage";
 
 import AffiliateOverview from "@/pages/affiliate/index";
@@ -163,6 +165,12 @@ function Router() {
       </Route>
       <Route path="/seller/campaigns">
         {() => <ProtectedRoute roles={["SELLER", "ADMIN"]} component={SellerCampaignsPage} />}
+      </Route>
+      <Route path="/seller/import/history">
+        {() => <ProtectedRoute roles={["SELLER", "ADMIN"]} component={ImportHistoryPage} />}
+      </Route>
+      <Route path="/seller/import">
+        {() => <ProtectedRoute roles={["SELLER", "ADMIN"]} component={BulkImportPage} />}
       </Route>
       {/* Backward-compat redirect */}
       <Route path="/seller/dashboard">{() => <Redirect to="/seller" />}</Route>

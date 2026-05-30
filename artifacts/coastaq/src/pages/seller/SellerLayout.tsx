@@ -3,6 +3,7 @@ import { DashboardLayout, type SidebarItem } from "@/components/dashboard/Dashbo
 import {
   LayoutDashboard, Package, ShoppingBag, MessageCircle,
   DollarSign, CreditCard, Settings, Store, Megaphone,
+  Upload, History,
 } from "lucide-react";
 
 function useSellerUnread() {
@@ -20,14 +21,16 @@ export function SellerLayout({ children }: { children: React.ReactNode }) {
   const unread = useSellerUnread();
 
   const items: SidebarItem[] = [
-    { href: "/seller",              label: "Overview",     icon: LayoutDashboard, exact: true },
-    { href: "/seller/products",     label: "Products",     icon: Package },
-    { href: "/seller/orders",       label: "Orders",       icon: ShoppingBag },
-    { href: "/seller/messages",     label: "Messages",     icon: MessageCircle, badge: unread },
-    { href: "/seller/earnings",     label: "Earnings",     icon: DollarSign },
-    { href: "/seller/campaigns",    label: "Campaigns",    icon: Megaphone },
-    { href: "/seller/subscription", label: "Subscription", icon: CreditCard },
-    { href: "/seller/shop",         label: "Shop Settings", icon: Settings },
+    { href: "/seller",               label: "Overview",      icon: LayoutDashboard, exact: true },
+    { href: "/seller/products",      label: "Products",      icon: Package },
+    { href: "/seller/orders",        label: "Orders",        icon: ShoppingBag },
+    { href: "/seller/messages",      label: "Messages",      icon: MessageCircle, badge: unread },
+    { href: "/seller/earnings",      label: "Earnings",      icon: DollarSign },
+    { href: "/seller/import",        label: "Bulk Import",   icon: Upload },
+    { href: "/seller/import/history",label: "Import History",icon: History },
+    { href: "/seller/campaigns",     label: "Campaigns",     icon: Megaphone },
+    { href: "/seller/subscription",  label: "Subscription",  icon: CreditCard },
+    { href: "/seller/shop",          label: "Shop Settings", icon: Settings },
   ];
 
   return (

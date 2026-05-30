@@ -1,0 +1,418 @@
+Analyze my EXISTING Coastaq marketplace built with Replit + Supabase and implement a PREMIUM Seller CSV Bulk Import System as a paid seller feature.
+
+IMPORTANT:
+- DO NOT rebuild the existing platform
+- DO NOT modify existing authentication
+- DO NOT recreate seller accounts
+- DO NOT change existing product architecture unnecessarily
+- Preserve all existing products, sellers, orders and inventory
+- Extend the existing seller dashboard modularly
+- Use existing Supabase architecture
+- Build as an enterprise-grade marketplace feature
+
+GOAL:
+Transform Coastaq into a professional supplier marketplace by allowing sellers to bulk upload products via CSV as a premium seller service.
+
+BUSINESS MODEL
+
+CSV Import is a paid seller feature.
+
+FREE SELLERS:
+- Manual product creation only
+- Limited product uploads
+- No bulk import access
+
+PRO SELLERS:
+- CSV bulk imports
+- Bulk product updates
+- Import history
+- Saved mappings
+- Advanced validation
+- Product export
+
+Create a scalable subscription-gated architecture.
+
+===================================================
+PHASE 1 — ANALYZE EXISTING SYSTEM
+===================================================
+
+Analyze:
+- seller dashboard
+- products module
+- inventory module
+- categories
+- product creation flow
+- seller subscription system
+- seller permissions
+- existing database schema
+
+Identify:
+- extension points
+- reusable components
+- performance concerns
+- existing APIs
+
+Generate recommendations before implementation.
+
+===================================================
+PHASE 2 — SELLER PREMIUM FEATURE GATING
+===================================================
+
+Implement feature access control.
+
+Requirements:
+
+Only sellers with:
+- Pro Plan
+- Business Plan
+- Enterprise Plan
+
+can access:
+
+Seller Dashboard
+→ Products
+→ Bulk CSV Import
+
+If seller is on Free Plan:
+
+Display premium upgrade page.
+
+Upgrade Modal:
+
+Unlock Seller Pro
+
+Features:
+✓ CSV Bulk Import
+✓ Bulk Product Updates
+✓ Advanced Analytics
+✓ Inventory Reports
+✓ Product Export
+✓ Affiliate Campaign Tools
+
+[Upgrade Now]
+
+Generate:
+- subscription checks
+- permission middleware
+- upgrade pages
+- access guards
+
+===================================================
+PHASE 3 — SELLER DASHBOARD INTEGRATION
+===================================================
+
+Add menu items:
+
+Seller Dashboard
+
+Products
+├── All Products
+├── Add Product
+├── Categories
+├── Bulk CSV Import
+├── Import History
+└── Export Products
+
+Create professional UI.
+
+Requirements:
+- responsive design
+- modern marketplace style
+- desktop + mobile support
+
+===================================================
+PHASE 4 — CSV IMPORT SYSTEM
+===================================================
+
+Build complete CSV import workflow.
+
+Workflow:
+
+Upload CSV
+↓
+Detect Columns
+↓
+Map Fields
+↓
+Validate Data
+↓
+Preview Import
+↓
+Import Products
+↓
+Success Report
+
+Requirements:
+- drag and drop upload
+- CSV parser
+- upload progress
+- large file support
+- background processing
+
+===================================================
+PHASE 5 — DOWNLOADABLE TEMPLATES
+===================================================
+
+Generate CSV templates.
+
+Templates:
+
+Basic Product Template
+Advanced Product Template
+Fashion Template
+Electronics Template
+Wholesale Template
+
+Fields supported:
+
+- product name
+- description
+- category
+- SKU
+- price
+- stock
+- MOQ
+- brand
+- weight
+- dimensions
+- image URLs
+- shipping information
+
+Allow sellers to download templates.
+
+===================================================
+PHASE 6 — SMART FIELD MAPPING
+===================================================
+
+Implement intelligent field mapping.
+
+Example:
+
+product_name → Product Name
+title → Product Name
+cost → Price
+qty → Stock
+inventory → Stock
+
+Requirements:
+- auto-detection
+- manual mapping
+- save mapping profiles
+- reusable mappings
+
+Create:
+
+Field Mapping Screen
+
+CSV Field → Coastaq Field
+
+with dropdown selectors.
+
+===================================================
+PHASE 7 — VALIDATION ENGINE
+===================================================
+
+Validate before import.
+
+Check:
+
+- missing product names
+- invalid prices
+- invalid stock values
+- invalid categories
+- invalid image URLs
+- duplicate SKUs
+- duplicate products
+- unsupported data
+
+Display:
+
+Row Number
+Issue
+Suggested Fix
+
+Example:
+
+Row 25
+Missing Product Name
+
+Row 43
+Category Not Found
+
+Allow correction before import.
+
+===================================================
+PHASE 8 — IMPORT PREVIEW
+===================================================
+
+Create preview screen.
+
+Display:
+
+Product
+Category
+Price
+Stock
+Status
+
+Status:
+✓ Ready
+⚠ Warning
+✗ Error
+
+Requirements:
+- preview before import
+- selectable rows
+- import summary
+- estimated import count
+
+===================================================
+PHASE 9 — PRODUCT IMPORT ENGINE
+===================================================
+
+Import Modes:
+
+Mode 1:
+Create New Products
+
+Mode 2:
+Update Existing Products
+
+Mode 3:
+Create + Update
+
+Requirements:
+- SKU matching
+- product matching
+- category matching
+- inventory updates
+
+Prevent duplicate products.
+
+===================================================
+PHASE 10 — IMAGE IMPORT AUTOMATION
+===================================================
+
+Support image URL imports.
+
+Workflow:
+
+CSV Image URL
+↓
+Validate Image
+↓
+Download Image
+↓
+Store in Supabase Storage
+↓
+Attach to Product
+
+Requirements:
+- image validation
+- storage optimization
+- import reporting
+
+===================================================
+PHASE 11 — IMPORT HISTORY
+===================================================
+
+Create import history module.
+
+Display:
+
+Import Date
+File Name
+Products Imported
+Failed Rows
+Status
+
+Actions:
+
+- View Report
+- Download Report
+- Retry Failed Rows
+
+===================================================
+PHASE 12 — DATABASE ARCHITECTURE
+===================================================
+
+Create scalable tables:
+
+seller_imports
+seller_import_rows
+field_mappings
+import_reports
+
+Include:
+
+- indexes
+- foreign keys
+- audit logs
+- seller ownership controls
+
+Use Supabase RLS.
+
+===================================================
+PHASE 13 — PERFORMANCE & SCALABILITY
+===================================================
+
+Requirements:
+
+- support 10,000+ products
+- background jobs
+- queue processing
+- lazy loading
+- pagination
+- optimized queries
+
+Prevent browser crashes.
+
+===================================================
+PHASE 14 — FUTURE MIGRATION FRAMEWORK
+===================================================
+
+Prepare architecture for future imports from:
+
+- Shopify
+- WooCommerce
+- Magento
+- Amazon
+- Custom Supplier Files
+
+Do not fully implement yet.
+
+Create scalable adapters.
+
+===================================================
+PHASE 15 — ADMIN MANAGEMENT
+===================================================
+
+Admin Dashboard Features:
+
+- view imports
+- monitor usage
+- manage seller plans
+- monitor failed imports
+- import analytics
+
+===================================================
+FINAL DELIVERABLES
+===================================================
+
+Generate:
+
+1. complete CSV import architecture
+2. seller subscription gating
+3. database migrations
+4. field mapping engine
+5. validation engine
+6. preview system
+7. import processing service
+8. image import automation
+9. import history module
+10. admin monitoring tools
+11. responsive UI components
+12. scalable Supabase implementation
+
+IMPORTANT:
+Build this as a premium seller feature INSIDE the Seller Dashboard, not as a separate application, while keeping the architecture scalable enough for future enterprise suppliers.
