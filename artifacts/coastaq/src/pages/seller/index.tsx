@@ -1,34 +1,40 @@
 import { useGetMe, useListProducts, useListMyShops } from "@workspace/api-client-react";
 import { SellerLayout } from "./SellerLayout";
-import { StatCard, StatGrid } from "@/components/dashboard/StatCard";
+import { StatCard, StatGrid, DarkTooltip } from "@/components/dashboard/StatCard";
 import { useLocation } from "wouter";
 import { useEffect, useState } from "react";
 import {
-  Package, ShoppingBag, DollarSign, TrendingUp,
-  Store, ChevronRight, AlertCircle, Clock, ArrowUpRight,
-  BarChart2, Zap,
+  Package, ShoppingBag, DollarSign, TrendingUp, Store, AlertCircle, Clock,
 } from "lucide-react";
 import { useSubscriptionStatus } from "@/hooks/use-subscription";
+import {
+  ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip,
+  PieChart, Pie, Cell, Legend,
+} from "recharts";
 
-function MiniBarChart({ values, color = "#3b82f6" }: { values: number[]; color?: string }) {
-  const max = Math.max(...values, 1);
-  return (
-    <div className="flex items-end gap-1" style={{ height: 48 }}>
-      {values.map((v, i) => (
-        <div key={i} className="flex-1 rounded-sm transition-all"
-          style={{ height: `${Math.max(4, (v / max) * 100)}%`, background: `${color}40` }} />
-      ))}
-    </div>
-  );
-}
-
-const STATUS_CFG: Record<string, { label: string; bg: string; text: string }> = {
-  PENDING:   { label: "Pending",   bg: "rgba(234,179,8,0.15)",   text: "#eab308" },
-  CONFIRMED: { label: "Confirmed", bg: "rgba(59,130,246,0.15)",  text: "#60a5fa" },
-  SHIPPED:   { label: "Shipped",   bg: "rgba(139,92,246,0.15)",  text: "#a78bfa" },
-  DELIVERED: { label: "Delivered", bg: "rgba(52,211,153,0.15)",  text: "#34d399" },
-  CANCELLED: { label: "Cancelled", bg: "rgba(239,68,68,0.15)",   text: "#f87171" },
+const C = {
+  bg:  "#1a1040",
+  bdr: "#281850",
+  muted: "#7b80b5",
+  blue: "#2563eb",
+  orange: "#f97316",
+  green: "#10b981",
+  purple: "#8b5cf6",
+  yellow: "#eab308",
+  red: "#ef4444",
 };
+
+const STATUS_COLORS: Record<string, string> = {
+  PENDING: C.yellow, CONFIRMED: C.blue, SHIPPED: C.purple,
+  DELIVERED: C.green, CANCELLED: C.red,
+};
+
+const STATUS_LABEL: Record<string, string> = {
+  PENDING: "Pending", CONFIRMED: "Confirmed", SHIPPED: "Shipped",
+  DELIVERED: "Delivered", CANCELLED: "Cancelled",
+};
+
+const DAY_ABBR = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 export default function SellerOverview() {
   const [, setLocation] = useLocation();
@@ -49,191 +55,182 @@ export default function SellerOverview() {
   }, []);
 
   const pendingOrders = sellerOrders.filter(o => o.status === "PENDING").length;
-  const completedOrders = sellerOrders.filter(o => o.status === "DELIVERED").length;
   const totalRevenue = sellerOrders.filter(o => o.status !== "CANCELLED").reduce((s: number, o: any) => s + Number(o.total ?? 0), 0);
   const recentOrders = sellerOrders.slice(0, 6);
 
-  // Build 7-day revenue bars from orders
-  const revenueByDay = Array.from({ length: 7 }, (_, i) => {
+  /* 7-day revenue bars */
+  const revenueData = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(); d.setDate(d.getDate() - (6 - i));
-    const ds = d.toDateString();
-    return sellerOrders.filter(o => new Date(o.createdAt).toDateString() === ds && o.status !== "CANCELLED")
+    const total = sellerOrders
+      .filter(o => new Date(o.createdAt).toDateString() === d.toDateString() && o.status !== "CANCELLED")
       .reduce((s: number, o: any) => s + Number(o.total ?? 0), 0);
+    return { day: DAY_ABBR[d.getDay()], Revenue: parseFloat(total.toFixed(2)) };
   });
 
-  const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-  const today = new Date().getDay();
-  const dayBars = Array.from({ length: 7 }, (_, i) => {
-    const idx = ((today - 6 + i) + 7) % 7;
-    return { label: DAY_LABELS[idx], v: revenueByDay[i] };
-  });
-  const maxBar = Math.max(...revenueByDay, 1);
+  /* Order status donut */
+  const statusCounts: Record<string, number> = {};
+  sellerOrders.forEach(o => { statusCounts[o.status] = (statusCounts[o.status] ?? 0) + 1; });
+  const statusData = Object.entries(statusCounts)
+    .filter(([, v]) => v > 0)
+    .map(([name, value]) => ({ name: STATUS_LABEL[name] ?? name, value, color: STATUS_COLORS[name] ?? "#6b7280" }));
 
   return (
     <SellerLayout>
-      {/* Profile header */}
-      <div className="rounded-2xl p-6 mb-6 flex flex-col sm:flex-row sm:items-center gap-5" style={{ background: "#0d1d3d", border: "1px solid #173069" }}>
-        <div className="w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 text-white text-2xl font-bold" style={{ background: "linear-gradient(135deg, #10b981, #059669)" }}>
+      {/* Title banner */}
+      <div className="rounded-2xl px-6 py-5 mb-6 flex flex-col sm:flex-row sm:items-center gap-3"
+        style={{ background: C.bg, border: `1px solid ${C.bdr}` }}>
+        <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
+          style={{ background: "linear-gradient(135deg,#10b981,#059669)" }}>
           {activeShop?.logo
-            ? <img src={activeShop.logo} alt="" className="w-full h-full object-cover rounded-2xl" />
-            : <Store style={{ width: 28, height: 28 }} />
-          }
+            ? <img src={activeShop.logo} className="w-full h-full object-cover rounded-xl" alt="" />
+            : <Store style={{ width: 22, height: 22, color: "#fff" }} />}
         </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h1 className="text-xl font-bold text-white">{activeShop?.name ?? "Seller Hub"}</h1>
-            {(sub as any)?.isActive && (
-              <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{ background: "rgba(52,211,153,0.15)", color: "#34d399" }}>Active</span>
-            )}
-            {subExpired && (
-              <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{ background: "rgba(239,68,68,0.15)", color: "#f87171" }}>Expired</span>
-            )}
+        <div className="flex-1">
+          <h1 className="text-xl font-extrabold text-white leading-tight">
+            {activeShop?.name ?? "Seller"} — Sales Dashboard
+          </h1>
+          <p className="text-sm mt-0.5" style={{ color: C.muted }}>
+            {(user as any)?.email}
             {activeShop?.isApproved === false && (
-              <span className="text-xs px-2 py-0.5 rounded-full font-semibold flex items-center gap-1" style={{ background: "rgba(234,179,8,0.15)", color: "#eab308" }}>
-                <Clock style={{ width: 10, height: 10 }} />Pending
+              <span className="ml-2 inline-flex items-center gap-1 text-xs font-semibold" style={{ color: C.yellow }}>
+                <Clock style={{ width: 11, height: 11 }} />Pending approval
               </span>
             )}
-          </div>
-          <p className="text-sm mt-0.5" style={{ color: "#8693b0" }}>{(user as any)?.email}</p>
-          <div className="flex gap-4 mt-2">
-            <div><span className="text-white font-bold">{products.length}</span><span className="text-xs ml-1" style={{ color: "#64748b" }}>products</span></div>
-            <div><span className="text-white font-bold">{completedOrders}</span><span className="text-xs ml-1" style={{ color: "#64748b" }}>completed orders</span></div>
-            <div><span className="text-white font-bold">{analytics?.shopViews ?? "—"}</span><span className="text-xs ml-1" style={{ color: "#64748b" }}>shop views</span></div>
-          </div>
+          </p>
         </div>
-        <div className="flex gap-2 shrink-0 flex-wrap sm:flex-nowrap">
-          <button onClick={() => setLocation("/seller/products")} className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90" style={{ background: "#10b981" }}>
-            <Package style={{ width: 14, height: 14 }} />Add Product
-          </button>
-          <button onClick={() => setLocation("/seller/orders")} className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-all" style={{ background: "rgba(255,255,255,0.07)", color: "#c8d0e0" }}>
-            <ShoppingBag style={{ width: 14, height: 14 }} />Orders
-          </button>
+        <div className="flex gap-2 shrink-0">
+          {(sub as any)?.isActive
+            ? <span className="text-xs px-3 py-1 rounded-full font-semibold" style={{ background: "rgba(16,185,129,0.15)", color: C.green }}>Active Plan</span>
+            : subExpired && <span className="text-xs px-3 py-1 rounded-full font-semibold" style={{ background: "rgba(239,68,68,0.15)", color: C.red }}>Expired</span>
+          }
         </div>
       </div>
 
-      {/* Subscription expired banner */}
+      {/* Subscription expired */}
       {subExpired && (
-        <div className="flex items-center gap-3 rounded-2xl p-4 mb-6" style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.25)" }}>
-          <AlertCircle className="w-5 h-5 shrink-0" style={{ color: "#f87171" }} />
+        <div className="flex items-center gap-3 rounded-2xl p-4 mb-5" style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)" }}>
+          <AlertCircle style={{ width: 18, height: 18, color: C.red, flexShrink: 0 }} />
           <div className="flex-1">
-            <p className="text-sm font-semibold" style={{ color: "#fca5a5" }}>Subscription expired</p>
-            <p className="text-xs" style={{ color: "#f87171" }}>Renew to keep your products active and visible to buyers.</p>
+            <p className="text-sm font-semibold" style={{ color: "#fca5a5" }}>Subscription expired — renew to keep products visible.</p>
           </div>
-          <button onClick={() => setLocation("/seller/subscription")} className="text-xs font-semibold px-3 py-1.5 rounded-xl transition-colors" style={{ background: "rgba(239,68,68,0.2)", color: "#fca5a5" }}>
-            Renew →
-          </button>
+          <button onClick={() => setLocation("/seller/subscription")} className="text-xs font-bold px-3 py-1.5 rounded-xl" style={{ background: "rgba(239,68,68,0.2)", color: "#fca5a5" }}>Renew →</button>
         </div>
       )}
 
-      {/* Stats grid */}
+      {/* KPI row */}
       <StatGrid cols={4}>
-        <StatCard label="Total Products"   value={products.length}              icon={Package}    color="bg-emerald-100 text-emerald-600" />
-        <StatCard label="Total Orders"     value={sellerOrders.length}          icon={ShoppingBag} color="bg-blue-100 text-blue-600"
-          subtext={pendingOrders > 0 ? `${pendingOrders} pending` : "All clear"} />
-        <StatCard label="Revenue"          value={`$${totalRevenue.toFixed(2)}`} icon={DollarSign} color="bg-purple-100 text-purple-600" highlight />
-        <StatCard label="Shop Views (30d)" value={analytics?.shopViews ?? "—"}  icon={TrendingUp}  color="bg-orange-100 text-orange-600" />
+        <StatCard label="Total Revenue"  value={`$${totalRevenue.toFixed(0)}`} icon={DollarSign} color="bg-green-100 text-green-600"  highlight />
+        <StatCard label="Total Orders"   value={sellerOrders.length}           icon={ShoppingBag} color="bg-blue-100 text-blue-600"
+          subtext={pendingOrders > 0 ? `${pendingOrders} pending` : undefined} />
+        <StatCard label="Products"       value={products.length}               icon={Package}    color="bg-purple-100 text-purple-600" />
+        <StatCard label="Shop Views (30d)" value={analytics?.shopViews ?? "—"} icon={TrendingUp}  color="bg-orange-100 text-orange-600" />
       </StatGrid>
 
-      {/* Revenue chart + Quick actions */}
+      {/* Charts row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4">
-        {/* Revenue chart */}
-        <div className="lg:col-span-2 rounded-2xl p-6" style={{ background: "#0d1d3d", border: "1px solid #173069" }}>
-          <div className="flex items-center justify-between mb-5">
-            <div>
-              <p className="text-white font-bold">Revenue (Last 7 Days)</p>
-              <p className="text-sm mt-0.5" style={{ color: "#64748b" }}>Daily order totals</p>
-            </div>
-            <div className="flex items-center gap-1.5 text-xs font-medium" style={{ color: "#8693b0" }}>
-              <BarChart2 style={{ width: 14, height: 14, color: "#3b82f6" }} />
-              7-day view
-            </div>
-          </div>
-          {/* Bars */}
-          <div className="flex items-end gap-2" style={{ height: 96 }}>
-            {dayBars.map(({ label, v }, i) => {
-              const isToday = i === 6;
-              const pct = Math.max(4, (v / maxBar) * 100);
-              return (
-                <div key={i} className="flex-1 flex flex-col items-center gap-1.5">
-                  <div className="w-full rounded-t-md transition-all" style={{
-                    height: `${pct}%`,
-                    background: isToday ? "#3b82f6" : "rgba(59,130,246,0.3)",
-                  }} />
-                  <span className="text-[10px]" style={{ color: isToday ? "#93c5fd" : "#475569" }}>{label}</span>
-                </div>
-              );
-            })}
-          </div>
-          <div className="flex justify-between mt-4 pt-4" style={{ borderTop: "1px solid #173069" }}>
-            <div><p className="text-xs" style={{ color: "#64748b" }}>Total this week</p><p className="text-lg font-bold text-white">${revenueByDay.reduce((a, b) => a + b, 0).toFixed(2)}</p></div>
-            <button onClick={() => setLocation("/seller/earnings")} className="flex items-center gap-1 text-sm font-semibold transition-colors" style={{ color: "#3b82f6" }}>
-              Full report <ArrowUpRight style={{ width: 14, height: 14 }} />
-            </button>
-          </div>
+        {/* Revenue bar chart */}
+        <div className="lg:col-span-2 rounded-2xl p-5" style={{ background: C.bg, border: `1px solid ${C.bdr}` }}>
+          <p className="text-white font-bold text-base mb-1">Revenue — Last 7 Days</p>
+          <p className="text-xs mb-4" style={{ color: C.muted }}>Daily order totals (excl. cancelled)</p>
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart data={revenueData} barCategoryGap="30%">
+              <XAxis dataKey="day" stroke={C.muted} tick={{ fill: C.muted, fontSize: 11 }} axisLine={false} tickLine={false} />
+              <YAxis stroke={C.muted} tick={{ fill: C.muted, fontSize: 11 }} axisLine={false} tickLine={false} width={40} tickFormatter={v => `$${v}`} />
+              <Tooltip content={<DarkTooltip />} cursor={{ fill: "rgba(255,255,255,0.04)" }} />
+              <Bar dataKey="Revenue" fill={C.blue} radius={[6, 6, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
         </div>
 
-        {/* Quick actions */}
-        <div className="rounded-2xl p-5 flex flex-col gap-3" style={{ background: "#0d1d3d", border: "1px solid #173069" }}>
-          <p className="text-white font-bold mb-1">Quick Actions</p>
-          {[
-            { label: "Add New Product",   href: "/seller/products",     color: "#10b981", icon: Package },
-            { label: "View Orders",        href: "/seller/orders",       color: "#3b82f6", icon: ShoppingBag },
-            { label: "Earnings Report",    href: "/seller/earnings",     color: "#8b5cf6", icon: DollarSign },
-            { label: "Manage Campaigns",   href: "/seller/campaigns",    color: "#f59e0b", icon: Zap },
-            { label: "Shop Settings",      href: "/seller/shop",         color: "#64748b", icon: Store },
-          ].map(({ label, href, color, icon: Icon }) => (
-            <button key={href} onClick={() => setLocation(href)}
-              className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-left transition-all hover:opacity-90"
-              style={{ background: `${color}18`, color: "#c8d0e0", border: `1px solid ${color}25` }}>
-              <Icon style={{ width: 15, height: 15, color }} />
-              {label}
-              <ChevronRight style={{ width: 14, height: 14, color: "#475569", marginLeft: "auto" }} />
-            </button>
-          ))}
+        {/* Order status donut */}
+        <div className="rounded-2xl p-5 flex flex-col" style={{ background: C.bg, border: `1px solid ${C.bdr}` }}>
+          <p className="text-white font-bold text-base mb-1">Order Status</p>
+          <p className="text-xs mb-3" style={{ color: C.muted }}>Breakdown by status</p>
+          {statusData.length === 0 ? (
+            <div className="flex-1 flex flex-col items-center justify-center py-8">
+              <ShoppingBag style={{ width: 32, height: 32, color: "#2a1a50" }} />
+              <p className="text-sm mt-2" style={{ color: C.muted }}>No orders yet</p>
+            </div>
+          ) : (
+            <div className="flex-1 flex flex-col items-center justify-center">
+              <PieChart width={180} height={180}>
+                <Pie data={statusData} cx={90} cy={90} innerRadius={52} outerRadius={80} dataKey="value" paddingAngle={3}>
+                  {statusData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                </Pie>
+                <Tooltip content={<DarkTooltip />} />
+              </PieChart>
+              <div className="flex flex-wrap gap-x-3 gap-y-1.5 justify-center mt-1">
+                {statusData.map(d => (
+                  <div key={d.name} className="flex items-center gap-1.5">
+                    <div className="w-2.5 h-2.5 rounded-sm" style={{ background: d.color }} />
+                    <span className="text-xs" style={{ color: C.muted }}>{d.name} ({d.value})</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Recent orders */}
-      <div className="mt-4 rounded-2xl overflow-hidden" style={{ background: "#0d1d3d", border: "1px solid #173069" }}>
-        <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: "1px solid #173069" }}>
+      {/* Recent orders table */}
+      <div className="mt-4 rounded-2xl overflow-hidden" style={{ background: C.bg, border: `1px solid ${C.bdr}` }}>
+        <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: `1px solid ${C.bdr}` }}>
           <p className="font-bold text-white">Recent Orders</p>
-          <button onClick={() => setLocation("/seller/orders")} className="flex items-center gap-1 text-sm font-semibold transition-colors" style={{ color: "#3b82f6" }}>
-            View all <ChevronRight style={{ width: 14, height: 14 }} />
+          <button onClick={() => setLocation("/seller/orders")} className="text-sm font-semibold" style={{ color: C.blue }}>
+            View all →
           </button>
         </div>
 
+        {/* Header row */}
+        <div className="grid px-6 py-2.5 text-[11px] font-bold uppercase tracking-widest" style={{ color: C.muted, gridTemplateColumns: "1fr 120px 90px 100px" }}>
+          <span>Product / Order</span><span>Date</span><span className="text-right">Total</span><span className="text-right">Status</span>
+        </div>
+
         {recentOrders.length === 0 ? (
-          <div className="p-12 text-center">
-            <ShoppingBag className="w-10 h-10 mx-auto mb-3" style={{ color: "#334155" }} />
-            <p className="font-medium" style={{ color: "#64748b" }}>No orders yet</p>
-            <p className="text-sm mt-1" style={{ color: "#475569" }}>When customers order from your shop, they'll appear here.</p>
+          <div className="px-6 py-12 text-center">
+            <ShoppingBag style={{ width: 36, height: 36, color: "#2a1a50", margin: "0 auto 8px" }} />
+            <p className="text-sm" style={{ color: C.muted }}>No orders yet</p>
           </div>
-        ) : (
-          <div>
-            {recentOrders.map((order: any, idx: number) => {
-              const item = order.items?.[0];
-              const cfg = STATUS_CFG[order.status] ?? STATUS_CFG.PENDING;
-              return (
-                <div key={order.id} className="flex items-center gap-4 px-6 py-3.5 transition-colors hover:bg-white/[0.02]"
-                  style={{ borderBottom: idx < recentOrders.length - 1 ? "1px solid #122040" : "none" }}>
-                  <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: "rgba(59,130,246,0.1)" }}>
-                    <ShoppingBag style={{ width: 16, height: 16, color: "#3b82f6" }} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-white truncate">{item?.product?.title ?? "Order"}</p>
-                    <p className="text-xs" style={{ color: "#64748b" }}>#{order.id.slice(-8)} · {new Date(order.createdAt).toLocaleDateString()}</p>
-                  </div>
-                  <div className="flex items-center gap-3 shrink-0">
-                    <p className="font-bold text-sm text-white">${Number(order.total).toFixed(2)}</p>
-                    <span className="text-xs font-semibold px-2.5 py-1 rounded-full" style={{ background: cfg.bg, color: cfg.text }}>
-                      {cfg.label}
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+        ) : recentOrders.map((order: any, idx: number) => {
+          const item = order.items?.[0];
+          const color = STATUS_COLORS[order.status] ?? C.muted;
+          const label = STATUS_LABEL[order.status] ?? order.status;
+          return (
+            <div key={order.id} className="grid px-6 py-3.5 items-center transition-colors"
+              style={{
+                gridTemplateColumns: "1fr 120px 90px 100px",
+                borderTop: idx === 0 ? "none" : `1px solid ${C.bdr}`,
+              }}
+              onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.02)"}
+              onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = ""}>
+              <div className="min-w-0 pr-4">
+                <p className="text-sm font-semibold text-white truncate">{item?.product?.title ?? "Order"}</p>
+                <p className="text-xs" style={{ color: C.muted }}>#{order.id.slice(-8)}</p>
+              </div>
+              <p className="text-xs" style={{ color: C.muted }}>{new Date(order.createdAt).toLocaleDateString()}</p>
+              <p className="text-sm font-bold text-white text-right">${Number(order.total).toFixed(2)}</p>
+              <div className="text-right">
+                <span className="text-xs font-bold px-2.5 py-1 rounded-full" style={{ background: `${color}18`, color }}>{label}</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Quick actions */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
+        {[
+          { label: "Add Product",    href: "/seller/products",     color: C.green },
+          { label: "View Orders",    href: "/seller/orders",       color: C.blue },
+          { label: "Earnings",       href: "/seller/earnings",     color: C.purple },
+          { label: "Shop Settings",  href: "/seller/shop",         color: C.orange },
+        ].map(({ label, href, color }) => (
+          <button key={href} onClick={() => setLocation(href)}
+            className="py-3 px-4 rounded-2xl text-sm font-bold text-white text-center transition-all hover:opacity-90"
+            style={{ background: `${color}22`, border: `1px solid ${color}40`, color }}>
+            {label}
+          </button>
+        ))}
       </div>
     </SellerLayout>
   );

@@ -22,6 +22,17 @@ interface DashboardLayoutProps {
   accentColor?: string;
 }
 
+/* ── colour tokens ── */
+const S = {
+  sidebarBg:   "#0c0520",
+  sidebarBdr:  "#221648",
+  mainBg:      "#12082a",
+  cardBg:      "#1a1040",
+  cardBdr:     "#281850",
+  mutedTxt:    "#7b80b5",
+  hoverBg:     "rgba(255,255,255,0.05)",
+} as const;
+
 export function DashboardLayout({
   items,
   children,
@@ -54,9 +65,13 @@ export function DashboardLayout({
               <a className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all",
                 active
-                  ? `${accentColor} text-white shadow-lg shadow-black/20`
-                  : "text-[#8693b0] hover:bg-white/[0.06] hover:text-[#c8d0e0]",
-              )}>
+                  ? `${accentColor} text-white shadow-lg shadow-black/30`
+                  : `hover:text-white transition-colors`,
+              )}
+              style={active ? {} : { color: S.mutedTxt }}
+              onMouseEnter={e => { if (!active) (e.currentTarget as HTMLElement).style.background = S.hoverBg; }}
+              onMouseLeave={e => { if (!active) (e.currentTarget as HTMLElement).style.background = ""; }}
+              >
                 <Icon className="w-4 h-4 shrink-0" />
                 <span className="flex-1">{label}</span>
                 {badge !== undefined && badge > 0 && (
@@ -76,50 +91,53 @@ export function DashboardLayout({
   );
 
   const SidebarContent = () => (
-    <div className="flex flex-col h-full" style={{ background: "#07112b", borderRight: "1px solid #152047" }}>
+    <div className="flex flex-col h-full" style={{ background: S.sidebarBg, borderRight: `1px solid ${S.sidebarBdr}` }}>
       {/* Brand */}
-      <div className="px-5 py-5 shrink-0" style={{ borderBottom: "1px solid #152047" }}>
+      <div className="px-5 py-5 shrink-0" style={{ borderBottom: `1px solid ${S.sidebarBdr}` }}>
         <div className="flex items-center gap-3">
           {TitleIcon && (
             <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center shrink-0", accentColor)}>
-              <TitleIcon className="w-4.5 h-4.5 text-white" style={{ width: 18, height: 18 }} />
+              <TitleIcon style={{ width: 18, height: 18, color: "white" }} />
             </div>
           )}
           <div>
             <p className="text-white text-sm font-bold leading-tight">{title}</p>
-            <p className="text-[10px] text-[#8693b0] tracking-wide uppercase mt-0.5">Coastaq</p>
+            <p className="text-[10px] tracking-widest uppercase mt-0.5" style={{ color: S.mutedTxt }}>Coastaq</p>
           </div>
         </div>
       </div>
 
-      {/* Navigation */}
       <NavItems />
 
       {/* Footer */}
-      <div className="shrink-0 px-3 pt-2 pb-4" style={{ borderTop: "1px solid #152047" }}>
+      <div className="shrink-0 px-3 pt-2 pb-4" style={{ borderTop: `1px solid ${S.sidebarBdr}` }}>
         <Link href="/">
-          <a className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-[#8693b0] hover:bg-white/[0.06] hover:text-[#c8d0e0] transition-all">
+          <a className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all"
+            style={{ color: S.mutedTxt }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = S.hoverBg; (e.currentTarget as HTMLElement).style.color = "#fff"; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = ""; (e.currentTarget as HTMLElement).style.color = S.mutedTxt; }}>
             <Home className="w-4 h-4 shrink-0" />
             Back to Store
           </a>
         </Link>
-        <button
-          onClick={logout}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-[#8693b0] hover:bg-red-500/10 hover:text-red-400 transition-all mt-0.5"
-        >
+        <button onClick={logout}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all mt-0.5"
+          style={{ color: S.mutedTxt }}
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(239,68,68,0.1)"; (e.currentTarget as HTMLElement).style.color = "#f87171"; }}
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = ""; (e.currentTarget as HTMLElement).style.color = S.mutedTxt; }}>
           <LogOut className="w-4 h-4 shrink-0" />
           Log out
         </button>
 
-        {/* User pill */}
         {user && (
-          <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl mt-1" style={{ background: "rgba(255,255,255,0.05)" }}>
-            <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-white text-xs font-bold" style={{ background: "linear-gradient(135deg, #3b82f6, #7c3aed)" }}>
+          <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl mt-1" style={{ background: S.hoverBg }}>
+            <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-white text-xs font-bold"
+              style={{ background: "linear-gradient(135deg, #2563eb, #7c3aed)" }}>
               {(user.name as string)?.[0]?.toUpperCase() ?? "?"}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-xs font-semibold text-white truncate leading-tight">{user.name as string}</p>
-              <p className="text-[10px] text-[#8693b0] mt-0.5">{ROLE_LABELS[primaryRole]}</p>
+              <p className="text-[10px] mt-0.5" style={{ color: S.mutedTxt }}>{ROLE_LABELS[primaryRole]}</p>
             </div>
           </div>
         )}
@@ -128,35 +146,34 @@ export function DashboardLayout({
   );
 
   return (
-    <div className="min-h-screen flex" style={{ background: "#091425" }}>
-      {/* Desktop sidebar */}
+    <div className="min-h-screen flex" style={{ background: S.mainBg }}>
       <aside className="hidden lg:flex w-60 shrink-0 flex-col fixed inset-y-0 left-0 z-30">
         <SidebarContent />
       </aside>
 
-      {/* Mobile sidebar overlay */}
       {open && (
         <div className="lg:hidden fixed inset-0 z-40 flex">
           <div className="fixed inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setOpen(false)} />
           <div className="relative w-64 flex flex-col">
             <SidebarContent />
-            <button onClick={() => setOpen(false)} className="absolute top-3.5 right-3 p-1.5 rounded-lg text-[#8693b0] hover:text-white hover:bg-white/10 transition-colors">
+            <button onClick={() => setOpen(false)}
+              className="absolute top-3.5 right-3 p-1.5 rounded-lg transition-colors"
+              style={{ color: S.mutedTxt }}>
               <X className="w-4 h-4" />
             </button>
           </div>
         </div>
       )}
 
-      {/* Main content */}
       <div className="flex-1 flex flex-col lg:ml-60 min-h-screen">
-        {/* Mobile topbar */}
-        <header className="lg:hidden flex items-center gap-3 px-4 py-3 sticky top-0 z-20" style={{ background: "#07112b", borderBottom: "1px solid #152047" }}>
-          <button onClick={() => setOpen(true)} className="p-2 rounded-xl text-[#8693b0] hover:text-white hover:bg-white/10 transition-colors">
+        <header className="lg:hidden flex items-center gap-3 px-4 py-3 sticky top-0 z-20"
+          style={{ background: S.sidebarBg, borderBottom: `1px solid ${S.sidebarBdr}` }}>
+          <button onClick={() => setOpen(true)} className="p-2 rounded-xl transition-colors" style={{ color: S.mutedTxt }}>
             <Menu className="w-5 h-5" />
           </button>
           {title && <span className="font-bold text-white text-sm">{title}</span>}
           <Link href="/" className="ml-auto">
-            <a className="text-xs text-[#8693b0] flex items-center gap-1 hover:text-white transition-colors">
+            <a className="text-xs flex items-center gap-1 transition-colors" style={{ color: S.mutedTxt }}>
               Store <ChevronRight className="w-3 h-3" />
             </a>
           </Link>
