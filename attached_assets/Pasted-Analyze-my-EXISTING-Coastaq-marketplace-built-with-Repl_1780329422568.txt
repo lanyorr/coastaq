@@ -1,0 +1,372 @@
+Analyze my EXISTING Coastaq marketplace built with Replit + Supabase and EXTEND it with a Seller Verification and Trust Scoring System.
+
+IMPORTANT:
+
+- DO NOT rebuild the marketplace
+- DO NOT redesign authentication
+- DO NOT recreate seller onboarding
+- DO NOT modify existing product systems
+- DO NOT break seller dashboards
+- DO NOT change existing order workflows
+- Preserve existing architecture
+- Extend the current seller system only
+
+GOAL:
+
+Increase marketplace trust by introducing seller verification levels, trust badges, trust scores, and admin verification workflows.
+
+FIRST:
+
+Analyze the existing:
+
+- seller accounts
+- seller onboarding
+- seller dashboard
+- admin dashboard
+- orders
+- reviews
+- disputes
+- refund workflows
+- notifications
+
+Identify the safest extension points before implementation.
+
+==================================================
+PHASE 1 — SELLER VERIFICATION CENTER
+==================================================
+
+Add a new Seller Verification section.
+
+Seller Dashboard
+
+Account
+├── Profile
+├── Verification Center
+├── Documents
+├── Trust Score
+└── Verification Status
+
+Requirements:
+
+- responsive design
+- mobile-friendly
+- document upload support
+- progress tracking
+
+==================================================
+PHASE 2 — DOCUMENT VERIFICATION
+==================================================
+
+Allow sellers to upload:
+
+Identity Verification:
+- Passport
+- National ID
+- Driver License
+
+Business Verification:
+- Business Registration Certificate
+- Tax Certificate
+- VAT Registration
+- Import/Export License
+
+Store documents securely.
+
+Verification statuses:
+
+- Not Submitted
+- Pending Review
+- Approved
+- Rejected
+- Requires Update
+
+Display reasons for rejection.
+
+==================================================
+PHASE 3 — SELLER BADGES
+==================================================
+
+Implement seller badge system.
+
+Level 1:
+Basic Seller
+
+Requirements:
+- account created
+
+Badge:
+Basic Seller
+
+--------------------------------------------------
+
+Level 2:
+Verified Seller
+
+Requirements:
+- identity verification approved
+
+Badge:
+Verified Seller
+
+--------------------------------------------------
+
+Level 3:
+Premium Merchant
+
+Requirements:
+- verified seller
+- positive trust score
+- minimum order threshold
+
+Badge:
+Premium Merchant
+
+--------------------------------------------------
+
+Level 4:
+Enterprise Store
+
+Requirements:
+- business verification approved
+- strong performance metrics
+- high order volume
+
+Badge:
+Enterprise Store
+
+Display badges on:
+
+- seller stores
+- product pages
+- search results
+- supplier listings
+
+==================================================
+PHASE 4 — TRUST SCORE SYSTEM
+==================================================
+
+Create automated trust scoring.
+
+Trust Score Range:
+
+0 - 100
+
+Calculate using:
+
+- delivery success rate
+- customer ratings
+- order completion rate
+- dispute rate
+- refund rate
+- account age
+- order volume
+- verification level
+
+Example:
+
+Delivery Success:
+30%
+
+Reviews:
+20%
+
+Disputes:
+15%
+
+Refunds:
+10%
+
+Account Age:
+10%
+
+Order Volume:
+15%
+
+Generate transparent scoring rules.
+
+Display:
+
+Trust Score
+Trust Level
+Trust Breakdown
+
+==================================================
+PHASE 5 — SELLER TRUST DASHBOARD
+==================================================
+
+Add Trust Score page.
+
+Display:
+
+- current score
+- badge level
+- verification status
+- delivery performance
+- review performance
+- dispute statistics
+- improvement recommendations
+
+Example:
+
+Improve Trust Score:
+✓ Complete business verification
+✓ Reduce refund rate
+✓ Improve delivery performance
+
+==================================================
+PHASE 6 — ADMIN VERIFICATION DASHBOARD
+==================================================
+
+Extend existing Admin Dashboard.
+
+Create:
+
+Seller Verification Queue
+
+Features:
+
+- review submissions
+- approve documents
+- reject documents
+- request resubmission
+- seller search
+- verification history
+
+Filters:
+
+- pending
+- approved
+- rejected
+- flagged
+
+==================================================
+PHASE 7 — FRAUD MONITORING
+==================================================
+
+Create fraud alerts.
+
+Flag:
+
+- multiple accounts
+- excessive disputes
+- unusual refund rates
+- suspicious seller activity
+- fake reviews
+
+Display alerts to admins.
+
+Do NOT automatically suspend sellers.
+
+Require manual review.
+
+==================================================
+PHASE 8 — SELLER SUSPENSION TOOLS
+==================================================
+
+Admin tools:
+
+- warning
+- temporary suspension
+- verification removal
+- permanent suspension
+
+Requirements:
+
+- audit trail
+- suspension reasons
+- appeal support
+
+==================================================
+PHASE 9 — SECURE DOCUMENT STORAGE
+==================================================
+
+Use Supabase Storage.
+
+Requirements:
+
+- private buckets
+- encrypted storage
+- signed URLs
+- access controls
+- seller ownership validation
+
+Only:
+
+- seller owner
+- authorized admins
+
+can access documents.
+
+==================================================
+PHASE 10 — AUDIT LOGS
+==================================================
+
+Track:
+
+- document uploads
+- approvals
+- rejections
+- badge changes
+- trust score changes
+- suspensions
+
+Create:
+
+verification_audit_logs
+
+==================================================
+PHASE 11 — FUTURE IDENTITY VERIFICATION READY
+==================================================
+
+Do NOT fully implement facial verification yet.
+
+Instead:
+
+Create extensible architecture for future integrations:
+
+- Jumio
+- Veriff
+- Sumsub
+- Onfido
+
+Add placeholder verification provider layer.
+
+==================================================
+PHASE 12 — DATABASE EXTENSIONS
+==================================================
+
+Create only necessary tables:
+
+seller_verifications
+verification_documents
+seller_badges
+seller_trust_scores
+verification_reviews
+verification_audit_logs
+
+Reuse existing seller tables wherever possible.
+
+Avoid redesigning existing schema.
+
+==================================================
+FINAL DELIVERABLES
+==================================================
+
+Generate:
+
+1. architecture analysis
+2. seller verification center
+3. document upload workflow
+4. badge system
+5. trust score engine
+6. trust dashboard
+7. admin verification dashboard
+8. fraud alert system
+9. secure document storage
+10. audit logs
+11. database migrations
+12. implementation roadmap
+
+IMPORTANT:
+
+Preserve the current Coastaq architecture and extend it incrementally with minimal disruption.

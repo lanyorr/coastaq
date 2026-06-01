@@ -54,6 +54,11 @@ import CreateShipmentPage from "@/pages/seller/CreateShipmentPage";
 import ShippingRatesPage from "@/pages/seller/ShippingRatesPage";
 import DeliveryIssuesPage from "@/pages/seller/DeliveryIssuesPage";
 import AdminShippingPage from "@/pages/admin/AdminShippingPage";
+import SellerVerificationPage from "@/pages/seller/SellerVerificationPage";
+import VerificationDocumentsPage from "@/pages/seller/VerificationDocumentsPage";
+import SellerTrustScorePage from "@/pages/seller/SellerTrustScorePage";
+import AdminVerificationPage from "@/pages/admin/AdminVerificationPage";
+import AdminFraudPage from "@/pages/admin/AdminFraudPage";
 import AffiliateEarnPage from "@/pages/affiliate/AffiliateEarnPage";
 
 import AffiliateOverview from "@/pages/affiliate/index";
@@ -178,6 +183,16 @@ function Router() {
       <Route path="/seller/import">
         {() => <ProtectedRoute roles={["SELLER", "ADMIN"]} component={BulkImportPage} />}
       </Route>
+      {/* ── Verification routes (/seller/verification/*) ──────────────────── */}
+      <Route path="/seller/verification/documents">
+        {() => <ProtectedRoute roles={["SELLER", "ADMIN"]} component={VerificationDocumentsPage} />}
+      </Route>
+      <Route path="/seller/verification">
+        {() => <ProtectedRoute roles={["SELLER", "ADMIN"]} component={SellerVerificationPage} />}
+      </Route>
+      <Route path="/seller/trust-score">
+        {() => <ProtectedRoute roles={["SELLER", "ADMIN"]} component={SellerTrustScorePage} />}
+      </Route>
       {/* ── Shipping routes (/seller/shipping/*) ──────────────────────────── */}
       <Route path="/seller/shipping/new">
         {() => <ProtectedRoute roles={["SELLER", "ADMIN"]} component={CreateShipmentPage} />}
@@ -250,6 +265,12 @@ function Router() {
       </Route>
       <Route path="/admin/shipping">
         {() => <ProtectedRoute roles={["ADMIN"]} component={AdminShippingPage} />}
+      </Route>
+      <Route path="/admin/verification">
+        {() => <ProtectedRoute roles={["ADMIN"]} component={AdminVerificationPage} />}
+      </Route>
+      <Route path="/admin/fraud">
+        {() => <ProtectedRoute roles={["ADMIN"]} component={AdminFraudPage} />}
       </Route>
 
       {/* ── Messaging ─────────────────────────────────────────────────────── */}

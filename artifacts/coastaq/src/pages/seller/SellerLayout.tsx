@@ -3,7 +3,7 @@ import { DashboardLayout, type SidebarItem } from "@/components/dashboard/Dashbo
 import {
   LayoutDashboard, Package, ShoppingBag, MessageCircle,
   DollarSign, CreditCard, Settings, Store, Megaphone,
-  Upload, History, Truck, BarChart3, Flag,
+  Upload, History, Truck, BarChart3, Flag, ShieldCheck, Star, FileText,
 } from "lucide-react";
 
 function useSellerUnread() {
@@ -26,10 +26,13 @@ export function SellerLayout({ children }: { children: React.ReactNode }) {
     { href: "/seller/orders",         label: "Orders",         icon: ShoppingBag },
     { href: "/seller/messages",       label: "Messages",       icon: MessageCircle, badge: unread },
     { href: "/seller/earnings",       label: "Earnings",       icon: DollarSign },
-    { href: "/seller/shipping",       label: "Shipping",       icon: Truck },
-    { href: "/seller/shipping/rates", label: "Ship Rates",     icon: BarChart3 },
-    { href: "/seller/shipping/issues",label: "Delivery Issues",icon: Flag },
-    { href: "/seller/import",         label: "Bulk Import",    icon: Upload },
+    { href: "/seller/shipping",        label: "Shipping",        icon: Truck },
+    { href: "/seller/shipping/rates",  label: "Ship Rates",      icon: BarChart3 },
+    { href: "/seller/shipping/issues", label: "Delivery Issues", icon: Flag },
+    { href: "/seller/verification",    label: "Verification",    icon: ShieldCheck },
+    { href: "/seller/verification/documents", label: "Documents",icon: FileText },
+    { href: "/seller/trust-score",     label: "Trust Score",     icon: Star },
+    { href: "/seller/import",          label: "Bulk Import",     icon: Upload },
     { href: "/seller/import/history", label: "Import History", icon: History },
     { href: "/seller/campaigns",      label: "Campaigns",      icon: Megaphone },
     { href: "/seller/subscription",   label: "Subscription",   icon: CreditCard },

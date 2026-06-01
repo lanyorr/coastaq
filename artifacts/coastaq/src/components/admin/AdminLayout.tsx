@@ -2,7 +2,7 @@ import { Link, useLocation } from "wouter";
 import { useEffect, useState } from "react";
 import {
   LayoutDashboard, Users, Store, Package, Flag,
-  BarChart3, Tag, LogOut, Menu, X, ShieldCheck, Truck,
+  BarChart3, Tag, LogOut, Menu, X, ShieldCheck, Truck, AlertTriangle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -17,7 +17,9 @@ const NAV = [
   { href: "/admin/reports",   label: "Reports",    icon: Flag },
   { href: "/admin/analytics", label: "Analytics",  icon: BarChart3 },
   { href: "/admin/categories",label: "Categories", icon: Tag },
-  { href: "/admin/shipping",  label: "Shipping",   icon: Truck },
+  { href: "/admin/shipping",      label: "Shipping",      icon: Truck },
+  { href: "/admin/verification",  label: "Verification",  icon: ShieldCheck },
+  { href: "/admin/fraud",         label: "Fraud Monitor", icon: AlertTriangle },
 ];
 
 export function AdminLayout({ children }: { children: React.ReactNode }) {

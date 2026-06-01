@@ -15,3 +15,4 @@ export * from "./user-roles";
 export * from "./relations";
 export * from "./imports";
 export * from "./shipping";
+export * from "./verification";
