@@ -20,6 +20,7 @@ import campaignsRouter from "./campaigns.js";
 import aiRouter from "./ai.js";
 import rolesRouter from "./roles.js";
 import importsRouter from "./imports.js";
+import shippingRouter from "./shipping.js";
 
 const router: IRouter = Router();
 
@@ -44,5 +45,6 @@ router.use("/", campaignsRouter);
 router.use("/ai", aiRouter);
 router.use("/roles", rolesRouter);
 router.use("/imports", importsRouter);
+router.use("/shipping", shippingRouter);
 
 export default router;

@@ -2,7 +2,7 @@ import { Link, useLocation } from "wouter";
 import { useEffect, useState } from "react";
 import {
   LayoutDashboard, Users, Store, Package, Flag,
-  BarChart3, Tag, LogOut, Menu, X, ShieldCheck,
+  BarChart3, Tag, LogOut, Menu, X, ShieldCheck, Truck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -10,13 +10,14 @@ import { cn } from "@/lib/utils";
 interface AdminUser { id: string; name: string; email: string; role: string; }
 
 const NAV = [
-  { href: "/admin", label: "Overview", icon: LayoutDashboard },
-  { href: "/admin/users", label: "Users", icon: Users },
-  { href: "/admin/shops", label: "Shops", icon: Store },
-  { href: "/admin/products", label: "Products", icon: Package },
-  { href: "/admin/reports", label: "Reports", icon: Flag },
-  { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
-  { href: "/admin/categories", label: "Categories", icon: Tag },
+  { href: "/admin",           label: "Overview",   icon: LayoutDashboard },
+  { href: "/admin/users",     label: "Users",      icon: Users },
+  { href: "/admin/shops",     label: "Shops",      icon: Store },
+  { href: "/admin/products",  label: "Products",   icon: Package },
+  { href: "/admin/reports",   label: "Reports",    icon: Flag },
+  { href: "/admin/analytics", label: "Analytics",  icon: BarChart3 },
+  { href: "/admin/categories",label: "Categories", icon: Tag },
+  { href: "/admin/shipping",  label: "Shipping",   icon: Truck },
 ];
 
 export function AdminLayout({ children }: { children: React.ReactNode }) {

@@ -1,0 +1,328 @@
+Analyze my EXISTING Coastaq marketplace built with Replit + Supabase and EXTEND the current system with a scalable shipping management module.
+
+IMPORTANT:
+
+- DO NOT rebuild the ecommerce platform
+- DO NOT redesign the database unnecessarily
+- DO NOT modify existing authentication
+- DO NOT recreate seller dashboards
+- DO NOT recreate order management
+- DO NOT replace existing APIs
+- DO NOT break current checkout functionality
+- Preserve all current marketplace workflows
+
+GOAL:
+
+Add shipping management capabilities to the existing marketplace using the current architecture.
+
+FIRST:
+
+Analyze the current system and identify:
+
+- order workflow
+- checkout workflow
+- seller workflow
+- buyer workflow
+- database schema
+- existing shipping fields
+- existing order statuses
+- existing admin dashboard
+- existing notification system
+
+Identify the safest extension points before implementing.
+
+===================================================
+PHASE 1 — SHIPPING MODULE EXTENSION
+===================================================
+
+Add a new Shipping module to the existing platform.
+
+Integrate with:
+
+- Orders
+- Seller Dashboard
+- Buyer Dashboard
+- Admin Dashboard
+
+Do not create a separate application.
+
+Create:
+
+Shipping
+├── Shipments
+├── Tracking
+├── Labels
+├── Couriers
+├── Delivery Issues
+└── Shipping Analytics
+
+===================================================
+PHASE 2 — SHIPPING DASHBOARD
+===================================================
+
+Add shipping dashboard inside Seller Dashboard.
+
+Features:
+
+- Active shipments
+- Delivered shipments
+- Failed deliveries
+- Pending dispatch
+- Shipping performance
+- Delivery analytics
+
+Requirements:
+
+- responsive design
+- reusable components
+- integrate with existing seller dashboard
+
+===================================================
+PHASE 3 — SHIPMENT TRACKING
+===================================================
+
+Extend order management with shipment tracking.
+
+Add:
+
+- tracking number
+- courier
+- shipment status
+- dispatch date
+- estimated delivery date
+- delivery confirmation
+
+Tracking statuses:
+
+- pending
+- processing
+- dispatched
+- in transit
+- out for delivery
+- delivered
+- failed
+- returned
+
+Integrate with existing order lifecycle.
+
+===================================================
+PHASE 4 — COURIER MANAGEMENT
+===================================================
+
+Create modular courier architecture.
+
+Phase 1:
+
+Manual couriers:
+
+- DHL
+- FedEx
+- UPS
+- Local Courier
+
+Requirements:
+
+- courier management interface
+- tracking links
+- courier-specific settings
+
+IMPORTANT:
+
+Build adapters so future API integrations can be added later.
+
+Do not fully implement external courier APIs yet.
+
+===================================================
+PHASE 5 — SHIPPING RATE ENGINE
+===================================================
+
+Create shipping calculation engine.
+
+Support:
+
+- weight-based pricing
+- quantity-based pricing
+- seller-defined shipping fees
+- country-based pricing
+- region-based pricing
+
+Requirements:
+
+- integrate into existing checkout
+- preserve checkout workflow
+- modular pricing engine
+
+===================================================
+PHASE 6 — DELIVERY ETA SYSTEM
+===================================================
+
+Add estimated delivery calculations.
+
+Factors:
+
+- origin country
+- destination country
+- courier
+- shipping method
+
+Display:
+
+- estimated delivery window
+- estimated dispatch time
+- transit duration
+
+===================================================
+PHASE 7 — SHIPPING LABEL MANAGEMENT
+===================================================
+
+Create shipping label functionality.
+
+Features:
+
+- printable labels
+- shipment details
+- tracking information
+- seller details
+- buyer details
+
+Generate PDF labels.
+
+===================================================
+PHASE 8 — DELIVERY ISSUE MANAGEMENT
+===================================================
+
+Add delivery management tools.
+
+Features:
+
+- failed deliveries
+- returned shipments
+- delivery exceptions
+- address problems
+
+Requirements:
+
+- seller visibility
+- admin visibility
+- issue resolution workflow
+
+===================================================
+PHASE 9 — NOTIFICATIONS
+===================================================
+
+Integrate into existing notification system.
+
+Send notifications for:
+
+- shipment created
+- dispatched
+- in transit
+- delivered
+- failed delivery
+- returned shipment
+
+Support:
+
+- in-app notifications
+- email notifications
+
+===================================================
+PHASE 10 — AI SHIPPING ASSISTANT
+===================================================
+
+Create architecture for future AI shipping recommendations.
+
+Phase 1:
+
+Rule-based recommendations.
+
+Recommend:
+
+- cheapest courier
+- fastest courier
+- balanced option
+
+Display:
+
+Recommended Shipping Option
+Reason
+Estimated Cost
+Estimated Delivery Time
+
+Do not implement expensive AI services yet.
+
+Create extensible architecture.
+
+===================================================
+PHASE 11 — ADMIN SHIPPING DASHBOARD
+===================================================
+
+Extend existing admin dashboard.
+
+Add:
+
+- shipment volume
+- courier performance
+- delivery success rate
+- failed deliveries
+- shipping revenue
+- country shipping analytics
+
+===================================================
+PHASE 12 — DATABASE EXTENSIONS
+===================================================
+
+ONLY add new tables if necessary.
+
+Create minimal extensions:
+
+shipments
+shipment_tracking
+couriers
+shipping_rates
+shipping_events
+
+Reuse existing order tables whenever possible.
+
+Avoid database redesign.
+
+===================================================
+PHASE 13 — PERFORMANCE
+===================================================
+
+Requirements:
+
+- scalable architecture
+- background processing
+- event-driven updates
+- responsive UI
+- reusable services
+
+DO NOT implement full microservices architecture.
+
+Instead:
+
+Create modular service layers that can later be extracted into microservices if scale requires it.
+
+===================================================
+FINAL DELIVERABLES
+===================================================
+
+Generate:
+
+1. architecture analysis
+2. extension plan
+3. shipping dashboard
+4. shipment tracking module
+5. courier management module
+6. shipping rate engine
+7. ETA calculator
+8. shipping labels
+9. notification integration
+10. admin analytics
+11. database migrations
+12. implementation roadmap
+
+IMPORTANT:
+
+Preserve the current Coastaq architecture and extend it incrementally with minimal disruption.

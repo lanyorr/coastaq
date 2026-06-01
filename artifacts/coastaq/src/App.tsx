@@ -48,6 +48,12 @@ import SellerShopPage from "@/pages/seller/SellerShopPage";
 import SellerCampaignsPage from "@/pages/seller/SellerCampaignsPage";
 import BulkImportPage from "@/pages/seller/BulkImportPage";
 import ImportHistoryPage from "@/pages/seller/ImportHistoryPage";
+import SellerShippingPage from "@/pages/seller/SellerShippingPage";
+import ShipmentDetailPage from "@/pages/seller/ShipmentDetailPage";
+import CreateShipmentPage from "@/pages/seller/CreateShipmentPage";
+import ShippingRatesPage from "@/pages/seller/ShippingRatesPage";
+import DeliveryIssuesPage from "@/pages/seller/DeliveryIssuesPage";
+import AdminShippingPage from "@/pages/admin/AdminShippingPage";
 import AffiliateEarnPage from "@/pages/affiliate/AffiliateEarnPage";
 
 import AffiliateOverview from "@/pages/affiliate/index";
@@ -172,6 +178,22 @@ function Router() {
       <Route path="/seller/import">
         {() => <ProtectedRoute roles={["SELLER", "ADMIN"]} component={BulkImportPage} />}
       </Route>
+      {/* ── Shipping routes (/seller/shipping/*) ──────────────────────────── */}
+      <Route path="/seller/shipping/new">
+        {() => <ProtectedRoute roles={["SELLER", "ADMIN"]} component={CreateShipmentPage} />}
+      </Route>
+      <Route path="/seller/shipping/rates">
+        {() => <ProtectedRoute roles={["SELLER", "ADMIN"]} component={ShippingRatesPage} />}
+      </Route>
+      <Route path="/seller/shipping/issues">
+        {() => <ProtectedRoute roles={["SELLER", "ADMIN"]} component={DeliveryIssuesPage} />}
+      </Route>
+      <Route path="/seller/shipping/:id">
+        {() => <ProtectedRoute roles={["SELLER", "ADMIN"]} component={ShipmentDetailPage} />}
+      </Route>
+      <Route path="/seller/shipping">
+        {() => <ProtectedRoute roles={["SELLER", "ADMIN"]} component={SellerShippingPage} />}
+      </Route>
       {/* Backward-compat redirect */}
       <Route path="/seller/dashboard">{() => <Redirect to="/seller" />}</Route>
 
@@ -225,6 +247,9 @@ function Router() {
       </Route>
       <Route path="/admin/categories">
         {() => <ProtectedRoute roles={["ADMIN"]} component={AdminCategories} />}
+      </Route>
+      <Route path="/admin/shipping">
+        {() => <ProtectedRoute roles={["ADMIN"]} component={AdminShippingPage} />}
       </Route>
 
       {/* ── Messaging ─────────────────────────────────────────────────────── */}
