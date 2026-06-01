@@ -35,13 +35,7 @@ const NAV: NavItem[] = [
   { href: "/admin/fraud",        label: "Fraud Monitor", icon: AlertTriangle, group: "Trust & Safety" },
 ];
 
-const S = {
-  bg:      "#f8f9fc",
-  sidebarBg: "white",
-  sidebarBdr: "#e5e7eb",
-  mutedTxt: "#9ca3af",
-  dimTxt:  "#d1d5db",
-} as const;
+const ACCENT = "#2563eb";
 
 export function AdminLayout({ children }: { children: React.ReactNode }) {
   const [location, navigate] = useLocation();
@@ -73,7 +67,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+        <div className="w-6 h-6 rounded-full border-2 border-blue-600 border-t-transparent animate-spin" />
       </div>
     );
   }
@@ -81,78 +75,50 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
   const SidebarContent = () => {
     let lastGroup = "";
     return (
-      <nav className="flex flex-col h-full" style={{ background: S.sidebarBg }}>
-        {/* Brand — links to homepage */}
-        <Link href="/">
-          <a
-            className="flex items-center gap-3 px-5 py-4 border-b hover:bg-gray-50 transition-colors"
-            style={{ borderColor: S.sidebarBdr }}
-          >
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shrink-0">
-              <ShieldCheck className="w-4 h-4 text-white" />
-            </div>
-            <div>
-              <p className="text-sm font-bold text-gray-900 leading-tight">Admin Panel</p>
-              <p className="text-[9px] text-gray-400 uppercase tracking-widest">Coastaq</p>
-            </div>
-          </a>
+      <nav className="flex flex-col h-full bg-white" style={{ borderRight: "1px solid #e5e7eb" }}>
+        {/* Brand */}
+        <Link href="/" className="flex items-center gap-2.5 px-4 py-3.5 hover:bg-gray-50 transition-colors shrink-0"
+          style={{ borderBottom: "1px solid #e5e7eb" }}>
+          <div className="w-7 h-7 rounded flex items-center justify-center shrink-0 bg-blue-600">
+            <ShieldCheck className="w-4 h-4 text-white" />
+          </div>
+          <div>
+            <p className="text-sm font-bold text-gray-900 leading-tight">Coastaq</p>
+            <p className="text-[10px] text-gray-500 mt-0.5">Admin Panel</p>
+          </div>
         </Link>
 
-        {/* Nav items with section labels */}
-        <ul className="flex-1 py-2 px-3 overflow-y-auto space-y-0.5">
-          {/* Overview always first, no group */}
-          {(() => {
-            const overview = NAV.find(n => !n.group);
-            if (!overview) return null;
-            const active = isActive(overview);
-            return (
-              <li key={overview.href}>
-                <Link href={overview.href}>
-                  <a
-                    onClick={() => setOpen(false)}
-                    className={cn(
-                      "flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors",
-                      active
-                        ? "bg-primary text-white shadow-sm shadow-primary/30"
-                        : "text-gray-500 hover:bg-gray-100 hover:text-gray-900",
-                    )}
-                  >
-                    <overview.icon className="w-4 h-4" />
-                    {overview.label}
-                  </a>
-                </Link>
-              </li>
-            );
-          })()}
-
-          {/* Grouped items */}
-          {NAV.filter(n => n.group).map(item => {
-            const showGroup = item.group !== lastGroup;
+        {/* Nav items */}
+        <ul className="flex-1 py-2 px-2 overflow-y-auto">
+          {NAV.map(item => {
+            const showGroup = !!item.group && item.group !== lastGroup;
             if (item.group) lastGroup = item.group;
             const active = isActive(item);
             return (
               <Fragment key={item.href}>
                 {showGroup && (
-                  <li className="px-3 pt-3.5 pb-0.5">
-                    <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-gray-300">
+                  <li className="px-2 pt-4 pb-1">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-gray-400">
                       {item.group}
                     </p>
                   </li>
                 )}
                 <li>
-                  <Link href={item.href}>
-                    <a
-                      onClick={() => setOpen(false)}
-                      className={cn(
-                        "flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors",
-                        active
-                          ? "bg-primary text-white shadow-sm shadow-primary/30"
-                          : "text-gray-500 hover:bg-gray-100 hover:text-gray-900",
-                      )}
-                    >
-                      <item.icon className="w-4 h-4" />
-                      {item.label}
-                    </a>
+                  <Link href={item.href}
+                    onClick={() => setOpen(false)}
+                    className={cn(
+                      "flex items-center gap-2.5 py-2 text-sm font-medium transition-colors rounded",
+                      active
+                        ? "bg-gray-100 text-gray-900"
+                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900",
+                    )}
+                    style={active
+                      ? { borderLeft: `2px solid ${ACCENT}`, paddingLeft: "10px", paddingRight: "12px" }
+                      : { borderLeft: "2px solid transparent", paddingLeft: "10px", paddingRight: "12px" }
+                    }
+                  >
+                    <item.icon className="w-4 h-4 shrink-0" />
+                    {item.label}
                   </Link>
                 </li>
               </Fragment>
@@ -161,22 +127,22 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         </ul>
 
         {/* Footer */}
-        <div className="px-3 pb-4 pt-2" style={{ borderTop: `1px solid ${S.sidebarBdr}` }}>
-          <Link href="/">
-            <a className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors">
-              <Home className="w-4 h-4" />
-              Back to Store
-            </a>
+        <div className="px-2 pb-3 pt-2 shrink-0" style={{ borderTop: "1px solid #e5e7eb" }}>
+          <Link href="/"
+            className="flex items-center gap-2.5 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors rounded"
+            style={{ borderLeft: "2px solid transparent", paddingLeft: "10px", paddingRight: "12px" }}>
+            <Home className="w-4 h-4 shrink-0" />
+            Back to Store
           </Link>
-          <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl mt-1 bg-gray-50">
-            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 text-primary text-xs font-bold">
+          <div className="flex items-center gap-2.5 px-3 py-2.5 rounded mt-2 bg-gray-50 border border-gray-200">
+            <div className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center shrink-0 text-white text-xs font-bold">
               {user.name?.[0]?.toUpperCase() ?? "A"}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-semibold text-gray-900 truncate">{user.name}</p>
-              <p className="text-[10px] text-gray-400 truncate">{user.email}</p>
+              <p className="text-xs font-semibold text-gray-900 truncate leading-tight">{user.name}</p>
+              <p className="text-[10px] text-gray-500 truncate mt-0.5">{user.email}</p>
             </div>
-            <button onClick={logout} className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors shrink-0" title="Sign out">
+            <button onClick={logout} className="p-1.5 rounded text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors shrink-0" title="Sign out">
               <LogOut className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -186,21 +152,21 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="min-h-screen flex" style={{ background: S.bg }}>
+    <div className="min-h-screen flex bg-gray-50">
       {/* Desktop sidebar */}
-      <aside className="hidden lg:flex flex-col w-60 border-r bg-white shrink-0 fixed inset-y-0 left-0 z-30" style={{ borderColor: S.sidebarBdr }}>
+      <aside className="hidden lg:flex flex-col w-56 shrink-0 fixed inset-y-0 left-0 z-30">
         <SidebarContent />
       </aside>
 
       {/* Mobile overlay */}
       {open && (
         <div className="fixed inset-0 z-40 lg:hidden">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setOpen(false)} />
-          <aside className="absolute left-0 top-0 bottom-0 w-64 bg-white border-r z-50" style={{ borderColor: S.sidebarBdr }} onClick={e => e.stopPropagation()}>
+          <div className="absolute inset-0 bg-black/40" onClick={() => setOpen(false)} />
+          <aside className="absolute left-0 top-0 bottom-0 w-56 z-50" onClick={e => e.stopPropagation()}>
             <SidebarContent />
             <button
               onClick={() => setOpen(false)}
-              className="absolute top-3.5 right-3 p-1.5 rounded-lg text-gray-400 hover:text-gray-600"
+              className="absolute top-3.5 right-3 p-1.5 rounded text-gray-400 hover:text-gray-600 transition-colors"
             >
               <X className="w-4 h-4" />
             </button>
@@ -209,44 +175,31 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       )}
 
       {/* Main content */}
-      <div className="flex-1 lg:ml-60 min-w-0 flex flex-col">
-        {/* Topbar */}
-        <div
-          className="sticky top-0 z-20 bg-white/90 backdrop-blur border-b px-4 py-3 flex items-center gap-3"
-          style={{ borderColor: S.sidebarBdr }}
-        >
-          <Button variant="ghost" size="icon" className="lg:hidden -ml-1" onClick={() => setOpen(true)}>
+      <div className="flex-1 lg:ml-56 min-w-0 flex flex-col min-h-screen">
+        {/* Mobile topbar */}
+        <div className="lg:hidden sticky top-0 z-20 bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3">
+          <button className="p-1.5 rounded text-gray-500 hover:text-gray-700 transition-colors" onClick={() => setOpen(true)}>
             <Menu className="w-5 h-5" />
-          </Button>
+          </button>
 
           {/* Breadcrumb */}
-          <nav className="flex items-center gap-1.5 text-xs text-gray-400">
-            <Link href="/">
-              <a className="flex items-center gap-1 hover:text-gray-600 transition-colors">
-                <Home className="w-3 h-3" />
-                <span className="hidden sm:inline">Home</span>
-              </a>
+          <nav className="flex items-center gap-1 text-xs text-gray-500">
+            <Link href="/" className="flex items-center gap-1 hover:text-gray-900 transition-colors">
+              <Home className="w-3 h-3" />
+              <span className="hidden sm:inline">Home</span>
             </Link>
             <ChevronRight className="w-3 h-3 text-gray-300" />
-            {currentItem ? (
+            <span className="font-medium text-gray-900">Admin</span>
+            {currentItem && currentItem.href !== "/admin" && (
               <>
-                <Link href="/admin">
-                  <a className="hover:text-gray-600 transition-colors">Admin</a>
-                </Link>
-                {currentItem.href !== "/admin" && (
-                  <>
-                    <ChevronRight className="w-3 h-3 text-gray-300" />
-                    <span className="font-semibold text-gray-700">{currentItem.label}</span>
-                  </>
-                )}
+                <ChevronRight className="w-3 h-3 text-gray-300" />
+                <span className="font-medium text-gray-900">{currentItem.label}</span>
               </>
-            ) : (
-              <span className="font-semibold text-gray-700">Admin</span>
             )}
           </nav>
         </div>
 
-        <main className="p-4 sm:p-6 lg:p-8 flex-1">{children}</main>
+        <main className="p-4 lg:p-6 flex-1 max-w-7xl w-full mx-auto">{children}</main>
       </div>
     </div>
   );

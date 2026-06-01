@@ -1,0 +1,206 @@
+Update the EXISTING Coastaq dashboards (Buyer, Seller, Affiliate, and Admin) to use a professional, classic, enterprise-style interface.
+
+IMPORTANT:
+
+* Do NOT rebuild dashboards
+* Do NOT change backend functionality
+* Do NOT change database structures
+* Do NOT change navigation architecture
+* Do NOT remove existing features
+* Preserve all current workflows
+
+GOAL:
+
+Modernize the dashboards by simplifying the UI and improving usability.
+
+DESIGN PHILOSOPHY:
+
+Think:
+
+* Amazon Seller Central
+* Alibaba Seller Center
+* Stripe Dashboard
+* DHL Business Portal
+* Enterprise SaaS Admin Panels
+
+Avoid:
+
+* colorful backgrounds
+* excessive gradients
+* oversized cards
+* floating elements
+* decorative widgets
+* trendy rounded-corner designs
+
+==================================================
+VISUAL CHANGES
+==============
+
+Background:
+
+* Use clean white backgrounds
+* Use light gray borders only where needed
+* Remove colored dashboard backgrounds
+* Remove gradient sections
+
+Cards & Containers:
+
+* Remove large rounded corners
+* Use square or very subtle corner radius (2px–4px)
+* Reduce excessive shadows
+* Use clean bordered sections
+
+Tables:
+
+* Prioritize tables over oversized cards
+* Display business data in structured table layouts
+* Improve readability and density
+
+Spacing:
+
+* Reduce unnecessary whitespace
+* Make dashboards more information-dense
+* Keep layouts clean and organized
+
+==================================================
+TYPOGRAPHY
+==========
+
+Use:
+
+* clean professional fonts
+* strong hierarchy
+* compact spacing
+
+Prioritize readability over decoration.
+
+==================================================
+SIDEBAR
+=======
+
+Improve sidebar:
+
+* white background
+* simple icons
+* compact navigation
+* active state highlighting
+* clear section grouping
+
+No large colored blocks.
+
+==================================================
+HEADER
+======
+
+Keep header consistent:
+
+Left:
+
+* Coastaq Logo
+
+Center:
+
+* Search
+
+Right:
+
+* Notifications
+* Messages
+* Profile Menu
+
+Logo must always return users to homepage.
+
+==================================================
+DASHBOARD CONTENT
+=================
+
+Replace oversized widgets with business-focused layouts.
+
+Buyer Dashboard:
+
+* Recent Orders
+* Saved Products
+* Messages
+* RFQs
+
+Seller Dashboard:
+
+* Orders Table
+* Product Summary
+* Shipping Activity
+* Verification Status
+* Performance Metrics
+
+Affiliate Dashboard:
+
+* Earnings
+* Referral Activity
+* Campaign Performance
+* Payout History
+
+Admin Dashboard:
+
+* Marketplace Metrics
+* Seller Approvals
+* Orders
+* Disputes
+* Verification Queue
+
+==================================================
+TABLE-FIRST DESIGN
+==================
+
+Use structured tables for:
+
+* Orders
+* Products
+* Earnings
+* Shipments
+* Verifications
+* Payouts
+
+Avoid large decorative cards.
+
+==================================================
+RESPONSIVENESS
+==============
+
+Maintain:
+
+* mobile responsiveness
+* tablet responsiveness
+* desktop optimization
+
+Do not sacrifice usability.
+
+==================================================
+PERFORMANCE
+===========
+
+Reduce:
+
+* unnecessary animations
+* heavy shadows
+* visual clutter
+
+Improve:
+
+* loading speed
+* readability
+* workflow efficiency
+
+==================================================
+FINAL GOAL
+==========
+
+Make Coastaq feel like a serious global marketplace platform.
+
+The dashboards should be:
+
+* clean
+* professional
+* business-focused
+* efficient
+* enterprise-grade
+
+while preserving all existing functionality and workflows.
