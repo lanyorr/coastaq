@@ -24,15 +24,7 @@ export default function Login() {
         // Invalidate all queries so Navbar & pages pick up the new auth state
         queryClient.invalidateQueries();
         toast({ title: "Welcome back!", description: "Successfully logged in." });
-        // Redirect to the right dashboard based on role
-        const role = data.user?.role;
-        if (role === "SELLER") {
-          setLocation("/seller/dashboard");
-        } else if (role === "BUYER") {
-          setLocation("/buyer/dashboard");
-        } else {
-          setLocation("/");
-        }
+        setLocation("/");
       },
       onError: (err: any) => {
         toast({
