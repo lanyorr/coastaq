@@ -118,7 +118,7 @@ router.get("/conversations/:id", requireAuth, async (req, res) => {
   try {
     const userId = req.userId!;
     const conv = await db.query.conversationsTable.findFirst({
-      where: eq(conversationsTable.id, req.params.id),
+      where: eq(conversationsTable.id, req.params.id as string),
     });
 
     if (!conv) { res.status(404).json({ error: "Conversation not found" }); return; }
@@ -178,7 +178,7 @@ router.post("/conversations/:id/messages", requireAuth, async (req, res) => {
     }
 
     const conv = await db.query.conversationsTable.findFirst({
-      where: eq(conversationsTable.id, req.params.id),
+      where: eq(conversationsTable.id, req.params.id as string),
     });
 
     if (!conv) { res.status(404).json({ error: "Conversation not found" }); return; }

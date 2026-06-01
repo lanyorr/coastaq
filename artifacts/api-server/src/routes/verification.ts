@@ -150,7 +150,7 @@ function detectFraudFlags(metrics: Record<string, number>, accountDays: number) 
 
 router.get("/status", requireAuth, requireRole("SELLER", "ADMIN"), async (req, res) => {
   const shop = await getSellerShop(req.userId!);
-  if (!shop) return res.status(404).json({ error: "Shop not found" });
+  if (!shop) return void res.status(404).json({ error: "Shop not found" });
 
   const ver = await getOrCreateVerification(shop.id);
   const docs = await db.select({
@@ -184,7 +184,7 @@ router.get("/status", requireAuth, requireRole("SELLER", "ADMIN"), async (req, r
 
 router.get("/trust-score", requireAuth, requireRole("SELLER", "ADMIN"), async (req, res) => {
   const shop = await getSellerShop(req.userId!);
-  if (!shop) return res.status(404).json({ error: "Shop not found" });
+  if (!shop) return void res.status(404).json({ error: "Shop not found" });
 
   const score = await computeTrustScore(shop.id);
   const ver = await getOrCreateVerification(shop.id);
@@ -205,12 +205,12 @@ router.get("/trust-score", requireAuth, requireRole("SELLER", "ADMIN"), async (r
 
 router.post("/documents", requireAuth, requireRole("SELLER", "ADMIN"), async (req, res) => {
   const shop = await getSellerShop(req.userId!);
-  if (!shop) return res.status(404).json({ error: "Shop not found" });
+  if (!shop) return void res.status(404).json({ error: "Shop not found" });
 
   const { docType, docCategory = "identity", fileName, fileSize, mimeType, fileData } = req.body;
-  if (!docType || !fileName || !fileData) return res.status(400).json({ error: "docType, fileName and fileData required" });
+  if (!docType || !fileName || !fileData) return void res.status(400).json({ error: "docType, fileName and fileData required" });
 
-  if (fileSize && fileSize > 5 * 1024 * 1024) return res.status(400).json({ error: "File too large (max 5 MB)" });
+  if (fileSize && fileSize > 5 * 1024 * 1024) return void res.status(400).json({ error: "File too large (max 5 MB)" });
 
   const ver = await getOrCreateVerification(shop.id);
 
@@ -225,13 +225,13 @@ router.post("/documents", requireAuth, requireRole("SELLER", "ADMIN"), async (re
 
 router.delete("/documents/:docId", requireAuth, requireRole("SELLER", "ADMIN"), async (req, res) => {
   const shop = await getSellerShop(req.userId!);
-  if (!shop) return res.status(404).json({ error: "Shop not found" });
+  if (!shop) return void res.status(404).json({ error: "Shop not found" });
 
   const [doc] = await db.select().from(verificationDocumentsTable)
-    .where(and(eq(verificationDocumentsTable.id, req.params.docId), eq(verificationDocumentsTable.shopId, shop.id))).limit(1);
-  if (!doc) return res.status(404).json({ error: "Document not found" });
+    .where(and(eq(verificationDocumentsTable.id, req.params.docId as string), eq(verificationDocumentsTable.shopId, shop.id))).limit(1);
+  if (!doc) return void res.status(404).json({ error: "Document not found" });
   if (doc.status !== "pending_review" && doc.status !== "rejected" && doc.status !== "requires_update") {
-    return res.status(400).json({ error: "Cannot delete an approved document" });
+    return void res.status(400).json({ error: "Cannot delete an approved document" });
   }
 
   await db.delete(verificationDocumentsTable).where(eq(verificationDocumentsTable.id, doc.id));
@@ -240,8 +240,8 @@ router.delete("/documents/:docId", requireAuth, requireRole("SELLER", "ADMIN"), 
 
 // Serve document file to owner or admin
 router.get("/documents/:docId/file", requireAuth, async (req, res) => {
-  const [doc] = await db.select().from(verificationDocumentsTable).where(eq(verificationDocumentsTable.id, req.params.docId)).limit(1);
-  if (!doc) return res.status(404).json({ error: "Not found" });
+  const [doc] = await db.select().from(verificationDocumentsTable).where(eq(verificationDocumentsTable.id, req.params.docId as string)).limit(1);
+  if (!doc) return void res.status(404).json({ error: "Not found" });
 
   // Auth check: must be the shop owner or admin
   const shop = await getSellerShop(req.userId!);
@@ -249,12 +249,12 @@ router.get("/documents/:docId/file", requireAuth, async (req, res) => {
   const [user] = await db.select({ role: usersTable.role }).from(usersTable).where(eq(usersTable.id, req.userId!)).limit(1);
   const isAdmin = user?.role === "ADMIN";
 
-  if (!isOwner && !isAdmin) return res.status(403).json({ error: "Forbidden" });
-  if (!doc.fileData) return res.status(404).json({ error: "No file data" });
+  if (!isOwner && !isAdmin) return void res.status(403).json({ error: "Forbidden" });
+  if (!doc.fileData) return void res.status(404).json({ error: "No file data" });
 
   // fileData is a dataURL: "data:image/jpeg;base64,..."
   const matches = doc.fileData.match(/^data:([^;]+);base64,(.+)$/);
-  if (!matches) return res.status(500).json({ error: "Invalid file data format" });
+  if (!matches) return void res.status(500).json({ error: "Invalid file data format" });
 
   const mimeType = matches[1];
   const buffer = Buffer.from(matches[2], "base64");
@@ -269,11 +269,11 @@ router.get("/documents/:docId/file", requireAuth, async (req, res) => {
 
 router.post("/submit", requireAuth, requireRole("SELLER", "ADMIN"), async (req, res) => {
   const shop = await getSellerShop(req.userId!);
-  if (!shop) return res.status(404).json({ error: "Shop not found" });
+  if (!shop) return void res.status(404).json({ error: "Shop not found" });
 
   const docs = await db.select().from(verificationDocumentsTable)
     .where(and(eq(verificationDocumentsTable.shopId, shop.id), eq(verificationDocumentsTable.docCategory, "identity")));
-  if (docs.length === 0) return res.status(400).json({ error: "Upload at least one identity document before submitting" });
+  if (docs.length === 0) return void res.status(400).json({ error: "Upload at least one identity document before submitting" });
 
   const ver = await getOrCreateVerification(shop.id);
   const [updated] = await db.update(sellerVerificationsTable).set({
@@ -312,10 +312,10 @@ router.get("/admin/queue", requireAuth, requireRole("ADMIN"), async (req, res) =
 });
 
 router.get("/admin/queue/:shopId", requireAuth, requireRole("ADMIN"), async (req, res) => {
-  const { shopId } = req.params;
+  const shopId = req.params.shopId as string;
   const ver = await getOrCreateVerification(shopId);
   const [shop] = await db.select().from(shopsTable).where(eq(shopsTable.id, shopId)).limit(1);
-  if (!shop) return res.status(404).json({ error: "Shop not found" });
+  if (!shop) return void res.status(404).json({ error: "Shop not found" });
 
   const docs = await db.select().from(verificationDocumentsTable)
     .where(eq(verificationDocumentsTable.shopId, shopId))
@@ -338,11 +338,11 @@ router.get("/admin/queue/:shopId", requireAuth, requireRole("ADMIN"), async (req
 router.patch("/admin/documents/:docId", requireAuth, requireRole("ADMIN"), async (req, res) => {
   const { action, rejectionReason, note } = req.body; // action: approve | reject | requires_update
   if (!["approve", "reject", "requires_update"].includes(action)) {
-    return res.status(400).json({ error: "action must be approve | reject | requires_update" });
+    return void res.status(400).json({ error: "action must be approve | reject | requires_update" });
   }
 
-  const [doc] = await db.select().from(verificationDocumentsTable).where(eq(verificationDocumentsTable.id, req.params.docId)).limit(1);
-  if (!doc) return res.status(404).json({ error: "Document not found" });
+  const [doc] = await db.select().from(verificationDocumentsTable).where(eq(verificationDocumentsTable.id, req.params.docId as string)).limit(1);
+  if (!doc) return void res.status(404).json({ error: "Document not found" });
 
   const newStatus = action === "approve" ? "approved" : action === "reject" ? "rejected" : "requires_update";
   const [updated] = await db.update(verificationDocumentsTable).set({
@@ -384,15 +384,15 @@ router.patch("/admin/documents/:docId", requireAuth, requireRole("ADMIN"), async
 ═══════════════════════════════════════════════════════════════════════════ */
 
 router.post("/admin/shops/:shopId/action", requireAuth, requireRole("ADMIN"), async (req, res) => {
-  const { shopId } = req.params;
+  const shopId = req.params.shopId as string;
   const { action, reason } = req.body;
 
   if (!["warning", "suspend", "restore", "remove_verification"].includes(action)) {
-    return res.status(400).json({ error: "Invalid action" });
+    return void res.status(400).json({ error: "Invalid action" });
   }
 
   const [shop] = await db.select().from(shopsTable).where(eq(shopsTable.id, shopId)).limit(1);
-  if (!shop) return res.status(404).json({ error: "Shop not found" });
+  if (!shop) return void res.status(404).json({ error: "Shop not found" });
 
   if (action === "suspend") {
     await db.update(shopsTable).set({ isSuspended: true, updatedAt: new Date() }).where(eq(shopsTable.id, shopId));
@@ -466,7 +466,7 @@ router.get("/admin/audit-logs", requireAuth, requireRole("ADMIN"), async (req, r
 
 router.get("/badge/:shopId", async (req, res) => {
   const [ver] = await db.select({ badgeLevel: sellerVerificationsTable.badgeLevel })
-    .from(sellerVerificationsTable).where(eq(sellerVerificationsTable.shopId, req.params.shopId)).limit(1);
+    .from(sellerVerificationsTable).where(eq(sellerVerificationsTable.shopId, req.params.shopId as string)).limit(1);
   const badge = ver?.badgeLevel ?? "basic";
   res.json({ badgeLevel: badge, ...BADGE_LABELS[badge] });
 });

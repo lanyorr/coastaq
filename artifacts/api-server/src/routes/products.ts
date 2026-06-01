@@ -83,7 +83,7 @@ router.get("/", async (req, res) => {
 router.get("/:id", async (req, res) => {
   try {
     const product = await db.query.productsTable.findFirst({
-      where: eq(productsTable.id, req.params.id),
+      where: eq(productsTable.id, req.params.id as string),
       with: { shop: true, category: true },
     });
     if (!product) {
@@ -156,7 +156,7 @@ router.post("/", requireAuth, requireRole("SELLER", "ADMIN"), async (req, res) =
 router.put("/:id", requireAuth, requireRole("SELLER", "ADMIN"), async (req, res) => {
   try {
     const product = await db.query.productsTable.findFirst({
-      where: eq(productsTable.id, req.params.id),
+      where: eq(productsTable.id, req.params.id as string),
       with: { shop: true },
     });
     if (!product) {
@@ -179,9 +179,9 @@ router.put("/:id", requireAuth, requireRole("SELLER", "ADMIN"), async (req, res)
     if (images !== undefined) updates.images = images;
     if (categoryId !== undefined) updates.categoryId = categoryId;
 
-    await db.update(productsTable).set(updates).where(eq(productsTable.id, req.params.id));
+    await db.update(productsTable).set(updates).where(eq(productsTable.id, req.params.id as string));
     const updated = await db.query.productsTable.findFirst({
-      where: eq(productsTable.id, req.params.id),
+      where: eq(productsTable.id, req.params.id as string),
       with: { shop: true, category: true },
     });
 
@@ -195,7 +195,7 @@ router.put("/:id", requireAuth, requireRole("SELLER", "ADMIN"), async (req, res)
 router.delete("/:id", requireAuth, requireRole("SELLER", "ADMIN"), async (req, res) => {
   try {
     const product = await db.query.productsTable.findFirst({
-      where: eq(productsTable.id, req.params.id),
+      where: eq(productsTable.id, req.params.id as string),
       with: { shop: true },
     });
     if (!product) {
@@ -207,7 +207,7 @@ router.delete("/:id", requireAuth, requireRole("SELLER", "ADMIN"), async (req, r
       return;
     }
 
-    await db.delete(productsTable).where(eq(productsTable.id, req.params.id));
+    await db.delete(productsTable).where(eq(productsTable.id, req.params.id as string));
     res.json({ message: "Product deleted" });
   } catch (err) {
     req.log.error({ err }, "Delete product error");

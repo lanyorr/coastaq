@@ -10,7 +10,7 @@ const router = Router();
 router.get("/order/:orderId", requireAuth, async (req, res) => {
   try {
     const order = await db.query.ordersTable.findFirst({
-      where: eq(ordersTable.id, req.params.orderId),
+      where: eq(ordersTable.id, req.params.orderId as string),
     });
     if (!order) { res.status(404).json({ error: "Order not found" }); return; }
 
@@ -25,7 +25,7 @@ router.get("/order/:orderId", requireAuth, async (req, res) => {
     const shipments = await db
       .select()
       .from(shipmentsTable)
-      .where(eq(shipmentsTable.orderId, req.params.orderId))
+      .where(eq(shipmentsTable.orderId, req.params.orderId as string))
       .orderBy(desc(shipmentsTable.createdAt));
 
     res.json(shipments);
@@ -95,7 +95,7 @@ router.patch("/:id", requireAuth, requireRole("SELLER", "ADMIN"), async (req, re
     const { status, estimatedDelivery, notes } = req.body;
 
     const shipment = await db.query.shipmentsTable.findFirst({
-      where: eq(shipmentsTable.id, req.params.id),
+      where: eq(shipmentsTable.id, req.params.id as string),
     });
     if (!shipment) { res.status(404).json({ error: "Shipment not found" }); return; }
 
@@ -107,9 +107,9 @@ router.patch("/:id", requireAuth, requireRole("SELLER", "ADMIN"), async (req, re
     if (estimatedDelivery) updates.estimatedDelivery = new Date(estimatedDelivery);
     if (notes !== undefined) updates.notes = notes;
 
-    await db.update(shipmentsTable).set(updates).where(eq(shipmentsTable.id, req.params.id));
+    await db.update(shipmentsTable).set(updates).where(eq(shipmentsTable.id, req.params.id as string));
     const updated = await db.query.shipmentsTable.findFirst({
-      where: eq(shipmentsTable.id, req.params.id),
+      where: eq(shipmentsTable.id, req.params.id as string),
     });
 
     res.json(updated);

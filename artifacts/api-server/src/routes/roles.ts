@@ -33,10 +33,10 @@ router.get("/user/:userId", requireAuth, requireRole("ADMIN"), async (req, res) 
     const roles = await db
       .select()
       .from(userRolesTable)
-      .where(eq(userRolesTable.userId, req.params.userId));
+      .where(eq(userRolesTable.userId, req.params.userId as string));
 
     const user = await db.query.usersTable.findFirst({
-      where: eq(usersTable.id, req.params.userId),
+      where: eq(usersTable.id, req.params.userId as string),
     });
 
     res.json({
@@ -61,7 +61,7 @@ router.post("/user/:userId/grant", requireAuth, requireRole("ADMIN"), async (req
     }
 
     const user = await db.query.usersTable.findFirst({
-      where: eq(usersTable.id, req.params.userId),
+      where: eq(usersTable.id, req.params.userId as string),
     });
     if (!user) {
       res.status(404).json({ error: "User not found" });
@@ -72,7 +72,7 @@ router.post("/user/:userId/grant", requireAuth, requireRole("ADMIN"), async (req
     await db
       .insert(userRolesTable)
       .values({
-        userId: req.params.userId,
+        userId: req.params.userId as string,
         role,
         grantedBy: req.userId!,
       })
@@ -111,7 +111,7 @@ router.delete("/user/:userId/revoke", requireAuth, requireRole("ADMIN"), async (
       .delete(userRolesTable)
       .where(
         and(
-          eq(userRolesTable.userId, req.params.userId),
+          eq(userRolesTable.userId, req.params.userId as string),
           eq(userRolesTable.role, role),
         ),
       );

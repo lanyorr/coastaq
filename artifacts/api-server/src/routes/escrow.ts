@@ -96,7 +96,7 @@ router.get("/seller/transactions", requireAuth, requireRole("SELLER", "ADMIN"), 
 // ── POST /api/escrow/:orderId/confirm-receipt ─────────────────────────────────
 // Buyer confirms they received the item — releases funds to seller
 router.post("/:orderId/confirm-receipt", requireAuth, async (req, res) => {
-  const { orderId } = req.params;
+  const orderId = req.params.orderId as string;
 
   try {
     const order = await db.query.ordersTable.findFirst({
@@ -135,7 +135,7 @@ router.post("/:orderId/confirm-receipt", requireAuth, async (req, res) => {
 // ── POST /api/escrow/:orderId/dispute ─────────────────────────────────────────
 // Buyer opens a dispute — holds funds until admin resolves
 router.post("/:orderId/dispute", requireAuth, async (req, res) => {
-  const { orderId } = req.params;
+  const orderId = req.params.orderId as string;
   const { reason } = req.body as { reason: string };
 
   if (!reason || reason.trim().length < 10) {
@@ -256,7 +256,7 @@ router.get("/admin/stats", requireAuth, requireRole("ADMIN"), async (req, res) =
 // ── Admin: POST /api/escrow/admin/:orderId/release ────────────────────────────
 // Admin manually releases escrow funds to seller
 router.post("/admin/:orderId/release", requireAuth, requireRole("ADMIN"), async (req, res) => {
-  const { orderId } = req.params;
+  const orderId = req.params.orderId as string;
   const { note } = req.body as { note?: string };
 
   try {
@@ -281,7 +281,7 @@ router.post("/admin/:orderId/release", requireAuth, requireRole("ADMIN"), async 
 // ── Admin: POST /api/escrow/admin/:orderId/refund ─────────────────────────────
 // Admin refunds escrow funds to buyer
 router.post("/admin/:orderId/refund", requireAuth, requireRole("ADMIN"), async (req, res) => {
-  const { orderId } = req.params;
+  const orderId = req.params.orderId as string;
   const { note } = req.body as { note?: string };
 
   try {

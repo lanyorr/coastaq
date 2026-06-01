@@ -316,7 +316,7 @@ router.patch("/me/coupons/:id", requireAuth, async (req, res) => {
 
     const coupon = await db.query.affiliateCouponsTable.findFirst({
       where: and(
-        eq(affiliateCouponsTable.id, req.params.id),
+        eq(affiliateCouponsTable.id, req.params.id as string),
         eq(affiliateCouponsTable.affiliateId, affiliate.id),
       ),
     });
@@ -411,7 +411,7 @@ router.patch("/payouts/:id/approve", requireAuth, requireRole("ADMIN"), async (r
     const [payout] = await db
       .update(affiliatePayoutsTable)
       .set({ status: "approved", updatedAt: new Date() })
-      .where(eq(affiliatePayoutsTable.id, req.params.id))
+      .where(eq(affiliatePayoutsTable.id, req.params.id as string))
       .returning();
     if (!payout) { res.status(404).json({ error: "Payout not found" }); return; }
     res.json(payout);
@@ -425,7 +425,7 @@ router.patch("/payouts/:id/approve", requireAuth, requireRole("ADMIN"), async (r
 router.patch("/payouts/:id/mark-paid", requireAuth, requireRole("ADMIN"), async (req, res) => {
   try {
     const existing = await db.query.affiliatePayoutsTable.findFirst({
-      where: eq(affiliatePayoutsTable.id, req.params.id),
+      where: eq(affiliatePayoutsTable.id, req.params.id as string),
     });
     if (!existing) { res.status(404).json({ error: "Payout not found" }); return; }
     if (existing.status === "paid") { res.json(existing); return; }
@@ -460,7 +460,7 @@ router.patch("/payouts/:id/reject", requireAuth, requireRole("ADMIN"), async (re
     const [payout] = await db
       .update(affiliatePayoutsTable)
       .set({ status: "rejected", note: req.body.note || null, updatedAt: new Date() })
-      .where(eq(affiliatePayoutsTable.id, req.params.id))
+      .where(eq(affiliatePayoutsTable.id, req.params.id as string))
       .returning();
     if (!payout) { res.status(404).json({ error: "Payout not found" }); return; }
     res.json(payout);
@@ -475,7 +475,7 @@ router.patch("/:id/approve", requireAuth, requireRole("ADMIN"), async (req, res)
     await db
       .update(affiliatesTable)
       .set({ isApproved: true, status: "approved", updatedAt: new Date() })
-      .where(eq(affiliatesTable.id, req.params.id));
+      .where(eq(affiliatesTable.id, req.params.id as string));
     res.json({ success: true });
   } catch (err) {
     req.log.error({ err }, "Approve affiliate error");
@@ -489,7 +489,7 @@ router.patch("/:id/suspend", requireAuth, requireRole("ADMIN"), async (req, res)
     await db
       .update(affiliatesTable)
       .set({ isApproved: false, status: "suspended", updatedAt: new Date() })
-      .where(eq(affiliatesTable.id, req.params.id));
+      .where(eq(affiliatesTable.id, req.params.id as string));
     res.json({ success: true });
   } catch (err) {
     req.log.error({ err }, "Suspend affiliate error");

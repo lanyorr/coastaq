@@ -43,7 +43,7 @@ export async function recordInventoryMovement(
 router.get("/:productId", requireAuth, requireRole("SELLER", "ADMIN"), async (req, res) => {
   try {
     const product = await db.query.productsTable.findFirst({
-      where: eq(productsTable.id, req.params.productId),
+      where: eq(productsTable.id, req.params.productId as string),
       with: { shop: true },
     });
 
@@ -56,7 +56,7 @@ router.get("/:productId", requireAuth, requireRole("SELLER", "ADMIN"), async (re
     const logs = await db
       .select()
       .from(inventoryLogsTable)
-      .where(eq(inventoryLogsTable.productId, req.params.productId))
+      .where(eq(inventoryLogsTable.productId, req.params.productId as string))
       .orderBy(desc(inventoryLogsTable.createdAt))
       .limit(100);
 
@@ -76,7 +76,7 @@ router.post("/:productId/adjust", requireAuth, requireRole("SELLER", "ADMIN"), a
     }
 
     const product = await db.query.productsTable.findFirst({
-      where: eq(productsTable.id, req.params.productId),
+      where: eq(productsTable.id, req.params.productId as string),
       with: { shop: true },
     });
     if (!product) { res.status(404).json({ error: "Product not found" }); return; }
@@ -85,7 +85,7 @@ router.post("/:productId/adjust", requireAuth, requireRole("SELLER", "ADMIN"), a
     }
 
     await recordInventoryMovement(
-      req.params.productId,
+      req.params.productId as string,
       "adjustment",
       Number(quantity),
       note || "Manual adjustment",
@@ -94,7 +94,7 @@ router.post("/:productId/adjust", requireAuth, requireRole("SELLER", "ADMIN"), a
     );
 
     const updated = await db.query.productsTable.findFirst({
-      where: eq(productsTable.id, req.params.productId),
+      where: eq(productsTable.id, req.params.productId as string),
     });
 
     res.json({ success: true, newStock: updated?.stock });
@@ -113,7 +113,7 @@ router.post("/:productId/restock", requireAuth, requireRole("SELLER", "ADMIN"), 
     }
 
     const product = await db.query.productsTable.findFirst({
-      where: eq(productsTable.id, req.params.productId),
+      where: eq(productsTable.id, req.params.productId as string),
       with: { shop: true },
     });
     if (!product) { res.status(404).json({ error: "Product not found" }); return; }
@@ -122,7 +122,7 @@ router.post("/:productId/restock", requireAuth, requireRole("SELLER", "ADMIN"), 
     }
 
     await recordInventoryMovement(
-      req.params.productId,
+      req.params.productId as string,
       "restock",
       Math.abs(Number(quantity)),
       note || "Restock",
@@ -131,7 +131,7 @@ router.post("/:productId/restock", requireAuth, requireRole("SELLER", "ADMIN"), 
     );
 
     const updated = await db.query.productsTable.findFirst({
-      where: eq(productsTable.id, req.params.productId),
+      where: eq(productsTable.id, req.params.productId as string),
     });
 
     res.json({ success: true, newStock: updated?.stock });

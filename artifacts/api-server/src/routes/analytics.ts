@@ -113,7 +113,7 @@ router.get("/seller", requireAuth, requireRole("SELLER", "ADMIN"), async (req, r
 router.get("/product/:productId", requireAuth, requireRole("SELLER", "ADMIN"), async (req, res) => {
   try {
     const product = await db.query.productsTable.findFirst({
-      where: eq(productsTable.id, req.params.productId),
+      where: eq(productsTable.id, req.params.productId as string),
       with: { shop: true },
     });
     if (!product) { res.status(404).json({ error: "Product not found" }); return; }
@@ -127,7 +127,7 @@ router.get("/product/:productId", requireAuth, requireRole("SELLER", "ADMIN"), a
     const views = await db
       .select({ count: count() })
       .from(pageViewsTable)
-      .where(and(eq(pageViewsTable.productId, req.params.productId), gte(pageViewsTable.createdAt, since)));
+      .where(and(eq(pageViewsTable.productId, req.params.productId as string), gte(pageViewsTable.createdAt, since)));
 
     const daily = await db
       .select({
@@ -135,7 +135,7 @@ router.get("/product/:productId", requireAuth, requireRole("SELLER", "ADMIN"), a
         count: count(),
       })
       .from(pageViewsTable)
-      .where(and(eq(pageViewsTable.productId, req.params.productId), gte(pageViewsTable.createdAt, since)))
+      .where(and(eq(pageViewsTable.productId, req.params.productId as string), gte(pageViewsTable.createdAt, since)))
       .groupBy(sql`date_trunc('day', ${pageViewsTable.createdAt})::date`)
       .orderBy(sql`date_trunc('day', ${pageViewsTable.createdAt})::date`);
 

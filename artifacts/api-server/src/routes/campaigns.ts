@@ -127,7 +127,7 @@ router.patch("/seller/campaigns/:id", requireAuth, requireRole("SELLER"), async 
 
     const campaign = await db.query.affiliateCampaignsTable.findFirst({
       where: and(
-        eq(affiliateCampaignsTable.id, req.params.id),
+        eq(affiliateCampaignsTable.id, req.params.id as string),
         eq(affiliateCampaignsTable.shopId, shop.id),
       ),
     });
@@ -230,7 +230,7 @@ router.post("/seller/campaigns/:id/invitations", requireAuth, requireRole("SELLE
 
     const campaign = await db.query.affiliateCampaignsTable.findFirst({
       where: and(
-        eq(affiliateCampaignsTable.id, req.params.id),
+        eq(affiliateCampaignsTable.id, req.params.id as string),
         eq(affiliateCampaignsTable.shopId, shop.id),
       ),
     });
@@ -291,7 +291,7 @@ router.get("/seller/campaigns/:id/invitations", requireAuth, requireRole("SELLER
 
     const campaign = await db.query.affiliateCampaignsTable.findFirst({
       where: and(
-        eq(affiliateCampaignsTable.id, req.params.id),
+        eq(affiliateCampaignsTable.id, req.params.id as string),
         eq(affiliateCampaignsTable.shopId, shop.id),
       ),
     });
@@ -414,7 +414,7 @@ router.post("/affiliate-campaigns/:id/join", requireAuth, async (req, res) => {
 
     const campaign = await db.query.affiliateCampaignsTable.findFirst({
       where: and(
-        eq(affiliateCampaignsTable.id, req.params.id),
+        eq(affiliateCampaignsTable.id, req.params.id as string),
         eq(affiliateCampaignsTable.status, "active"),
       ),
     });
@@ -514,9 +514,9 @@ router.get("/affiliates/me/invitations", requireAuth, async (req, res) => {
       return {
         id: row.id,
         campaignId: row.campaign.id,
+        ...campaignFields,
         status: row.status,
         createdAt: row.createdAt,
-        ...campaignFields,
         shopName: row.shopName,
         shopLogo: row.shopLogo,
       };
@@ -538,7 +538,7 @@ router.post("/affiliates/me/invitations/:id/accept", requireAuth, async (req, re
 
     const invitation = await db.query.affiliateCampaignInvitationsTable.findFirst({
       where: and(
-        eq(affiliateCampaignInvitationsTable.id, req.params.id),
+        eq(affiliateCampaignInvitationsTable.id, req.params.id as string),
         eq(affiliateCampaignInvitationsTable.affiliateId, affiliate.id),
         eq(affiliateCampaignInvitationsTable.status, "pending"),
       ),
@@ -596,7 +596,7 @@ router.post("/affiliates/me/invitations/:id/decline", requireAuth, async (req, r
 
     const invitation = await db.query.affiliateCampaignInvitationsTable.findFirst({
       where: and(
-        eq(affiliateCampaignInvitationsTable.id, req.params.id),
+        eq(affiliateCampaignInvitationsTable.id, req.params.id as string),
         eq(affiliateCampaignInvitationsTable.affiliateId, affiliate.id),
         eq(affiliateCampaignInvitationsTable.status, "pending"),
       ),

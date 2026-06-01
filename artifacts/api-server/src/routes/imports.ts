@@ -22,10 +22,10 @@ async function requireActiveSubscription(req: Request, res: Response, next: Next
     .from(shopsTable)
     .where(eq(shopsTable.userId, (req as any).user.id))
     .limit(1);
-  if (!shops.length) return res.status(404).json({ error: "Shop not found" });
+  if (!shops.length) return void res.status(404).json({ error: "Shop not found" });
   const info = getSubscriptionInfo(shops[0]);
   if (info.status !== "ACTIVE") {
-    return res.status(403).json({
+    return void res.status(403).json({
       error: "CSV Import requires an Active (paid) subscription",
       code: "SUBSCRIPTION_REQUIRED",
     });
@@ -50,7 +50,7 @@ router.get("/mapping-profiles", requireAuth, requireRole("SELLER"), async (req, 
     .from(shopsTable)
     .where(eq(shopsTable.userId, (req as any).user.id))
     .limit(1);
-  if (!shops.length) return res.json([]);
+  if (!shops.length) return void res.json([]);
   const profiles = await db
     .select()
     .from(fieldMappingProfilesTable)
@@ -66,9 +66,9 @@ router.post("/mapping-profiles", requireAuth, requireRole("SELLER"), async (req,
     .from(shopsTable)
     .where(eq(shopsTable.userId, (req as any).user.id))
     .limit(1);
-  if (!shops.length) return res.status(404).json({ error: "Shop not found" });
+  if (!shops.length) return void res.status(404).json({ error: "Shop not found" });
   const { name, mappings } = req.body;
-  if (!name || !mappings) return res.status(400).json({ error: "name and mappings required" });
+  if (!name || !mappings) return void res.status(400).json({ error: "name and mappings required" });
   const [profile] = await db
     .insert(fieldMappingProfilesTable)
     .values({ shopId: shops[0].id, name, mappings: JSON.stringify(mappings) })
@@ -89,7 +89,7 @@ router.post(
     }: { rows: Record<string, string>[]; mapping: Record<string, string> } = req.body;
 
     if (!Array.isArray(rows) || rows.length === 0)
-      return res.status(400).json({ error: "No rows provided" });
+      return void res.status(400).json({ error: "No rows provided" });
 
     const categories = await db
       .select({ id: categoriesTable.id, name: categoriesTable.name })
@@ -194,7 +194,7 @@ router.post(
     const shop = (req as any).shop;
 
     if (!Array.isArray(rows) || rows.length === 0)
-      return res.status(400).json({ error: "No rows to import" });
+      return void res.status(400).json({ error: "No rows to import" });
 
     const categories = await db
       .select({ id: categoriesTable.id, name: categoriesTable.name })
@@ -326,7 +326,7 @@ router.get("/history", requireAuth, requireRole("SELLER"), async (req, res) => {
     .from(shopsTable)
     .where(eq(shopsTable.userId, (req as any).user.id))
     .limit(1);
-  if (!shops.length) return res.json([]);
+  if (!shops.length) return void res.json([]);
   const imports = await db
     .select()
     .from(sellerImportsTable)
@@ -343,14 +343,14 @@ router.get("/:id", requireAuth, requireRole("SELLER"), async (req, res) => {
     .from(shopsTable)
     .where(eq(shopsTable.userId, (req as any).user.id))
     .limit(1);
-  if (!shops.length) return res.status(404).json({ error: "Not found" });
+  if (!shops.length) return void res.status(404).json({ error: "Not found" });
 
   const [imp] = await db
     .select()
     .from(sellerImportsTable)
-    .where(and(eq(sellerImportsTable.id, req.params.id), eq(sellerImportsTable.shopId, shops[0].id)))
+    .where(and(eq(sellerImportsTable.id, req.params.id as string), eq(sellerImportsTable.shopId, shops[0].id)))
     .limit(1);
-  if (!imp) return res.status(404).json({ error: "Import not found" });
+  if (!imp) return void res.status(404).json({ error: "Import not found" });
 
   const rowsData = await db
     .select()

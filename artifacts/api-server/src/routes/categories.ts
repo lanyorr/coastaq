@@ -59,7 +59,7 @@ router.put("/:id", requireAuth, requireRole("ADMIN"), async (req, res) => {
     if (name !== undefined) updates.name = name;
     if (parentId !== undefined) updates.parentId = parentId || null;
 
-    const [cat] = await db.update(categoriesTable).set(updates).where(eq(categoriesTable.id, req.params.id)).returning();
+    const [cat] = await db.update(categoriesTable).set(updates).where(eq(categoriesTable.id, req.params.id as string)).returning();
     res.json({ ...cat, children: [] });
   } catch (err) {
     req.log.error({ err }, "Update category error");
@@ -69,7 +69,7 @@ router.put("/:id", requireAuth, requireRole("ADMIN"), async (req, res) => {
 
 router.delete("/:id", requireAuth, requireRole("ADMIN"), async (req, res) => {
   try {
-    await db.delete(categoriesTable).where(eq(categoriesTable.id, req.params.id));
+    await db.delete(categoriesTable).where(eq(categoriesTable.id, req.params.id as string));
     res.json({ message: "Category deleted" });
   } catch (err) {
     req.log.error({ err }, "Delete category error");

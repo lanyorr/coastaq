@@ -191,7 +191,7 @@ router.get("/slug/:slug", async (req, res) => {
 router.get("/:id", async (req, res) => {
   try {
     const shop = await db.query.shopsTable.findFirst({
-      where: eq(shopsTable.id, req.params.id),
+      where: eq(shopsTable.id, req.params.id as string),
     });
     if (!shop) {
       res.status(404).json({ error: "Shop not found" });
@@ -212,7 +212,7 @@ router.get("/:id", async (req, res) => {
 router.put("/:id", requireAuth, requireRole("SELLER", "ADMIN"), async (req, res) => {
   try {
     const current = await db.query.shopsTable.findFirst({
-      where: and(eq(shopsTable.id, req.params.id), eq(shopsTable.userId, req.userId!)),
+      where: and(eq(shopsTable.id, req.params.id as string), eq(shopsTable.userId, req.userId!)),
       columns: { id: true, slug: true, name: true },
     });
     if (!current) {
@@ -234,14 +234,14 @@ router.put("/:id", requireAuth, requireRole("SELLER", "ADMIN"), async (req, res)
 router.delete("/:id", requireAuth, requireRole("SELLER", "ADMIN"), async (req, res) => {
   try {
     const existing = await db.query.shopsTable.findFirst({
-      where: and(eq(shopsTable.id, req.params.id), eq(shopsTable.userId, req.userId!)),
+      where: and(eq(shopsTable.id, req.params.id as string), eq(shopsTable.userId, req.userId!)),
       columns: { id: true },
     });
     if (!existing) {
       res.status(404).json({ error: "Shop not found or not owned by you" });
       return;
     }
-    await db.delete(shopsTable).where(eq(shopsTable.id, req.params.id));
+    await db.delete(shopsTable).where(eq(shopsTable.id, req.params.id as string));
     res.json({ success: true });
   } catch (err) {
     req.log.error({ err }, "Delete shop error");

@@ -94,7 +94,7 @@ router.get("/couriers/all", requireAuth, requireRole("ADMIN"), async (_req, res)
 
 router.post("/couriers", requireAuth, requireRole("ADMIN"), async (req, res) => {
   const { name, code, trackingUrlTemplate, logoUrl, type = "manual", settings } = req.body;
-  if (!name || !code) return res.status(400).json({ error: "name and code required" });
+  if (!name || !code) return void res.status(400).json({ error: "name and code required" });
   const [c] = await db.insert(couriersTable).values({ name, code: code.toUpperCase(), trackingUrlTemplate, logoUrl, type, settings }).returning();
   res.json(c);
 });
@@ -102,8 +102,8 @@ router.post("/couriers", requireAuth, requireRole("ADMIN"), async (req, res) => 
 router.patch("/couriers/:id", requireAuth, requireRole("ADMIN"), async (req, res) => {
   const { name, trackingUrlTemplate, logoUrl, isActive, settings } = req.body;
   const [c] = await db.update(couriersTable).set({ name, trackingUrlTemplate, logoUrl, isActive, settings })
-    .where(eq(couriersTable.id, req.params.id)).returning();
-  if (!c) return res.status(404).json({ error: "Courier not found" });
+    .where(eq(couriersTable.id, req.params.id as string)).returning();
+  if (!c) return void res.status(404).json({ error: "Courier not found" });
   res.json(c);
 });
 
@@ -113,7 +113,7 @@ router.patch("/couriers/:id", requireAuth, requireRole("ADMIN"), async (req, res
 
 router.get("/stats", requireAuth, requireRole("SELLER", "ADMIN"), async (req, res) => {
   const shop = await getSellerShop(req.userId!);
-  if (!shop) return res.status(404).json({ error: "Shop not found" });
+  if (!shop) return void res.status(404).json({ error: "Shop not found" });
 
   const rows = await db.select().from(shipmentsTable).where(eq(shipmentsTable.shopId, shop.id));
 
@@ -142,7 +142,7 @@ router.get("/stats", requireAuth, requireRole("SELLER", "ADMIN"), async (req, re
 
 router.get("/shipments", requireAuth, requireRole("SELLER", "ADMIN"), async (req, res) => {
   const shop = await getSellerShop(req.userId!);
-  if (!shop) return res.status(404).json({ error: "Shop not found" });
+  if (!shop) return void res.status(404).json({ error: "Shop not found" });
 
   const { status, limit = "50" } = req.query as Record<string, string>;
   const conditions = [eq(shipmentsTable.shopId, shop.id)];
@@ -182,15 +182,15 @@ router.post("/shipments", requireAuth, requireRole("SELLER", "ADMIN"), async (re
   } = req.body;
 
   if (!orderId || !carrier || !trackingNumber) {
-    return res.status(400).json({ error: "orderId, carrier and trackingNumber required" });
+    return void res.status(400).json({ error: "orderId, carrier and trackingNumber required" });
   }
 
   const shop = await getSellerShop(req.userId!);
-  if (!shop) return res.status(404).json({ error: "Shop not found" });
+  if (!shop) return void res.status(404).json({ error: "Shop not found" });
 
   // Validate order belongs to this shop
   const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, orderId)).limit(1);
-  if (!order) return res.status(404).json({ error: "Order not found" });
+  if (!order) return void res.status(404).json({ error: "Order not found" });
 
   // Build tracking URL from courier template if not provided
   let resolvedTrackingUrl = trackingUrl;
@@ -233,12 +233,12 @@ router.post("/shipments", requireAuth, requireRole("SELLER", "ADMIN"), async (re
 
 router.get("/shipments/:id", requireAuth, requireRole("SELLER", "ADMIN"), async (req, res) => {
   const shop = await getSellerShop(req.userId!);
-  if (!shop) return res.status(404).json({ error: "Shop not found" });
+  if (!shop) return void res.status(404).json({ error: "Shop not found" });
 
   const [shipment] = await db.select().from(shipmentsTable)
-    .where(and(eq(shipmentsTable.id, req.params.id), eq(shipmentsTable.shopId, shop.id)))
+    .where(and(eq(shipmentsTable.id, req.params.id as string), eq(shipmentsTable.shopId, shop.id)))
     .limit(1);
-  if (!shipment) return res.status(404).json({ error: "Shipment not found" });
+  if (!shipment) return void res.status(404).json({ error: "Shipment not found" });
 
   const events = await db.select().from(shipmentEventsTable)
     .where(eq(shipmentEventsTable.shipmentId, shipment.id))
@@ -262,11 +262,11 @@ router.get("/shipments/:id", requireAuth, requireRole("SELLER", "ADMIN"), async 
 
 router.patch("/shipments/:id", requireAuth, requireRole("SELLER", "ADMIN"), async (req, res) => {
   const shop = await getSellerShop(req.userId!);
-  if (!shop) return res.status(404).json({ error: "Shop not found" });
+  if (!shop) return void res.status(404).json({ error: "Shop not found" });
 
   const [existing] = await db.select().from(shipmentsTable)
-    .where(and(eq(shipmentsTable.id, req.params.id), eq(shipmentsTable.shopId, shop.id))).limit(1);
-  if (!existing) return res.status(404).json({ error: "Shipment not found" });
+    .where(and(eq(shipmentsTable.id, req.params.id as string), eq(shipmentsTable.shopId, shop.id))).limit(1);
+  if (!existing) return void res.status(404).json({ error: "Shipment not found" });
 
   const {
     status, trackingNumber, trackingUrl, estimatedDelivery,
@@ -284,7 +284,7 @@ router.patch("/shipments/:id", requireAuth, requireRole("SELLER", "ADMIN"), asyn
   if (status === "delivered") { updates.deliveredAt = new Date(); }
   if (status === "picked_up" || status === "in_transit") { updates.dispatchedAt = updates.dispatchedAt ?? existing.dispatchedAt ?? new Date(); }
 
-  const [shipment] = await db.update(shipmentsTable).set(updates).where(eq(shipmentsTable.id, req.params.id)).returning();
+  const [shipment] = await db.update(shipmentsTable).set(updates).where(eq(shipmentsTable.id, req.params.id as string)).returning();
 
   // Auto-create tracking event
   if (status) {
@@ -320,11 +320,11 @@ router.patch("/shipments/:id", requireAuth, requireRole("SELLER", "ADMIN"), asyn
 
 router.get("/shipments/:id/events", requireAuth, requireRole("SELLER", "ADMIN"), async (req, res) => {
   const shop = await getSellerShop(req.userId!);
-  if (!shop) return res.status(404).json({ error: "Shop not found" });
+  if (!shop) return void res.status(404).json({ error: "Shop not found" });
 
   const [shipment] = await db.select({ id: shipmentsTable.id })
-    .from(shipmentsTable).where(and(eq(shipmentsTable.id, req.params.id), eq(shipmentsTable.shopId, shop.id))).limit(1);
-  if (!shipment) return res.status(404).json({ error: "Shipment not found" });
+    .from(shipmentsTable).where(and(eq(shipmentsTable.id, req.params.id as string), eq(shipmentsTable.shopId, shop.id))).limit(1);
+  if (!shipment) return void res.status(404).json({ error: "Shipment not found" });
 
   const events = await db.select().from(shipmentEventsTable)
     .where(eq(shipmentEventsTable.shipmentId, shipment.id))
@@ -334,14 +334,14 @@ router.get("/shipments/:id/events", requireAuth, requireRole("SELLER", "ADMIN"),
 
 router.post("/shipments/:id/events", requireAuth, requireRole("SELLER", "ADMIN"), async (req, res) => {
   const shop = await getSellerShop(req.userId!);
-  if (!shop) return res.status(404).json({ error: "Shop not found" });
+  if (!shop) return void res.status(404).json({ error: "Shop not found" });
 
   const [shipment] = await db.select().from(shipmentsTable)
-    .where(and(eq(shipmentsTable.id, req.params.id), eq(shipmentsTable.shopId, shop.id))).limit(1);
-  if (!shipment) return res.status(404).json({ error: "Shipment not found" });
+    .where(and(eq(shipmentsTable.id, req.params.id as string), eq(shipmentsTable.shopId, shop.id))).limit(1);
+  if (!shipment) return void res.status(404).json({ error: "Shipment not found" });
 
   const { status, description, location } = req.body;
-  if (!status || !description) return res.status(400).json({ error: "status and description required" });
+  if (!status || !description) return void res.status(400).json({ error: "status and description required" });
 
   const [event] = await db.insert(shipmentEventsTable).values({
     shipmentId: shipment.id, status, description, location, createdBy: req.userId!,
@@ -363,11 +363,11 @@ router.post("/shipments/:id/events", requireAuth, requireRole("SELLER", "ADMIN")
 
 router.get("/shipments/:id/label", requireAuth, requireRole("SELLER", "ADMIN"), async (req, res) => {
   const shop = await getSellerShop(req.userId!);
-  if (!shop) return res.status(404).json({ error: "Shop not found" });
+  if (!shop) return void res.status(404).json({ error: "Shop not found" });
 
   const [shipment] = await db.select().from(shipmentsTable)
-    .where(and(eq(shipmentsTable.id, req.params.id), eq(shipmentsTable.shopId, shop.id))).limit(1);
-  if (!shipment) return res.status(404).json({ error: "Shipment not found" });
+    .where(and(eq(shipmentsTable.id, req.params.id as string), eq(shipmentsTable.shopId, shop.id))).limit(1);
+  if (!shipment) return void res.status(404).json({ error: "Shipment not found" });
 
   const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, shipment.orderId)).limit(1);
   const items = order ? await db.select({ qty: orderItemsTable.quantity, price: orderItemsTable.price, title: productsTable.title })
@@ -399,7 +399,7 @@ router.get("/shipments/:id/label", requireAuth, requireRole("SELLER", "ADMIN"), 
 
 router.get("/rates", requireAuth, requireRole("SELLER", "ADMIN"), async (req, res) => {
   const shop = await getSellerShop(req.userId!);
-  if (!shop) return res.json([]);
+  if (!shop) return void res.json([]);
 
   const rates = await db.select({
     rate: shippingRatesTable,
@@ -414,10 +414,10 @@ router.get("/rates", requireAuth, requireRole("SELLER", "ADMIN"), async (req, re
 
 router.post("/rates", requireAuth, requireRole("SELLER", "ADMIN"), async (req, res) => {
   const shop = await getSellerShop(req.userId!);
-  if (!shop) return res.status(404).json({ error: "Shop not found" });
+  if (!shop) return void res.status(404).json({ error: "Shop not found" });
 
   const { name, courierId, rateType, baseRate, perKgRate, freeShippingThreshold, countries, estimatedDaysMin, estimatedDaysMax } = req.body;
-  if (!name || !baseRate) return res.status(400).json({ error: "name and baseRate required" });
+  if (!name || !baseRate) return void res.status(400).json({ error: "name and baseRate required" });
 
   const [rate] = await db.insert(shippingRatesTable).values({
     shopId: shop.id, name, courierId: courierId || null, rateType: rateType || "flat",
@@ -430,22 +430,22 @@ router.post("/rates", requireAuth, requireRole("SELLER", "ADMIN"), async (req, r
 
 router.patch("/rates/:id", requireAuth, requireRole("SELLER", "ADMIN"), async (req, res) => {
   const shop = await getSellerShop(req.userId!);
-  if (!shop) return res.status(404).json({ error: "Shop not found" });
+  if (!shop) return void res.status(404).json({ error: "Shop not found" });
 
   const { name, courierId, rateType, baseRate, perKgRate, freeShippingThreshold, countries, estimatedDaysMin, estimatedDaysMax, isActive } = req.body;
   const [rate] = await db.update(shippingRatesTable).set({
     name, courierId: courierId || undefined, rateType, baseRate, perKgRate, freeShippingThreshold,
     countries: countries ? JSON.stringify(countries) : undefined,
     estimatedDaysMin, estimatedDaysMax, isActive, updatedAt: new Date(),
-  }).where(and(eq(shippingRatesTable.id, req.params.id), eq(shippingRatesTable.shopId, shop.id))).returning();
-  if (!rate) return res.status(404).json({ error: "Rate not found" });
+  }).where(and(eq(shippingRatesTable.id, req.params.id as string), eq(shippingRatesTable.shopId, shop.id))).returning();
+  if (!rate) return void res.status(404).json({ error: "Rate not found" });
   res.json(rate);
 });
 
 router.delete("/rates/:id", requireAuth, requireRole("SELLER", "ADMIN"), async (req, res) => {
   const shop = await getSellerShop(req.userId!);
-  if (!shop) return res.status(404).json({ error: "Shop not found" });
-  await db.delete(shippingRatesTable).where(and(eq(shippingRatesTable.id, req.params.id), eq(shippingRatesTable.shopId, shop.id)));
+  if (!shop) return void res.status(404).json({ error: "Shop not found" });
+  await db.delete(shippingRatesTable).where(and(eq(shippingRatesTable.id, req.params.id as string), eq(shippingRatesTable.shopId, shop.id)));
   res.json({ ok: true });
 });
 
@@ -455,10 +455,10 @@ router.delete("/rates/:id", requireAuth, requireRole("SELLER", "ADMIN"), async (
 
 router.get("/issues", requireAuth, requireRole("SELLER", "ADMIN"), async (req, res) => {
   const shop = await getSellerShop(req.userId!);
-  if (!shop) return res.status(404).json({ error: "Shop not found" });
+  if (!shop) return void res.status(404).json({ error: "Shop not found" });
 
   const shopShipments = await db.select({ id: shipmentsTable.id }).from(shipmentsTable).where(eq(shipmentsTable.shopId, shop.id));
-  if (!shopShipments.length) return res.json([]);
+  if (!shopShipments.length) return void res.json([]);
 
   const ids = shopShipments.map(s => s.id);
   const issues = await db.select().from(deliveryIssuesTable)
@@ -469,7 +469,7 @@ router.get("/issues", requireAuth, requireRole("SELLER", "ADMIN"), async (req, r
 
 router.post("/issues", requireAuth, requireRole("SELLER", "ADMIN"), async (req, res) => {
   const { shipmentId, issueType, description } = req.body;
-  if (!shipmentId || !issueType || !description) return res.status(400).json({ error: "shipmentId, issueType and description required" });
+  if (!shipmentId || !issueType || !description) return void res.status(400).json({ error: "shipmentId, issueType and description required" });
 
   const [issue] = await db.insert(deliveryIssuesTable).values({
     shipmentId, issueType, description, reportedBy: req.userId!,
@@ -492,8 +492,8 @@ router.patch("/issues/:id", requireAuth, requireRole("SELLER", "ADMIN"), async (
   if (resolution) updates.resolution = resolution;
   if (status === "resolved") { updates.resolvedAt = new Date(); updates.resolvedBy = req.userId!; }
 
-  const [issue] = await db.update(deliveryIssuesTable).set(updates).where(eq(deliveryIssuesTable.id, req.params.id)).returning();
-  if (!issue) return res.status(404).json({ error: "Issue not found" });
+  const [issue] = await db.update(deliveryIssuesTable).set(updates).where(eq(deliveryIssuesTable.id, req.params.id as string)).returning();
+  if (!issue) return void res.status(404).json({ error: "Issue not found" });
   res.json(issue);
 });
 
@@ -563,7 +563,7 @@ router.get("/admin/analytics", requireAuth, requireRole("ADMIN"), async (_req, r
 
 router.post("/calculate", requireAuth, async (req, res) => {
   const { shopId, weight = 1, quantity = 1, orderTotal = 0, destCountry } = req.body;
-  if (!shopId) return res.status(400).json({ error: "shopId required" });
+  if (!shopId) return void res.status(400).json({ error: "shopId required" });
 
   const rates = await db.select({
     rate: shippingRatesTable,

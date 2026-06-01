@@ -112,7 +112,7 @@ router.patch("/:id/tracking", requireAuth, requireRole("SELLER", "ADMIN"), async
   }
   try {
     const order = await db.query.ordersTable.findFirst({
-      where: eq(ordersTable.id, req.params.id),
+      where: eq(ordersTable.id, req.params.id as string),
       with: { items: { with: { product: { with: { shop: true } } } } },
     });
     if (!order) { res.status(404).json({ error: "Order not found" }); return; }
@@ -123,7 +123,7 @@ router.patch("/:id/tracking", requireAuth, requireRole("SELLER", "ADMIN"), async
     }
     const [updated] = await db.update(ordersTable)
       .set({ trackingNumber, courierName: courierName || null, updatedAt: new Date() })
-      .where(eq(ordersTable.id, req.params.id))
+      .where(eq(ordersTable.id, req.params.id as string))
       .returning();
     res.json({ ...updated, total: parseFloat(updated.total) });
   } catch (err) {
@@ -142,7 +142,7 @@ router.patch("/:id/status", requireAuth, requireRole("SELLER", "ADMIN"), async (
   }
   try {
     const order = await db.query.ordersTable.findFirst({
-      where: eq(ordersTable.id, req.params.id),
+      where: eq(ordersTable.id, req.params.id as string),
       with: { items: { with: { product: { with: { shop: true } } } } },
     });
     if (!order) {
@@ -163,7 +163,7 @@ router.patch("/:id/status", requireAuth, requireRole("SELLER", "ADMIN"), async (
     }
     const [updated] = await db.update(ordersTable)
       .set(setFields)
-      .where(eq(ordersTable.id, req.params.id))
+      .where(eq(ordersTable.id, req.params.id as string))
       .returning();
     res.json({ ...updated, total: parseFloat(updated.total) });
   } catch (err) {
@@ -196,7 +196,7 @@ router.get("/", requireAuth, async (req, res) => {
 router.get("/:id", requireAuth, async (req, res) => {
   try {
     const order = await db.query.ordersTable.findFirst({
-      where: eq(ordersTable.id, req.params.id),
+      where: eq(ordersTable.id, req.params.id as string),
       with: { items: { with: { product: true } } },
     });
     if (!order) { res.status(404).json({ error: "Order not found" }); return; }
