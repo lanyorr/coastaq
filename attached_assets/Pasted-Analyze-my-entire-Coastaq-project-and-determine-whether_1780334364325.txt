@@ -1,0 +1,134 @@
+Analyze my entire Coastaq project and determine whether it is fully backed up and recoverable through GitHub.
+
+IMPORTANT:
+
+Do not modify code.
+Do not create files.
+Do not change the database.
+Perform analysis only.
+
+I need a complete backup readiness audit.
+
+Analyze and report:
+
+1. Frontend Code
+- all frontend directories
+- React/Next.js components
+- pages
+- layouts
+- assets
+
+2. Backend Code
+- API routes
+- services
+- middleware
+- authentication
+- business logic
+
+3. Supabase Integration
+- Supabase configuration
+- database connections
+- auth integration
+- storage integration
+
+4. Database Structure
+Determine if the project contains:
+
+- supabase/migrations
+- schema.sql
+- migration files
+- SQL functions
+- triggers
+- RLS policies
+
+Report what is currently version-controlled.
+
+5. Database Recoverability
+Can the entire database structure be recreated from the repository?
+
+Report:
+- Yes
+- Partially
+- No
+
+Explain why.
+
+6. Environment Variables Audit
+
+Identify required secrets:
+
+- SUPABASE_URL
+- SUPABASE_ANON_KEY
+- SUPABASE_SERVICE_ROLE_KEY
+- STRIPE_KEYS
+- EMAIL_KEYS
+- PAYMENT_KEYS
+
+Do NOT expose values.
+
+Only list required variables.
+
+7. Storage Audit
+
+Determine:
+
+- where product images are stored
+- where seller documents are stored
+- where uploads are stored
+
+Identify whether these files are backed up by Git.
+
+8. Marketplace Data Audit
+
+Identify data that exists only inside Supabase:
+
+- users
+- products
+- orders
+- reviews
+- messages
+- affiliate data
+- shipping data
+- RFQs
+
+Report what would be lost if Supabase disappeared today.
+
+9. GitHub Readiness
+
+Determine:
+
+- files excluded by .gitignore
+- large directories excluded
+- secrets excluded
+- deployment files excluded
+
+10. Recovery Assessment
+
+If this repository were cloned onto a new server tomorrow:
+
+Can Coastaq be fully restored?
+
+Provide:
+
+- recovery score out of 100
+- missing components
+- backup risks
+- recommendations
+
+11. Generate Backup Plan
+
+Provide step-by-step instructions for:
+
+- GitHub backup
+- Supabase schema backup
+- Supabase data backup
+- Supabase storage backup
+
+FINAL OUTPUT
+
+Generate a report showing:
+
+✓ What GitHub will contain
+✓ What GitHub will NOT contain
+✓ What needs separate backup
+✓ How to make Coastaq 100% recoverable
