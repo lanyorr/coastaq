@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Fragment } from "react";
 import { Link, useLocation } from "wouter";
 import { useGetMe } from "@workspace/api-client-react";
 import { Menu, X, LogOut, Home, ChevronRight } from "lucide-react";
@@ -12,6 +12,7 @@ export interface SidebarItem {
   icon: LucideIcon;
   badge?: number;
   exact?: boolean;
+  group?: string;  // Section heading; items with same group are visually grouped
 }
 
 interface DashboardLayoutProps {
@@ -30,6 +31,7 @@ const S = {
   cardBg:      "#1a1040",
   cardBdr:     "#281850",
   mutedTxt:    "#7b80b5",
+  dimTxt:      "#3d3566",
   hoverBg:     "rgba(255,255,255,0.05)",
 } as const;
 
@@ -55,84 +57,123 @@ export function DashboardLayout({
     window.location.href = "/";
   };
 
-  const NavItems = () => (
-    <ul className="flex-1 py-3 space-y-0.5 px-3 overflow-y-auto">
-      {items.map(({ href, label, icon: Icon, badge, exact }) => {
-        const active = exact ? location === href : location === href || location.startsWith(href + "/");
-        return (
-          <li key={href}>
-            <Link href={href}>
-              <a className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all",
-                active
-                  ? `${accentColor} text-white shadow-lg shadow-black/30`
-                  : `hover:text-white transition-colors`,
+  /* ── Breadcrumb derivation ── */
+  const currentItem = (() => {
+    // Exact match first, then longest prefix
+    const exact = items.find(i => i.exact ? location === i.href : location === i.href);
+    if (exact) return exact;
+    const prefix = [...items]
+      .filter(i => !i.exact && location.startsWith(i.href + "/"))
+      .sort((a, b) => b.href.length - a.href.length)[0];
+    return prefix ?? null;
+  })();
+
+  /* ── Sidebar nav items with section labels ── */
+  const NavItems = () => {
+    let lastGroup = "";
+    return (
+      <ul className="flex-1 py-2 space-y-0.5 px-3 overflow-y-auto">
+        {items.map(({ href, label, icon: Icon, badge, exact, group }) => {
+          const showGroup = !!group && group !== lastGroup;
+          if (group) lastGroup = group;
+          const active = exact
+            ? location === href
+            : location === href || location.startsWith(href + "/");
+          return (
+            <Fragment key={href}>
+              {showGroup && (
+                <li className="px-3 pt-3.5 pb-0.5">
+                  <p className="text-[9px] font-bold uppercase tracking-[0.12em]"
+                    style={{ color: S.dimTxt }}>
+                    {group}
+                  </p>
+                </li>
               )}
-              style={active ? {} : { color: S.mutedTxt }}
-              onMouseEnter={e => { if (!active) (e.currentTarget as HTMLElement).style.background = S.hoverBg; }}
-              onMouseLeave={e => { if (!active) (e.currentTarget as HTMLElement).style.background = ""; }}
-              >
-                <Icon className="w-4 h-4 shrink-0" />
-                <span className="flex-1">{label}</span>
-                {badge !== undefined && badge > 0 && (
-                  <span className={cn(
-                    "text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1",
-                    active ? "bg-white/25 text-white" : "bg-red-500 text-white",
-                  )}>
-                    {badge > 99 ? "99+" : badge}
-                  </span>
-                )}
-              </a>
-            </Link>
-          </li>
-        );
-      })}
-    </ul>
-  );
+              <li>
+                <Link href={href}>
+                  <a
+                    className={cn(
+                      "flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all",
+                      active
+                        ? `${accentColor} text-white shadow-lg shadow-black/30`
+                        : "hover:text-white transition-colors",
+                    )}
+                    style={active ? {} : { color: S.mutedTxt }}
+                    onMouseEnter={e => { if (!active) { (e.currentTarget as HTMLElement).style.background = S.hoverBg; } }}
+                    onMouseLeave={e => { if (!active) { (e.currentTarget as HTMLElement).style.background = ""; } }}
+                  >
+                    <Icon className="w-4 h-4 shrink-0" />
+                    <span className="flex-1 truncate">{label}</span>
+                    {badge !== undefined && badge > 0 && (
+                      <span className={cn(
+                        "text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1",
+                        active ? "bg-white/25 text-white" : "bg-red-500 text-white",
+                      )}>
+                        {badge > 99 ? "99+" : badge}
+                      </span>
+                    )}
+                  </a>
+                </Link>
+              </li>
+            </Fragment>
+          );
+        })}
+      </ul>
+    );
+  };
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full" style={{ background: S.sidebarBg, borderRight: `1px solid ${S.sidebarBdr}` }}>
-      {/* Brand */}
-      <div className="px-5 py-5 shrink-0" style={{ borderBottom: `1px solid ${S.sidebarBdr}` }}>
-        <div className="flex items-center gap-3">
-          {TitleIcon && (
-            <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center shrink-0", accentColor)}>
-              <TitleIcon style={{ width: 18, height: 18, color: "white" }} />
+      {/* Brand — links to homepage */}
+      <Link href="/">
+        <a className="block px-5 py-4 hover:opacity-90 transition-opacity shrink-0"
+          style={{ borderBottom: `1px solid ${S.sidebarBdr}` }}>
+          <div className="flex items-center gap-3">
+            {TitleIcon && (
+              <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center shrink-0", accentColor)}>
+                <TitleIcon style={{ width: 18, height: 18, color: "white" }} />
+              </div>
+            )}
+            <div>
+              <p className="text-white text-sm font-bold leading-tight">{title}</p>
+              <p className="text-[9px] tracking-widest uppercase mt-0.5" style={{ color: S.mutedTxt }}>Coastaq</p>
             </div>
-          )}
-          <div>
-            <p className="text-white text-sm font-bold leading-tight">{title}</p>
-            <p className="text-[10px] tracking-widest uppercase mt-0.5" style={{ color: S.mutedTxt }}>Coastaq</p>
           </div>
-        </div>
-      </div>
+        </a>
+      </Link>
 
       <NavItems />
 
       {/* Footer */}
       <div className="shrink-0 px-3 pt-2 pb-4" style={{ borderTop: `1px solid ${S.sidebarBdr}` }}>
         <Link href="/">
-          <a className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all"
+          <a
+            className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all"
             style={{ color: S.mutedTxt }}
             onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = S.hoverBg; (e.currentTarget as HTMLElement).style.color = "#fff"; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = ""; (e.currentTarget as HTMLElement).style.color = S.mutedTxt; }}>
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = ""; (e.currentTarget as HTMLElement).style.color = S.mutedTxt; }}
+          >
             <Home className="w-4 h-4 shrink-0" />
             Back to Store
           </a>
         </Link>
-        <button onClick={logout}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all mt-0.5"
+        <button
+          onClick={logout}
+          className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all mt-0.5"
           style={{ color: S.mutedTxt }}
           onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(239,68,68,0.1)"; (e.currentTarget as HTMLElement).style.color = "#f87171"; }}
-          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = ""; (e.currentTarget as HTMLElement).style.color = S.mutedTxt; }}>
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = ""; (e.currentTarget as HTMLElement).style.color = S.mutedTxt; }}
+        >
           <LogOut className="w-4 h-4 shrink-0" />
           Log out
         </button>
 
         {user && (
           <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl mt-1" style={{ background: S.hoverBg }}>
-            <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-white text-xs font-bold"
-              style={{ background: "linear-gradient(135deg, #2563eb, #7c3aed)" }}>
+            <div
+              className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-white text-xs font-bold"
+              style={{ background: "linear-gradient(135deg, #2563eb, #7c3aed)" }}
+            >
               {(user.name as string)?.[0]?.toUpperCase() ?? "?"}
             </div>
             <div className="flex-1 min-w-0">
@@ -147,27 +188,35 @@ export function DashboardLayout({
 
   return (
     <div className="min-h-screen flex" style={{ background: S.mainBg }}>
+      {/* Desktop sidebar */}
       <aside className="hidden lg:flex w-60 shrink-0 flex-col fixed inset-y-0 left-0 z-30">
         <SidebarContent />
       </aside>
 
+      {/* Mobile sidebar overlay */}
       {open && (
         <div className="lg:hidden fixed inset-0 z-40 flex">
           <div className="fixed inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setOpen(false)} />
           <div className="relative w-64 flex flex-col">
             <SidebarContent />
-            <button onClick={() => setOpen(false)}
+            <button
+              onClick={() => setOpen(false)}
               className="absolute top-3.5 right-3 p-1.5 rounded-lg transition-colors"
-              style={{ color: S.mutedTxt }}>
+              style={{ color: S.mutedTxt }}
+            >
               <X className="w-4 h-4" />
             </button>
           </div>
         </div>
       )}
 
+      {/* Main content */}
       <div className="flex-1 flex flex-col lg:ml-60 min-h-screen">
-        <header className="lg:hidden flex items-center gap-3 px-4 py-3 sticky top-0 z-20"
-          style={{ background: S.sidebarBg, borderBottom: `1px solid ${S.sidebarBdr}` }}>
+        {/* Mobile topbar */}
+        <header
+          className="lg:hidden flex items-center gap-3 px-4 py-3 sticky top-0 z-20"
+          style={{ background: S.sidebarBg, borderBottom: `1px solid ${S.sidebarBdr}` }}
+        >
           <button onClick={() => setOpen(true)} className="p-2 rounded-xl transition-colors" style={{ color: S.mutedTxt }}>
             <Menu className="w-5 h-5" />
           </button>
@@ -180,6 +229,36 @@ export function DashboardLayout({
         </header>
 
         <main className="flex-1 p-4 lg:p-8 max-w-7xl w-full mx-auto pb-20 lg:pb-8">
+          {/* Breadcrumb */}
+          {(title || currentItem) && (
+            <nav className="flex items-center gap-1.5 mb-5 text-xs select-none" aria-label="Breadcrumb">
+              <Link href="/">
+                <a className="flex items-center gap-1 hover:opacity-80 transition-opacity" style={{ color: S.mutedTxt }}>
+                  <Home className="w-3 h-3" />
+                  <span className="hidden sm:inline">Home</span>
+                </a>
+              </Link>
+              {title && (
+                <>
+                  <ChevronRight className="w-3 h-3" style={{ color: S.dimTxt }} />
+                  {currentItem ? (
+                    <Link href={items[0]?.href ?? "/"}>
+                      <a className="hover:opacity-80 transition-opacity" style={{ color: S.mutedTxt }}>{title}</a>
+                    </Link>
+                  ) : (
+                    <span className="font-semibold text-white">{title}</span>
+                  )}
+                </>
+              )}
+              {currentItem && (
+                <>
+                  <ChevronRight className="w-3 h-3" style={{ color: S.dimTxt }} />
+                  <span className="font-semibold text-white truncate max-w-[160px]">{currentItem.label}</span>
+                </>
+              )}
+            </nav>
+          )}
+
           {children}
         </main>
       </div>

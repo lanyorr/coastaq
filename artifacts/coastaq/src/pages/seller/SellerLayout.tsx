@@ -21,22 +21,31 @@ export function SellerLayout({ children }: { children: React.ReactNode }) {
   const unread = useSellerUnread();
 
   const items: SidebarItem[] = [
-    { href: "/seller",                label: "Overview",       icon: LayoutDashboard, exact: true },
-    { href: "/seller/products",       label: "Products",       icon: Package },
-    { href: "/seller/orders",         label: "Orders",         icon: ShoppingBag },
-    { href: "/seller/messages",       label: "Messages",       icon: MessageCircle, badge: unread },
-    { href: "/seller/earnings",       label: "Earnings",       icon: DollarSign },
-    { href: "/seller/shipping",        label: "Shipping",        icon: Truck },
-    { href: "/seller/shipping/rates",  label: "Ship Rates",      icon: BarChart3 },
-    { href: "/seller/shipping/issues", label: "Delivery Issues", icon: Flag },
-    { href: "/seller/verification",    label: "Verification",    icon: ShieldCheck },
-    { href: "/seller/verification/documents", label: "Documents",icon: FileText },
-    { href: "/seller/trust-score",     label: "Trust Score",     icon: Star },
-    { href: "/seller/import",          label: "Bulk Import",     icon: Upload },
-    { href: "/seller/import/history", label: "Import History", icon: History },
-    { href: "/seller/campaigns",      label: "Campaigns",      icon: Megaphone },
-    { href: "/seller/subscription",   label: "Subscription",   icon: CreditCard },
-    { href: "/seller/shop",           label: "Shop Settings",  icon: Settings },
+    /* ── Main ── */
+    { href: "/seller",          label: "Overview",        icon: LayoutDashboard, exact: true, group: "Main" },
+    { href: "/seller/products", label: "Products",        icon: Package,         group: "Main" },
+    { href: "/seller/orders",   label: "Orders",          icon: ShoppingBag,     group: "Main" },
+    { href: "/seller/messages", label: "Messages",        icon: MessageCircle,   badge: unread, group: "Main" },
+    { href: "/seller/earnings", label: "Earnings",        icon: DollarSign,      group: "Main" },
+
+    /* ── Shipping ── */
+    { href: "/seller/shipping",        label: "Shipments",      icon: Truck,    group: "Shipping" },
+    { href: "/seller/shipping/rates",  label: "Rates",          icon: BarChart3,group: "Shipping" },
+    { href: "/seller/shipping/issues", label: "Delivery Issues",icon: Flag,     group: "Shipping" },
+
+    /* ── Verification ── */
+    { href: "/seller/verification",          label: "Verification", icon: ShieldCheck, group: "Trust" },
+    { href: "/seller/verification/documents",label: "Documents",    icon: FileText,    group: "Trust" },
+    { href: "/seller/trust-score",           label: "Trust Score",  icon: Star,        group: "Trust" },
+
+    /* ── Tools ── */
+    { href: "/seller/import",         label: "Bulk Import",    icon: Upload,   group: "Tools" },
+    { href: "/seller/import/history", label: "Import History", icon: History,  group: "Tools" },
+    { href: "/seller/campaigns",      label: "Campaigns",      icon: Megaphone,group: "Tools" },
+
+    /* ── Account ── */
+    { href: "/seller/subscription", label: "Subscription",  icon: CreditCard, group: "Account" },
+    { href: "/seller/shop",         label: "Shop Settings", icon: Settings,   group: "Account" },
   ];
 
   return (

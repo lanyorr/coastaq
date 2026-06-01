@@ -22,6 +22,7 @@ import rolesRouter from "./roles.js";
 import importsRouter from "./imports.js";
 import shippingRouter from "./shipping.js";
 import verificationRouter from "./verification.js";
+import notificationsRouter from "./notifications.js";
 
 const router: IRouter = Router();
 
@@ -48,5 +49,6 @@ router.use("/roles", rolesRouter);
 router.use("/imports", importsRouter);
 router.use("/shipping", shippingRouter);
 router.use("/verification", verificationRouter);
+router.use("/notifications", notificationsRouter);
 
 export default router;

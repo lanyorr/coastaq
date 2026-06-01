@@ -1,6 +1,7 @@
 import { useListProducts, useListCategories } from "@workspace/api-client-react";
 import { ProductCard } from "@/components/product/ProductCard";
 import { Navbar } from "@/components/layout/Navbar";
+import { PersonalizedQuickBar } from "@/components/layout/PersonalizedQuickBar";
 import { Footer } from "@/components/layout/Footer";
 import { useLocation, useSearch } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -147,7 +148,8 @@ export default function Home() {
   return (
     <div className="min-h-screen flex flex-col bg-background pb-16 md:pb-0">
       <Navbar />
-      
+      <PersonalizedQuickBar />
+
       {/* Mobile category chips */}
       <div className="md:hidden border-b border-border/20 bg-background">
         <div className="flex gap-2 overflow-x-auto px-4 py-2 scrollbar-hide" style={{ WebkitOverflowScrolling: "touch" }}>

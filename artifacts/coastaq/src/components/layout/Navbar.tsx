@@ -6,6 +6,7 @@ import {
   TrendingUp, Link2, FileText, Info,
   LogOut, Settings, DollarSign, BarChart3, Home,
   Megaphone, Tag, BadgePercent, LifeBuoy, HelpCircle,
+  Bell, BellRing,
 } from "lucide-react";
 import { useGetMe, useLogout } from "@workspace/api-client-react";
 import { Input } from "@/components/ui/input";
@@ -177,6 +178,153 @@ function ActionIcon({
   );
 }
 
+/* ─── Notification Bell ─────────────────────────────────────────────────────── */
+interface AppNotification {
+  id: string;
+  type: string;
+  title: string;
+  body: string;
+  href: string;
+  read: boolean;
+  createdAt: string;
+  icon?: string;
+}
+
+function NotificationBell({ user }: { user: any }) {
+  const [, setLocation] = useLocation();
+  const [open, setOpen] = useState(false);
+  const [items, setItems] = useState<AppNotification[]>([]);
+  const [readIds, setReadIds] = useState<Set<string>>(new Set());
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!user) { setItems([]); return; }
+    const load = () =>
+      fetch("/api/notifications", {
+        headers: { Authorization: `Bearer ${localStorage.getItem("coastaq_token") ?? ""}` },
+      }).then(r => r.json()).then(d => { if (Array.isArray(d)) setItems(d); }).catch(() => {});
+    load();
+    const t = setInterval(load, 30000);
+    return () => clearInterval(t);
+  }, [user]);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    if (open) document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  const unread = items.filter(i => !i.read && !readIds.has(i.id)).length;
+
+  const markAllRead = () => setReadIds(new Set(items.map(i => i.id)));
+
+  const typeColor: Record<string, string> = {
+    order: "bg-blue-100 text-blue-600",
+    shipping: "bg-orange-100 text-orange-600",
+    verification: "bg-purple-100 text-purple-600",
+    document: "bg-yellow-100 text-yellow-700",
+    message: "bg-green-100 text-green-600",
+    system: "bg-gray-100 text-gray-500",
+  };
+
+  if (!user) return null;
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen(v => !v)}
+        className={cn(
+          "hidden sm:flex flex-col items-center gap-0.5 px-2.5 py-1.5 rounded-xl transition-colors relative group",
+          open ? "text-primary bg-primary/5" : "text-gray-500 hover:text-primary hover:bg-primary/5",
+        )}
+        title="Notifications"
+      >
+        <div className="relative">
+          {unread > 0 ? <BellRing className="w-5 h-5" /> : <Bell className="w-5 h-5" />}
+          {unread > 0 && (
+            <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[9px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-0.5 leading-none">
+              {unread > 9 ? "9+" : unread}
+            </span>
+          )}
+        </div>
+        <span className="text-[10px] font-medium leading-none group-hover:text-primary transition-colors">Alerts</span>
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-full mt-1 w-80 bg-white rounded-2xl border border-gray-100 shadow-2xl shadow-black/10 z-[200] overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+            <div className="flex items-center gap-2">
+              <Bell className="w-4 h-4 text-gray-500" />
+              <span className="font-semibold text-sm text-gray-900">Notifications</span>
+              {unread > 0 && (
+                <span className="bg-red-500 text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 leading-none">
+                  {unread}
+                </span>
+              )}
+            </div>
+            {unread > 0 && (
+              <button onClick={markAllRead} className="text-xs text-primary hover:underline font-medium">
+                Mark all read
+              </button>
+            )}
+          </div>
+
+          {items.length === 0 ? (
+            <div className="py-10 text-center">
+              <Bell className="w-8 h-8 text-gray-200 mx-auto mb-2" />
+              <p className="text-sm text-gray-400 font-medium">All caught up!</p>
+              <p className="text-xs text-gray-300 mt-0.5">No new notifications</p>
+            </div>
+          ) : (
+            <ul className="max-h-72 overflow-y-auto divide-y divide-gray-50">
+              {items.map(item => {
+                const isRead = item.read || readIds.has(item.id);
+                return (
+                  <li key={item.id}>
+                    <button
+                      className={cn(
+                        "w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors",
+                        !isRead && "bg-blue-50/40",
+                      )}
+                      onClick={() => {
+                        setReadIds(prev => new Set([...prev, item.id]));
+                        setOpen(false);
+                        setLocation(item.href);
+                      }}
+                    >
+                      <span className={cn("w-8 h-8 rounded-lg flex items-center justify-center text-sm shrink-0 font-medium", typeColor[item.type] ?? "bg-gray-100 text-gray-500")}>
+                        {item.icon ?? "🔔"}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p className={cn("text-sm font-medium leading-tight truncate", isRead ? "text-gray-600" : "text-gray-900")}>
+                          {item.title}
+                        </p>
+                        <p className="text-xs text-gray-400 mt-0.5 line-clamp-2">{item.body}</p>
+                      </div>
+                      {!isRead && <span className="w-2 h-2 rounded-full bg-primary shrink-0 mt-1.5" />}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+
+          <div className="border-t border-gray-100 px-4 py-2.5">
+            <button
+              onClick={() => { setOpen(false); setLocation("/seller/orders"); }}
+              className="text-xs text-primary hover:underline font-medium w-full text-center"
+            >
+              View all activity →
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ─── Main Navbar ───────────────────────────────────────────────────────────── */
 export function Navbar() {
   const [, setLocation] = useLocation();
@@ -307,6 +455,9 @@ export function Navbar() {
               onClick={() => authNav("/account/orders")}
             />
 
+            {/* Notification bell */}
+            <NotificationBell user={user} />
+
             {/* Sign In / User dropdown */}
             {user ? (
               <NavDropdown
@@ -340,10 +491,16 @@ export function Navbar() {
                     <DropItem icon={<Package className="w-4 h-4" />} label="My Orders" sub="Track purchases" href="/account/orders" onClick={close} />
                     <DropItem icon={<Heart className="w-4 h-4" />} label="Saved" sub="Bookmarked listings" href="/account/saved" onClick={close} />
                     <DropItem icon={<MessageCircle className="w-4 h-4" />} label="Messages" badge={unread > 0 ? `${unread}` : undefined} href="/messages" onClick={close} />
-                    {(isSeller || isAffiliate || isAdmin) && <DropSep />}
-                    {isSeller && <DropItem icon={<Store className="w-4 h-4" />} label="Seller Hub" sub="Products & earnings" href="/seller" onClick={close} accent />}
-                    {isAffiliate && <DropItem icon={<Link2 className="w-4 h-4" />} label="Affiliate Hub" sub="Links & commissions" href="/affiliate" onClick={close} accent />}
-                    {isAdmin && <DropItem icon={<BarChart3 className="w-4 h-4" />} label="Admin Panel" href="/admin" onClick={close} accent />}
+                    {(isSeller || isAffiliate || isAdmin) && (
+                      <>
+                        <DropSep />
+                        <DropHeader label="Switch Workspace" />
+                        <DropItem icon={<User className="w-4 h-4" />} label="Buyer Hub" sub="Orders & purchases" href="/account" onClick={close} />
+                        {isSeller && <DropItem icon={<Store className="w-4 h-4" />} label="Seller Hub" sub="Products & earnings" href="/seller" onClick={close} accent />}
+                        {isAffiliate && <DropItem icon={<Link2 className="w-4 h-4" />} label="Affiliate Hub" sub="Links & commissions" href="/affiliate" onClick={close} accent />}
+                        {isAdmin && <DropItem icon={<BarChart3 className="w-4 h-4" />} label="Admin Panel" sub="Manage marketplace" href="/admin" onClick={close} accent />}
+                      </>
+                    )}
                     <DropSep />
                     <DropItem icon={<Settings className="w-4 h-4" />} label="Settings" href="/account/settings" onClick={close} />
                     <button

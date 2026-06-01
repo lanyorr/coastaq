@@ -1,2 +1,4 @@
 - [Shipping module architecture](shipping-module.md) — new tables need SQL ALTER TABLE via psql; drizzle push is interactive and cannot be used non-interactively.
 - [DB connection split](db-connection.md) — executeSql tool hits local Postgres; API server + psql with $SUPABASE_POOLER_URL hit Supabase (the real DB). Always use psql for migrations.
+- [DashboardLayout sidebar grouping](dashboard-sidebar-grouping.md) — add `group?: string` to SidebarItem; render section labels when group changes; breadcrumbs auto-derived from items array.
+- [Notifications API pattern](notifications-api.md) — /api/notifications aggregates from orders/verification tables; returns computed (not stored) notifications; requires JWT auth.

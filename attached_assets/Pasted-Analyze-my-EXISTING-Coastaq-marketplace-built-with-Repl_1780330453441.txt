@@ -1,0 +1,460 @@
+Analyze my EXISTING Coastaq marketplace built with Replit + Supabase and perform a COMPLETE UX FLOW, NAVIGATION, AND WORKFLOW ENHANCEMENT across the platform.
+
+IMPORTANT:
+
+- DO NOT rebuild the marketplace
+- DO NOT redesign the database
+- DO NOT modify Supabase architecture unnecessarily
+- DO NOT recreate authentication
+- DO NOT change existing business logic
+- DO NOT change existing APIs
+- DO NOT break current functionality
+- Preserve all existing marketplace features
+
+GOAL:
+
+Make Coastaq feel like a premium, modern, enterprise marketplace with smooth navigation, intuitive workflows, consistent layouts, and seamless movement between pages.
+
+The objective is to reduce user confusion, reduce clicks, improve discoverability, improve usability, and create a consistent experience for Buyers, Sellers, Affiliates, and Admins.
+
+==================================================
+PHASE 1 — SYSTEM ANALYSIS
+==================================================
+
+Analyze the existing platform and identify:
+
+- navigation structure
+- page hierarchy
+- dashboard layouts
+- user journeys
+- buyer workflows
+- seller workflows
+- affiliate workflows
+- admin workflows
+- mobile experience
+- UX bottlenecks
+- confusing navigation
+- inconsistent layouts
+- dead-end pages
+- duplicate navigation patterns
+
+Generate a UX audit report before implementation.
+
+==================================================
+PHASE 2 — GLOBAL NAVIGATION SYSTEM
+==================================================
+
+Create a unified global navigation system.
+
+Requirements:
+
+Every page must have:
+
+TOP LEFT:
+- Coastaq Logo
+- Clicking logo ALWAYS navigates back to homepage
+
+Behavior:
+
+/seller/products
+→ Logo Click
+→ Homepage
+
+/account/orders
+→ Logo Click
+→ Homepage
+
+/affiliate/earnings
+→ Logo Click
+→ Homepage
+
+/admin
+→ Logo Click
+→ Homepage
+
+Requirements:
+- logo visible on desktop
+- logo visible on mobile
+- consistent placement
+- sticky header support
+
+==================================================
+PHASE 3 — UNIFIED HEADER
+==================================================
+
+Create one consistent header across the platform.
+
+Desktop Navigation:
+
+- Logo
+- Search
+- Categories
+- Suppliers
+- RFQs
+- Deals
+- Messages
+- Notifications
+- Profile
+
+Requirements:
+
+- same header architecture throughout the platform
+- responsive design
+- dropdown support
+- sticky navigation
+- fast loading
+
+==================================================
+PHASE 4 — BREADCRUMB NAVIGATION
+==================================================
+
+Add breadcrumbs throughout the platform.
+
+Examples:
+
+Home > Seller Dashboard > Products
+
+Home > Seller Dashboard > Products > Add Product
+
+Home > Affiliate Dashboard > Earnings
+
+Home > Buyer Dashboard > Orders
+
+Requirements:
+
+- auto-generated breadcrumbs
+- responsive layout
+- support deep navigation
+
+==================================================
+PHASE 5 — DASHBOARD CONSISTENCY
+==================================================
+
+Standardize all dashboard experiences.
+
+Buyer Dashboard
+
+- Dashboard
+- Orders
+- RFQs
+- Saved Products
+- Messages
+- Settings
+
+Seller Dashboard
+
+- Dashboard
+- Products
+- Orders
+- Shipping
+- Verification
+- CSV Imports
+- Analytics
+- Settings
+
+Affiliate Dashboard
+
+- Dashboard
+- Referral Links
+- Campaigns
+- Earnings
+- Payouts
+- Analytics
+- Settings
+
+Admin Dashboard
+
+- Dashboard
+- Sellers
+- Buyers
+- Affiliates
+- Orders
+- Verifications
+- Analytics
+- Settings
+
+Requirements:
+
+- same sidebar behavior
+- same spacing
+- same visual hierarchy
+- same interaction patterns
+
+==================================================
+PHASE 6 — ROLE SWITCHING SYSTEM
+==================================================
+
+Implement workspace switching.
+
+A user may have:
+
+- Buyer role
+- Seller role
+- Affiliate role
+
+Requirements:
+
+Profile Menu
+
+Switch Workspace
+
+- Buyer
+- Seller
+- Affiliate
+
+Allow instant switching without logging out.
+
+Remember last active workspace.
+
+==================================================
+PHASE 7 — HOMEPAGE PERSONALIZATION
+==================================================
+
+If user is logged in:
+
+Show personalized homepage content.
+
+Buyer:
+
+- Recent Orders
+- Recommended Products
+- RFQs
+
+Seller:
+
+- Store Performance
+- Orders
+- Product Management
+
+Affiliate:
+
+- Earnings
+- Campaigns
+- Top Products
+
+Requirements:
+
+- dynamic homepage sections
+- role-based recommendations
+- maintain performance
+
+==================================================
+PHASE 8 — QUICK ACTIONS
+==================================================
+
+Add quick actions throughout the platform.
+
+Buyer:
+
++ Create RFQ
+
+Seller:
+
++ Add Product
+
++ Bulk Upload
+
+Affiliate:
+
++ Generate Referral Link
+
+Admin:
+
++ Review Verifications
+
+Requirements:
+
+- reduce clicks
+- improve workflow speed
+
+==================================================
+PHASE 9 — SEARCH EXPERIENCE
+==================================================
+
+Improve search usability.
+
+Search should support:
+
+- Products
+- Suppliers
+- Categories
+- RFQs
+
+Features:
+
+- autocomplete
+- recent searches
+- popular searches
+- search suggestions
+
+==================================================
+PHASE 10 — PAGE FLOW OPTIMIZATION
+==================================================
+
+Analyze all workflows.
+
+Reduce:
+
+- unnecessary redirects
+- excessive page loads
+- duplicate forms
+- repetitive actions
+
+Where appropriate use:
+
+- modals
+- side panels
+- inline editing
+- expandable sections
+
+Goal:
+
+Minimize user friction.
+
+==================================================
+PHASE 11 — MOBILE UX ENHANCEMENT
+==================================================
+
+Optimize mobile experience.
+
+Requirements:
+
+Bottom Navigation:
+
+- Home
+- Categories
+- Messages
+- Orders
+- Account
+
+Mobile Features:
+
+- responsive menus
+- touch-friendly controls
+- mobile search
+- mobile breadcrumbs
+- swipe-friendly interactions
+
+==================================================
+PHASE 12 — ACCOUNT & PROFILE UX
+==================================================
+
+Improve account management.
+
+Requirements:
+
+Centralized profile center.
+
+Sections:
+
+- Profile
+- Security
+- Roles
+- Notifications
+- Verification
+- Subscription
+
+Allow users to manage all marketplace roles from one location.
+
+==================================================
+PHASE 13 — NOTIFICATION CENTER
+==================================================
+
+Create a unified notification center.
+
+Display:
+
+- Orders
+- RFQs
+- Messages
+- Shipping Updates
+- Affiliate Earnings
+- Verification Updates
+
+Requirements:
+
+- notification dropdown
+- notification page
+- unread counts
+- filtering
+
+==================================================
+PHASE 14 — VISUAL CONSISTENCY
+==================================================
+
+Standardize:
+
+- buttons
+- cards
+- forms
+- tables
+- colors
+- typography
+- spacing
+- icons
+
+Requirements:
+
+- professional marketplace appearance
+- modern design language
+- consistent components
+
+==================================================
+PHASE 15 — PERFORMANCE OPTIMIZATION
+==================================================
+
+Improve perceived speed.
+
+Requirements:
+
+- lazy loading
+- optimized navigation
+- route caching
+- reusable components
+- skeleton loaders
+- loading states
+
+Reduce unnecessary re-renders.
+
+==================================================
+PHASE 16 — USER EXPERIENCE IMPROVEMENTS
+==================================================
+
+Add:
+
+- back buttons where appropriate
+- success confirmations
+- progress indicators
+- onboarding guidance
+- empty states
+- helpful tooltips
+
+Reduce user confusion.
+
+==================================================
+FINAL DELIVERABLES
+==================================================
+
+Generate:
+
+1. UX audit report
+2. navigation architecture
+3. global header system
+4. homepage logo navigation
+5. breadcrumb system
+6. dashboard standardization
+7. workspace switching
+8. homepage personalization
+9. search enhancements
+10. workflow optimizations
+11. mobile UX improvements
+12. notification center
+13. visual design improvements
+14. performance improvements
+15. implementation roadmap
+
+IMPORTANT:
+
+This is a UX and navigation enhancement project ONLY.
+
+Preserve the existing Coastaq architecture and functionality while making the platform feel smoother, more intuitive, more professional, and easier to use.
