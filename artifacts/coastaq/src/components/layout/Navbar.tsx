@@ -1,13 +1,14 @@
 import { Link, useLocation } from "wouter";
 import {
   Search, User, Store, LayoutDashboard, MessageCircle,
-  Menu, X, ShoppingBag, Plus, ChevronDown, ExternalLink,
+  Menu, X, ShoppingBag, ShoppingCart, Plus, ChevronDown, ExternalLink,
   Globe, Smartphone, Heart, Package, Shield,
   TrendingUp, Link2, FileText, Info,
   LogOut, Settings, DollarSign, BarChart3, Home,
   Megaphone, Tag, BadgePercent, LifeBuoy, HelpCircle,
   Bell, BellRing,
 } from "lucide-react";
+import { useCart } from "@/store/use-cart";
 import { useGetMe, useLogout } from "@workspace/api-client-react";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect, useRef, useCallback } from "react";
@@ -174,6 +175,29 @@ function ActionIcon({
         )}
       </div>
       <span className="text-[10px] font-medium leading-none group-hover:text-primary transition-colors">{label}</span>
+    </button>
+  );
+}
+
+/* ─── Cart Icon with badge ──────────────────────────────────────────────────── */
+function CartIcon() {
+  const [, setLocation] = useLocation();
+  const itemCount = useCart(s => s.getItemCount());
+  return (
+    <button
+      onClick={() => setLocation("/cart")}
+      className="hidden sm:flex flex-col items-center gap-0.5 px-2.5 py-1.5 rounded-xl text-gray-500 hover:text-primary hover:bg-primary/5 transition-colors relative group"
+      title="Cart"
+    >
+      <div className="relative">
+        <ShoppingCart className="w-5 h-5" />
+        {itemCount > 0 && (
+          <span className="absolute -top-1.5 -right-1.5 bg-orange-500 text-white text-[9px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-0.5 leading-none">
+            {itemCount > 9 ? "9+" : itemCount}
+          </span>
+        )}
+      </div>
+      <span className="text-[10px] font-medium leading-none group-hover:text-primary transition-colors">Cart</span>
     </button>
   );
 }
@@ -447,6 +471,9 @@ export function Navbar() {
               badge={unread}
               onClick={() => authNav("/messages")}
             />
+
+            {/* Cart */}
+            <CartIcon />
 
             {/* Orders */}
             <ActionIcon

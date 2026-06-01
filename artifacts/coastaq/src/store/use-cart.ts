@@ -1,6 +1,15 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { CartItem } from '@workspace/api-client-react';
+
+export interface CartItem {
+  productId: string;
+  quantity: number;
+  price: number;
+  title: string;
+  shopId: string;
+  image?: string;
+  shopName?: string;
+}
 
 interface CartState {
   items: CartItem[];

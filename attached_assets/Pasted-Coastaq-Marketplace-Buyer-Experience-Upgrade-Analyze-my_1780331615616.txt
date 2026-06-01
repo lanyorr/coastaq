@@ -1,0 +1,326 @@
+Coastaq Marketplace Buyer Experience Upgrade
+
+Analyze my EXISTING Coastaq marketplace built with Replit + Supabase and improve the BUYER ORDERING EXPERIENCE without rebuilding the platform.
+
+IMPORTANT:
+
+* DO NOT rebuild the marketplace
+* DO NOT redesign the database unnecessarily
+* DO NOT change authentication
+* DO NOT modify seller workflows significantly
+* DO NOT change existing products architecture
+* Preserve existing orders, products, sellers, affiliates and dashboards
+* Extend the current system only
+
+GOAL:
+
+Transform Coastaq into a simple, ecommerce-first marketplace where buyers can quickly browse products, add items to cart, place orders, checkout, pay, and track shipments.
+
+The buying experience should feel similar to modern ecommerce platforms while still supporting marketplace sellers.
+
+==================================================
+STEP 1 — ANALYZE EXISTING BUYER WORKFLOW
+========================================
+
+Analyze:
+
+* product browsing
+* product details pages
+* shopping cart
+* checkout flow
+* order management
+* messaging system
+* shipping workflow
+* notifications
+
+Identify:
+
+* unnecessary clicks
+* confusing navigation
+* abandoned checkout risks
+* workflow bottlenecks
+* poor mobile experiences
+
+Generate recommendations before implementation.
+
+==================================================
+STEP 2 — SIMPLIFIED BUYER JOURNEY
+=================================
+
+Implement the following workflow:
+
+Browse Products
+↓
+Add To Cart
+↓
+Shopping Cart
+↓
+Proceed To Checkout
+↓
+Payment
+↓
+Order Confirmation
+↓
+Track Order
+↓
+Delivery
+
+Requirements:
+
+* minimal steps
+* mobile friendly
+* fast checkout
+* modern UX
+
+==================================================
+STEP 3 — PRODUCT PAGE ENHANCEMENT
+=================================
+
+Enhance product pages.
+
+Display:
+
+* product images
+* product description
+* price
+* stock availability
+* supplier name
+* seller verification badge
+* trust score
+* shipping estimate
+
+Primary buttons:
+
+[Add To Cart]
+[Buy Now]
+
+Secondary button:
+
+[Message Seller]
+
+Messaging should be optional and should never block purchases.
+
+==================================================
+STEP 4 — SHOPPING CART IMPROVEMENTS
+===================================
+
+Create a modern cart experience.
+
+Features:
+
+* update quantity
+* remove items
+* save for later
+* seller grouping if needed
+* shipping estimate
+* subtotal calculation
+
+Primary action:
+
+[Proceed To Checkout]
+
+Requirements:
+
+* responsive design
+* real-time updates
+* persistent cart storage
+
+==================================================
+STEP 5 — CHECKOUT OPTIMIZATION
+==============================
+
+Create a streamlined checkout.
+
+Collect:
+
+* shipping address
+* phone number
+* delivery method
+* payment method
+
+Requirements:
+
+* minimize form fields
+* mobile-friendly
+* progress indicators
+* clear order summary
+
+Actions:
+
+[Place Order]
+
+==================================================
+STEP 6 — PAYMENT FLOW
+=====================
+
+Preserve existing payment architecture.
+
+Improve UX only.
+
+Requirements:
+
+* clear payment selection
+* payment confirmation
+* failed payment handling
+* success page
+
+Order should be created immediately after successful payment.
+
+==================================================
+STEP 7 — BUYER DASHBOARD SIMPLIFICATION
+=======================================
+
+Buyer Dashboard should contain:
+
+* Dashboard
+* Orders
+* Wishlist
+* Messages
+* Addresses
+* Settings
+
+Remove clutter.
+
+Focus on simplicity and usability.
+
+==================================================
+STEP 8 — ORDER MANAGEMENT
+=========================
+
+Create a clean order tracking experience.
+
+Order statuses:
+
+* Pending
+* Processing
+* Shipped
+* Delivered
+* Cancelled
+
+Display:
+
+Order Number
+Seller
+Amount
+Date
+Status
+
+Action:
+
+[View Order]
+
+==================================================
+STEP 9 — SHIPPING TRACKING
+==========================
+
+Integrate tracking into order details.
+
+Display:
+
+Courier
+Tracking Number
+Shipment Status
+
+Action:
+
+[Track Package]
+
+Requirements:
+
+* tracking information visible
+* clean layout
+* mobile responsive
+
+Initially support manual tracking numbers entered by sellers.
+
+==================================================
+STEP 10 — MESSAGING SYSTEM IMPROVEMENT
+======================================
+
+Allow buyers to contact sellers from:
+
+* Product Page
+* Seller Store
+* Order Details
+* Messages Center
+
+Common use cases:
+
+* product questions
+* shipping inquiries
+* bulk order discussions
+
+Messaging must remain optional.
+
+Never force communication before checkout.
+
+==================================================
+STEP 11 — NOTIFICATIONS
+=======================
+
+Buyer notifications:
+
+* Order Confirmed
+* Order Processing
+* Shipped
+* Delivered
+* Message Received
+
+Support:
+
+* in-app notifications
+* email notifications
+
+==================================================
+STEP 12 — MOBILE EXPERIENCE
+===========================
+
+Optimize for mobile devices.
+
+Requirements:
+
+* touch-friendly controls
+* responsive checkout
+* responsive cart
+* responsive order tracking
+* mobile navigation
+
+Reduce scrolling and unnecessary clicks.
+
+==================================================
+STEP 13 — UX POLISH
+===================
+
+Implement:
+
+* loading states
+* success confirmations
+* error handling
+* empty states
+* skeleton loaders
+* modern UI patterns
+
+Make the platform feel fast and professional.
+
+==================================================
+FINAL DELIVERABLES
+==================
+
+Generate:
+
+1. buyer workflow analysis
+2. optimized buyer journey
+3. improved product page UX
+4. enhanced shopping cart
+5. streamlined checkout
+6. order tracking improvements
+7. messaging improvements
+8. buyer dashboard simplification
+9. mobile optimization
+10. implementation roadmap
+
+IMPORTANT:
+
+Preserve existing Coastaq architecture and functionality.
+
+Focus on improving buyer conversion rates, simplicity, navigation, and overall user experience without rebuilding the platform.

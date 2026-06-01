@@ -720,6 +720,40 @@ function OrderTimeline({ status, paymentStatus }: { status: string; paymentStatu
 
 export { OrderTimeline };
 
+// ── Checkout step indicator ────────────────────────────────────────────────────
+function CheckoutSteps({ activeStep }: { activeStep: 1 | 2 | 3 }) {
+  const steps = [
+    { n: 1, label: "Shipping" },
+    { n: 2, label: "Payment" },
+    { n: 3, label: "Confirm" },
+  ];
+  return (
+    <div className="flex items-center gap-0 mb-8">
+      {steps.map((step, i) => (
+        <div key={step.n} className="flex items-center">
+          <div className="flex items-center gap-2">
+            <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-colors ${
+              step.n < activeStep
+                ? "bg-primary border-primary text-white"
+                : step.n === activeStep
+                  ? "bg-primary border-primary text-white ring-4 ring-primary/20"
+                  : "bg-background border-border text-muted-foreground"
+            }`}>
+              {step.n < activeStep ? <CheckCircle2 className="w-3.5 h-3.5" /> : step.n}
+            </div>
+            <span className={`text-sm font-medium hidden sm:block ${step.n <= activeStep ? "text-foreground" : "text-muted-foreground"}`}>
+              {step.label}
+            </span>
+          </div>
+          {i < steps.length - 1 && (
+            <div className={`h-0.5 w-8 sm:w-16 mx-2 sm:mx-3 rounded ${step.n < activeStep ? "bg-primary" : "bg-border"}`} />
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ── Main page ──────────────────────────────────────────────────────────────────
 export default function Checkout() {
   const search = useSearch();
@@ -732,7 +766,7 @@ export default function Checkout() {
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
       <main className="flex-1 container mx-auto px-4 py-8 max-w-5xl">
-        <div className="mb-6 flex items-center gap-3">
+        <div className="mb-5 flex items-center gap-3">
           <button
             onClick={() => window.history.back()}
             className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -747,6 +781,7 @@ export default function Checkout() {
             </span>
           </div>
         </div>
+        <CheckoutSteps activeStep={1} />
         {productId ? (
           <ProductCheckout productId={productId} initialQty={qty} />
         ) : (

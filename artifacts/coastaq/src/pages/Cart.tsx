@@ -3,7 +3,7 @@ import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
 import { useCart } from "@/store/use-cart";
-import { ShoppingCart, Trash2, Plus, Minus, Package, Shield, ArrowRight } from "lucide-react";
+import { ShoppingCart, Trash2, Plus, Minus, Package, Shield, ArrowRight, Store, Heart } from "lucide-react";
 import { useLocale } from "@/lib/locale/context";
 
 const PLATFORM_FEE_RATE = 0.05;
@@ -19,6 +19,31 @@ export default function Cart() {
 
   const subtotal = getTotal();
   const total = subtotal;
+  const totalItems = items.reduce((s, i) => s + i.quantity, 0);
+
+  const handleSaveForLater = (productId: string) => {
+    const item = items.find(i => i.productId === productId);
+    if (!item) return;
+    try {
+      const existing: any[] = JSON.parse(localStorage.getItem("coastaq_saved") || "[]");
+      const alreadySaved = existing.some(s => s.productId === productId);
+      if (!alreadySaved) {
+        localStorage.setItem("coastaq_saved", JSON.stringify([
+          ...existing,
+          { productId: item.productId, title: item.title, price: item.price, shopName: item.shopName || "", image: item.image || "", savedAt: new Date().toISOString() },
+        ]));
+      }
+    } catch { /* silent */ }
+    removeItem(productId);
+  };
+
+  // Group items by seller
+  const grouped = items.reduce<Record<string, typeof items>>((acc, item) => {
+    const key = item.shopId || "unknown";
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(item);
+    return acc;
+  }, {});
 
   if (items.length === 0) {
     return (
@@ -36,7 +61,7 @@ export default function Cart() {
             <Button className="rounded-xl px-8" onClick={() => setLocation("/")}>
               {t("cart.browseListing")}
             </Button>
-            <Button variant="outline" className="rounded-xl px-8" onClick={() => setLocation("/buyer/dashboard")}>
+            <Button variant="outline" className="rounded-xl px-8" onClick={() => setLocation("/account/orders")}>
               {t("cart.myOrders")}
             </Button>
           </div>
@@ -49,13 +74,13 @@ export default function Cart() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
-      <main className="flex-1 container mx-auto px-4 py-8 max-w-4xl">
+      <main className="flex-1 container mx-auto px-4 py-8 max-w-5xl">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-display font-bold text-foreground flex items-center gap-2">
             <ShoppingCart className="w-6 h-6 text-primary" />
             {t("cart.title")}
             <span className="text-sm font-normal text-muted-foreground bg-secondary px-2.5 py-0.5 rounded-full ml-1">
-              {items.reduce((s, i) => s + i.quantity, 0)} item{items.reduce((s, i) => s + i.quantity, 0) !== 1 ? "s" : ""}
+              {totalItems} item{totalItems !== 1 ? "s" : ""}
             </span>
           </h1>
           <button
@@ -67,47 +92,78 @@ export default function Cart() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Cart items */}
-          <div className="lg:col-span-2 space-y-3">
-            {items.map(item => (
-              <div key={item.productId} className="bg-card border border-border/50 rounded-2xl p-4 flex items-center gap-4">
-                <div className="w-16 h-16 rounded-xl bg-secondary flex items-center justify-center shrink-0">
-                  <Package className="w-6 h-6 text-muted-foreground" />
+          {/* Cart items — grouped by seller */}
+          <div className="lg:col-span-2 space-y-4">
+            {Object.entries(grouped).map(([shopId, shopItems]) => {
+              const shopName = shopItems[0]?.shopName;
+              return (
+                <div key={shopId} className="bg-card border border-border/50 rounded-2xl overflow-hidden">
+                  {shopName && (
+                    <div className="flex items-center gap-2 px-4 py-3 border-b border-border/40 bg-secondary/40">
+                      <Store className="w-3.5 h-3.5 text-muted-foreground" />
+                      <span className="text-xs font-semibold text-muted-foreground">{shopName}</span>
+                    </div>
+                  )}
+                  <div className="divide-y divide-border/40">
+                    {shopItems.map(item => (
+                      <div key={item.productId} className="p-4 flex items-center gap-4">
+                        {/* Product image */}
+                        <div className="w-16 h-16 rounded-xl bg-secondary flex items-center justify-center shrink-0 overflow-hidden">
+                          {item.image ? (
+                            <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
+                          ) : (
+                            <Package className="w-6 h-6 text-muted-foreground" />
+                          )}
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-sm text-foreground line-clamp-2">{item.title}</p>
+                          <p className="text-primary font-bold text-sm mt-0.5">
+                            {formatPrice(item.price)} each
+                          </p>
+                          <button
+                            onClick={() => handleSaveForLater(item.productId)}
+                            className="mt-1 text-[11px] text-muted-foreground hover:text-primary transition-colors flex items-center gap-0.5"
+                          >
+                            <Heart className="w-3 h-3" /> Save for later
+                          </button>
+                        </div>
+
+                        {/* Quantity controls */}
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button
+                            onClick={() => updateQuantity(item.productId, item.quantity - 1)}
+                            className="w-7 h-7 rounded-lg border border-border flex items-center justify-center hover:bg-secondary transition-colors"
+                          >
+                            <Minus className="w-3 h-3" />
+                          </button>
+                          <span className="w-6 text-center text-sm font-semibold">{item.quantity}</span>
+                          <button
+                            onClick={() => updateQuantity(item.productId, item.quantity + 1)}
+                            className="w-7 h-7 rounded-lg border border-border flex items-center justify-center hover:bg-secondary transition-colors"
+                          >
+                            <Plus className="w-3 h-3" />
+                          </button>
+                        </div>
+
+                        {/* Line total + remove */}
+                        <div className="text-right shrink-0 min-w-[64px]">
+                          <p className="font-bold text-primary text-sm">
+                            {formatPrice(item.price * item.quantity)}
+                          </p>
+                          <button
+                            onClick={() => removeItem(item.productId)}
+                            className="text-[11px] text-muted-foreground hover:text-red-600 transition-colors mt-0.5 flex items-center gap-0.5 ml-auto"
+                          >
+                            <Trash2 className="w-3 h-3" /> Remove
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-sm text-foreground line-clamp-2">{item.title}</p>
-                  <p className="text-primary font-bold text-sm mt-0.5">
-                    {formatPrice(item.price)} each
-                  </p>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <button
-                    onClick={() => updateQuantity(item.productId, item.quantity - 1)}
-                    className="w-7 h-7 rounded-lg border border-border flex items-center justify-center hover:bg-secondary transition-colors"
-                  >
-                    <Minus className="w-3 h-3" />
-                  </button>
-                  <span className="w-6 text-center text-sm font-semibold">{item.quantity}</span>
-                  <button
-                    onClick={() => updateQuantity(item.productId, item.quantity + 1)}
-                    className="w-7 h-7 rounded-lg border border-border flex items-center justify-center hover:bg-secondary transition-colors"
-                  >
-                    <Plus className="w-3 h-3" />
-                  </button>
-                </div>
-                <div className="text-right shrink-0 min-w-[60px]">
-                  <p className="font-bold text-primary text-sm">
-                    {formatPrice(item.price * item.quantity)}
-                  </p>
-                  <button
-                    onClick={() => removeItem(item.productId)}
-                    className="text-[11px] text-muted-foreground hover:text-red-600 transition-colors mt-0.5 flex items-center gap-0.5 ml-auto"
-                  >
-                    <Trash2 className="w-3 h-3" /> Remove
-                  </button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Order summary */}
@@ -116,12 +172,16 @@ export default function Cart() {
               <h3 className="font-semibold text-foreground">{t("cart.orderSummary")}</h3>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">{t("cart.subtotal")}</span>
+                  <span className="text-muted-foreground">{t("cart.subtotal")} ({totalItems} item{totalItems !== 1 ? "s" : ""})</span>
                   <span className="font-medium">{formatPrice(subtotal)}</span>
                 </div>
                 <div className="flex justify-between text-xs">
                   <span className="text-muted-foreground">{t("cart.escrowFee")}</span>
                   <span className="text-muted-foreground">{t("cart.escrowFeeIncluded")}</span>
+                </div>
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>Shipping</span>
+                  <span>Calculated at checkout</span>
                 </div>
                 <div className="border-t border-border/60 pt-2 flex justify-between font-bold text-base">
                   <span>{t("cart.total")}</span>

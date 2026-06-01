@@ -37,6 +37,7 @@ import AccountOrders from "@/pages/account/AccountOrders";
 import AccountMessages from "@/pages/account/AccountMessages";
 import AccountSaved from "@/pages/account/AccountSaved";
 import AccountSettings from "@/pages/account/AccountSettings";
+import AccountAddresses from "@/pages/account/AccountAddresses";
 
 import SellerOverview from "@/pages/seller/index";
 import SellerProductsPage from "@/pages/seller/SellerProductsPage";
@@ -143,6 +144,9 @@ function Router() {
       </Route>
       <Route path="/account/settings">
         {() => <ProtectedRoute roles={["BUYER", "SELLER", "AFFILIATE", "ADMIN"]} component={AccountSettings} />}
+      </Route>
+      <Route path="/account/addresses">
+        {() => <ProtectedRoute roles={["BUYER", "SELLER", "AFFILIATE", "ADMIN"]} component={AccountAddresses} />}
       </Route>
 
       {/* ── Backward-compat redirects ──────────────────────────────────────── */}

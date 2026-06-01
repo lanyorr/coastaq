@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { DashboardLayout, type SidebarItem } from "@/components/dashboard/DashboardLayout";
 import {
   LayoutDashboard, ShoppingBag, MessageCircle,
-  Heart, Settings, User,
+  Heart, Settings, User, MapPin,
 } from "lucide-react";
 
 function useUnreadCount() {
@@ -22,11 +22,12 @@ export function AccountLayout({ children }: { children: React.ReactNode }) {
   const unread = useUnreadCount();
 
   const items: SidebarItem[] = [
-    { href: "/account",          label: "Overview",  icon: LayoutDashboard, exact: true },
-    { href: "/account/orders",   label: "Orders",    icon: ShoppingBag },
-    { href: "/account/messages", label: "Messages",  icon: MessageCircle, badge: unread },
-    { href: "/account/saved",    label: "Saved",     icon: Heart },
-    { href: "/account/settings", label: "Settings",  icon: Settings },
+    { href: "/account",            label: "Overview",   icon: LayoutDashboard, exact: true, group: "Dashboard" },
+    { href: "/account/orders",     label: "Orders",     icon: ShoppingBag,    group: "Shopping" },
+    { href: "/account/saved",      label: "Wishlist",   icon: Heart,          group: "Shopping" },
+    { href: "/account/messages",   label: "Messages",   icon: MessageCircle,  badge: unread, group: "Communication" },
+    { href: "/account/addresses",  label: "Addresses",  icon: MapPin,         group: "Account" },
+    { href: "/account/settings",   label: "Settings",   icon: Settings,       group: "Account" },
   ];
 
   return (
